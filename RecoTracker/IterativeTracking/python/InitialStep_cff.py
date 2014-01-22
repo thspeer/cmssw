@@ -7,6 +7,7 @@ from RecoLocalTracker.SiPixelRecHits.PixelCPEESProducers_cff import *
 from RecoTracker.TransientTrackingRecHit.TTRHBuilders_cff import *
 
 initialStepClusters = cms.EDProducer("TrackClusterRemover",
+                                     debug= cms.bool(False),
                                      clusterLessSolution= cms.bool(True),
                                      pixelClusters = cms.InputTag("siPixelClusters"),
                                      stripClusters = cms.InputTag("siStripClusters"),
@@ -14,7 +15,7 @@ initialStepClusters = cms.EDProducer("TrackClusterRemover",
                                      stripRecHits = cms.string('siStripMatchedRecHits'),
                                      Common = cms.PSet(
                                        maxChi2 = cms.double(9.0),
-                                       minGoodStripCharge = cms.double(50.0)
+                                       minGoodStripCharge = cms.double(0.15625)
                                       )
                                      )
 # SEEDING LAYERS
