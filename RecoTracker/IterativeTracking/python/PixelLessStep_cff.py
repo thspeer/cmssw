@@ -68,12 +68,19 @@ pixelLessStepSeeds.RegionFactoryPSet.RegionPSet.originHalfLength = 15.0
 pixelLessStepSeeds.RegionFactoryPSet.RegionPSet.originRadius = 2.5
 pixelLessStepSeeds.SeedCreatorPSet.OriginTransverseErrorMultiplier = 2.0
 
+import RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi
+pixelLessStepClusterShapeHitFilter  = RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi.ClusterShapeHitFilterESProducer.clone(
+	ComponentName = cms.string('pixelLessStepClusterShapeHitFilter'),
+        PixelShapeFile= cms.string('RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape.par'),
+	minGoodStripCharge = cms.double(2414)
+	)
+
 pixelLessStepSeeds.SeedComparitorPSet = cms.PSet(
         ComponentName = cms.string('PixelClusterShapeSeedComparitor'),
         FilterAtHelixStage = cms.bool(True),
         FilterPixelHits = cms.bool(False),
         FilterStripHits = cms.bool(True),
-        ClusterShapeHitFilterName = cms.string('ClusterShapeHitFilter')
+        ClusterShapeHitFilterName = cms.string('pixelLessStepClusterShapeHitFilter')
     )
 
 # QUALITY CUTS DURING TRACK BUILDING

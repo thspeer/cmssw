@@ -58,6 +58,15 @@ tobTecStepSeedLayers = cms.ESProducer("SeedingLayersESProducer",
     )
 )
 # SEEDS
+
+import RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi
+tobTecStepClusterShapeHitFilter  = RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi.ClusterShapeHitFilterESProducer.clone(
+	ComponentName = cms.string('tobTecStepClusterShapeHitFilter'),
+        PixelShapeFile= cms.string('RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape.par'),
+	minGoodStripCharge = cms.double(2414)
+	)
+
+
 import RecoTracker.TkSeedGenerator.GlobalMixedSeeds_cff
 tobTecStepSeeds = RecoTracker.TkSeedGenerator.GlobalMixedSeeds_cff.globalMixedSeeds.clone()
 tobTecStepSeeds.OrderedHitsFactoryPSet.SeedingLayers = 'tobTecStepSeedLayers'
@@ -66,6 +75,13 @@ tobTecStepSeeds.RegionFactoryPSet.RegionPSet.originHalfLength = 30.0
 tobTecStepSeeds.RegionFactoryPSet.RegionPSet.originRadius = 6.0
 tobTecStepSeeds.SeedCreatorPSet.OriginTransverseErrorMultiplier = 2.0
 
+tobTecStepSeeds.SeedComparitorPSet = cms.PSet(
+        ComponentName = cms.string('PixelClusterShapeSeedComparitor'),
+        ClusterShapeHitFilterName = cms.string('tobTecStepClusterShapeHitFilter'),
+        FilterPixelHits = cms.bool(False),
+        FilterStripHits = cms.bool(True),
+        FilterAtHelixStage = cms.bool(False)
+    )
 
 # QUALITY CUTS DURING TRACK BUILDING (for inwardss and outwards track building steps)
 import TrackingTools.TrajectoryFiltering.TrajectoryFilterESProducer_cfi

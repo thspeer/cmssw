@@ -69,7 +69,7 @@ mixedTripletStepSeedsA.SeedComparitorPSet = cms.PSet(
         FilterAtHelixStage = cms.bool(False),
         FilterPixelHits = cms.bool(True),
         FilterStripHits = cms.bool(True),
-        ClusterShapeHitFilterName = cms.string('ClusterShapeHitFilter')
+        ClusterShapeHitFilterName = cms.string('mixedTripletStepBClusterShapeHitFilter')
     )
 
 # SEEDING LAYERS
@@ -104,12 +104,19 @@ mixedTripletStepSeedsB.RegionFactoryPSet.RegionPSet.ptMin = 0.6
 mixedTripletStepSeedsB.RegionFactoryPSet.RegionPSet.originHalfLength = 10.0
 mixedTripletStepSeedsB.RegionFactoryPSet.RegionPSet.originRadius = 1.5
 
+import RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi
+mixedTripletStepBClusterShapeHitFilter  = RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi.ClusterShapeHitFilterESProducer.clone(
+	ComponentName = cms.string('mixedTripletStepBClusterShapeHitFilter'),
+        PixelShapeFile= cms.string('RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape.par'),
+	minGoodStripCharge = cms.double(2069)
+	)
+	
 mixedTripletStepSeedsB.SeedComparitorPSet = cms.PSet(
         ComponentName = cms.string('PixelClusterShapeSeedComparitor'),
         FilterAtHelixStage = cms.bool(False),
         FilterPixelHits = cms.bool(True),
         FilterStripHits = cms.bool(True),
-        ClusterShapeHitFilterName = cms.string('ClusterShapeHitFilter')
+        ClusterShapeHitFilterName = cms.string('mixedTripletStepBClusterShapeHitFilter')
     )
 
 import RecoTracker.TkSeedGenerator.GlobalCombinedSeeds_cfi
