@@ -64,12 +64,20 @@ mixedTripletStepSeedsA.RegionFactoryPSet.RegionPSet.ptMin = 0.4
 mixedTripletStepSeedsA.RegionFactoryPSet.RegionPSet.originHalfLength = 15.0
 mixedTripletStepSeedsA.RegionFactoryPSet.RegionPSet.originRadius = 1.5
 
+import RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi
+mixedTripletStepClusterShapeHitFilter  = RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi.ClusterShapeHitFilterESProducer.clone(
+	ComponentName = cms.string('mixedTripletStepBClusterShapeHitFilter'),
+        PixelShapeFile= cms.string('RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape.par'),
+	minGoodStripCharge = cms.double(2069)
+	)
+	
+
 mixedTripletStepSeedsA.SeedComparitorPSet = cms.PSet(
         ComponentName = cms.string('PixelClusterShapeSeedComparitor'),
         FilterAtHelixStage = cms.bool(False),
         FilterPixelHits = cms.bool(True),
         FilterStripHits = cms.bool(True),
-        ClusterShapeHitFilterName = cms.string('mixedTripletStepBClusterShapeHitFilter')
+        ClusterShapeHitFilterName = cms.string('mixedTripletStepClusterShapeHitFilter')
     )
 
 # SEEDING LAYERS
@@ -104,19 +112,12 @@ mixedTripletStepSeedsB.RegionFactoryPSet.RegionPSet.ptMin = 0.6
 mixedTripletStepSeedsB.RegionFactoryPSet.RegionPSet.originHalfLength = 10.0
 mixedTripletStepSeedsB.RegionFactoryPSet.RegionPSet.originRadius = 1.5
 
-import RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi
-mixedTripletStepBClusterShapeHitFilter  = RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi.ClusterShapeHitFilterESProducer.clone(
-	ComponentName = cms.string('mixedTripletStepBClusterShapeHitFilter'),
-        PixelShapeFile= cms.string('RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape.par'),
-	minGoodStripCharge = cms.double(2069)
-	)
-	
 mixedTripletStepSeedsB.SeedComparitorPSet = cms.PSet(
         ComponentName = cms.string('PixelClusterShapeSeedComparitor'),
         FilterAtHelixStage = cms.bool(False),
         FilterPixelHits = cms.bool(True),
         FilterStripHits = cms.bool(True),
-        ClusterShapeHitFilterName = cms.string('mixedTripletStepBClusterShapeHitFilter')
+        ClusterShapeHitFilterName = cms.string('mixedTripletStepClusterShapeHitFilter')
     )
 
 import RecoTracker.TkSeedGenerator.GlobalCombinedSeeds_cfi
