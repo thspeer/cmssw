@@ -102,18 +102,7 @@ class TrackClusterRemover : public edm::EDProducer {
   std::vector<bool> collectedStrips_;
   std::vector<bool> collectedPixels_;
 
-  inline float sensorsThickness (const SiStripDetId& detid) const {return (320.+180.*thickSensors(detid));}
-  
-  bool thickSensors (const SiStripDetId& detid) const
-  {
-    if (detid.subdetId()==SiStripDetId::TOB) return true;
-    if (detid.moduleGeometry()==SiStripDetId::W5 || detid.moduleGeometry()==SiStripDetId::W6 ||
-        detid.moduleGeometry()==SiStripDetId::W7)
-	return true;
-    return false; // so it is TEC ring 1-4 or TIB or TOB;
-  }
-
-
+  float sensorThickness (const SiStripDetId& detid) const;
 
 };
 
@@ -233,7 +222,7 @@ void TrackClusterRemover::mergeOld(ClusterRemovalInfo::Indices &refs,
        }
 }
 
- 
+
 template<typename T> 
 auto_ptr<edmNew::DetSetVector<T> >
 TrackClusterRemover::cleanup(const edmNew::DetSetVector<T> &oldClusters, const std::vector<uint8_t> &isGood, 
@@ -275,6 +264,17 @@ TrackClusterRemover::cleanup(const edmNew::DetSetVector<T> &oldClusters, const s
     return output;
 }
 
+float TrackClusterRemover::sensorThickness (const SiStripDetId& detid) const
+{
+  if (detid.subdetId()>2) {
+    if (detid.subdetId()==SiStripDetId::TOB) return 0.047;
+    if (detid.moduleGeometry()==SiStripDetId::W5 || detid.moduleGeometry()==SiStripDetId::W6 ||
+        detid.moduleGeometry()==SiStripDetId::W7)
+	return 0.047;
+    return 0.029; // so it is TEC ring 1-4 or TIB or TOB;
+  } else if (detid.subdetId()==1) return 0.0285;
+  else return 0.027;
+}
 
 void TrackClusterRemover::process(OmniClusterRef const & ocluster, SiStripDetId & detid, bool fromTrack) {
     SiStripRecHit2D::ClusterRef cluster = ocluster.cluster_strip();
@@ -290,7 +290,7 @@ void TrackClusterRemover::process(OmniClusterRef const & ocluster, SiStripDetId 
     for( std::vector<uint8_t>::const_iterator iAmp = cluster->amplitudes().begin(); iAmp != cluster->amplitudes().end(); ++iAmp){
       clusCharge += *iAmp;
     }
-    if (pblocks_[subdet-1].cutOnStripCharge_ && (clusCharge > (pblocks_[subdet-1].minGoodStripCharge_*sensorsThickness(detid)))) return;
+    if (pblocks_[subdet-1].cutOnStripCharge_ && (clusCharge > (pblocks_[subdet-1].minGoodStripCharge_*sensorThickness(detid)))) return;
   }
   strips[cluster.key()] = false;  
   //if (!clusterWasteSolution_) collectedStrip[hit->geographicalId()].insert(cluster);

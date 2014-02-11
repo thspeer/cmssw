@@ -19,7 +19,7 @@ detachedTripletStepClusters = cms.EDProducer("TrackClusterRemover",
     stripRecHits = cms.string('siStripMatchedRecHits'),
     Common = cms.PSet(
         maxChi2 = cms.double(9.0),
-        minGoodStripCharge = cms.double(0.1875)
+        minGoodStripCharge = cms.double(2069)
     )
 )
 

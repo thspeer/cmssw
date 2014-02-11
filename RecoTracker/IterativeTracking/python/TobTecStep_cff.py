@@ -23,7 +23,7 @@ tobTecStepSeedClusters = tobTecStepClusters.clone(
     stripRecHits = cms.string('siStripMatchedRecHits'),
     Common = cms.PSet(
         maxChi2 = cms.double(9.0),
-        minGoodStripCharge = cms.double(0.21875)
+        minGoodStripCharge = cms.double(2414)
     )
 )
 
