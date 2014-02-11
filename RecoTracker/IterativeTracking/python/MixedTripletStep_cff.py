@@ -66,7 +66,7 @@ mixedTripletStepSeedsA.RegionFactoryPSet.RegionPSet.originRadius = 1.5
 
 import RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi
 mixedTripletStepClusterShapeHitFilter  = RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi.ClusterShapeHitFilterESProducer.clone(
-	ComponentName = cms.string('mixedTripletStepBClusterShapeHitFilter'),
+	ComponentName = cms.string('mixedTripletStepClusterShapeHitFilter'),
         PixelShapeFile= cms.string('RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape.par'),
 	minGoodStripCharge = cms.double(2069)
 	)
