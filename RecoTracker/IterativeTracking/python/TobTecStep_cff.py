@@ -80,7 +80,7 @@ tobTecStepSeeds.SeedComparitorPSet = cms.PSet(
         ClusterShapeHitFilterName = cms.string('tobTecStepClusterShapeHitFilter'),
         FilterPixelHits = cms.bool(False),
         FilterStripHits = cms.bool(True),
-        FilterAtHelixStage = cms.bool(False)
+        FilterAtHelixStage = cms.bool(True)
     )
 
 # QUALITY CUTS DURING TRACK BUILDING (for inwardss and outwards track building steps)
