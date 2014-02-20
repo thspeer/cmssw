@@ -16,12 +16,13 @@
  ************************************************************/
 
 //#include <vector>
-#include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/ESHandle.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+#include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 //--- for SimHit
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
@@ -56,11 +57,14 @@ class TrackerHitAssociator {
  public:
   
   // Simple constructor
-  TrackerHitAssociator(const edm::Event& e);
+  TrackerHitAssociator(edm::ConsumesCollector && iC);
   // Constructor with configurables
-  TrackerHitAssociator(const edm::Event& e, const edm::ParameterSet& conf);
+  TrackerHitAssociator(const edm::ParameterSet& conf, edm::ConsumesCollector && iC);
   // Destructor
   virtual ~TrackerHitAssociator(){}
+
+  void init(const edm::Event& e);
+
   
   std::vector<PSimHit> associateHit(const TrackingRecHit & thit);
   /*  std::vector<unsigned int> associateHitId(const TrackingRecHit & thit);
@@ -101,15 +105,15 @@ class TrackerHitAssociator {
   std::vector<PSimHit> thePixelHits;
  
  private:
-  const edm::Event& myEvent_;
-  typedef std::vector<std::string> vstring;
-  vstring trackerContainers;
+  std::vector<edm::EDGetTokenT<CrossingFrame<PSimHit> > > trackerContainers;
 
   //ADDED NOW AS A PRIVATE MEMBER
   edm::Handle<CrossingFrame<PSimHit> > cf_simhit;
   std::vector<const CrossingFrame<PSimHit> *> cf_simhitvec;
   MixCollection<PSimHit>  TrackerHits;
 
+  edm::EDGetTokenT<edm::DetSetVector<PixelDigiSimLink> > _pixelSimLinkSrc;
+  edm::EDGetTokenT<edm::DetSetVector<StripDigiSimLink> > _stripSimLinkSrc;
   edm::Handle< edm::DetSetVector<StripDigiSimLink> >  stripdigisimlink;
   edm::Handle< edm::DetSetVector<PixelDigiSimLink> >  pixeldigisimlink;
   //vector with the trackIds
@@ -117,7 +121,7 @@ class TrackerHitAssociator {
   std::vector<SimHitIdpr> simtrackid; 
   //vector with the simhits
   std::vector<int> simhitCFPos;
-  std::vector<PSimHit> simhitassoc;
+//   std::vector<PSimHit> simhitassoc;
   bool StripHits;
   
   bool doPixel_, doStrip_, doTrackAssoc_;

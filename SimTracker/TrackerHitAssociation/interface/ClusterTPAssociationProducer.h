@@ -13,6 +13,10 @@
 #include "DataFormats/DetId/interface/DetId.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
+#include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
+#include "DataFormats/SiStripCluster/interface/SiStripCluster.h"
+#include "SimDataFormats/TrackerDigiSimLink/interface/StripDigiSimLink.h"
+#include "SimDataFormats/TrackerDigiSimLink/interface/PixelDigiSimLink.h"
 
 class EncodedEventId;
 
@@ -36,10 +40,11 @@ private:
   getSimTrackId(const edm::Handle<edm::DetSetVector<T> >& simLinks, const DetId& detId, uint32_t channel) const;
 
   bool _verbose;
-  edm::InputTag _pixelSimLinkSrc;
-  edm::InputTag _stripSimLinkSrc;
-  edm::InputTag _pixelClusterSrc;
-  edm::InputTag _stripClusterSrc;
-  edm::InputTag _trackingParticleSrc;
+  edm::EDGetTokenT<edm::DetSetVector<PixelDigiSimLink> > _pixelSimLinkSrc;
+  edm::EDGetTokenT<edm::DetSetVector<StripDigiSimLink> > _stripSimLinkSrc;
+  edm::EDGetTokenT<edmNew::DetSetVector<SiPixelCluster> > _pixelClusterSrc;
+  edm::EDGetTokenT<edmNew::DetSetVector<SiStripCluster> > _stripClusterSrc;
+  edm::EDGetTokenT<TrackingParticleCollection> _trackingParticleSrc;
 };
+
 #endif
