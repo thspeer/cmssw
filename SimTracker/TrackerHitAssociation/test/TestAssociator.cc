@@ -95,7 +95,7 @@ using namespace edm;
       DetId detid = ((*it)->geographicalId());
       
       //construct the associator object
-      TrackerHitAssociator  associate(e,conf_);
+      associate->init(e);
       
       if(myid!=999999999){ //if is valid detector
 
@@ -118,7 +118,7 @@ using namespace edm;
 	      	      cout << pixelcounter <<") Pixel RecHit DetId " << detid.rawId() << " Pos = " << pixeliter->localPosition() << endl;
 	    }
 	    matched.clear();
-	    matched = associate.associateHit(*pixeliter);
+	    matched = associate->associateHit(*pixeliter);
 	    if(!matched.empty()){
 	      cout << " PIX detector =  " << myid << " PIX Rechit = " << pixeliter->localPosition() << endl; 
 	      cout << " PIX matched = " << matched.size() << endl;
@@ -145,7 +145,7 @@ using namespace edm;
 	    float dist;
 	    PSimHit closest;
 	    matched.clear();
-	    matched = associate.associateHit(rechit);
+	    matched = associate->associateHit(rechit);
 	    if(!matched.empty()){
 	      cout << " RPHI Strip detector =  " << myid << " Rechit = " << rechit.localPosition() << endl; 
 	      if(matched.size()>1) cout << " matched = " << matched.size() << endl;
@@ -176,7 +176,7 @@ using namespace edm;
 	    float dist;
 	    PSimHit closest;
 	    matched.clear();
-	    matched = associate.associateHit(rechit);
+	    matched = associate->associateHit(rechit);
 	    if(!matched.empty()){
 	      cout << " SAS Strip detector =  " << myid << " Rechit = " << rechit.localPosition() << endl; 
 	      if(matched.size()>1) cout << " matched = " << matched.size() << endl;
@@ -209,7 +209,7 @@ using namespace edm;
 	    float dist  = 9999999;
 	    PSimHit closest;
 	    matched.clear();
-	    matched = associate.associateHit(rechit);
+	    matched = associate->associateHit(rechit);
 	    if(!matched.empty()){
 	      cout << " MTC Strip detector =  " << myid << " Rechit = " << rechit.localPosition() << endl; 
 	      if(matched.size()>1) cout << " matched = " << matched.size() << endl;
@@ -241,7 +241,8 @@ TestAssociator::TestAssociator(edm::ParameterSet const& conf) :
   doPixel_( conf.getParameter<bool>("associatePixel") ),
   doStrip_( conf.getParameter<bool>("associateStrip") ) {
   cout << " Constructor " << endl;
- 
+  associate =  new TrackerHitAssociator(conf, consumesCollector());
+
 }
 
   TestAssociator::~TestAssociator() 

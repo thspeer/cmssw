@@ -14,6 +14,7 @@ myTrackAnalyzer::myTrackAnalyzer(edm::ParameterSet const& conf) :
   doPixel_( conf.getParameter<bool>("associatePixel") ),
   doStrip_( conf.getParameter<bool>("associateStrip") ),
   trackCollectionTag_(conf.getParameter<edm::InputTag>("trackCollectionTag")) {
+  associate =  new TrackerHitAssociator(conf, consumesCollector());
 }
 
 myTrackAnalyzer::~myTrackAnalyzer()
@@ -51,7 +52,7 @@ void myTrackAnalyzer::analyze(const edm::Event& event, const edm::EventSetup& se
     if(!doPixel_ && !doStrip_)  throw edm::Exception(errors::Configuration,"Strip and pixel association disabled");
     //NEW
     std::vector<PSimHit> matched;
-    TrackerHitAssociator associate(event, conf_);
+    associate->init(event);
     std::vector<unsigned int> SimTrackIds;
 
     const reco::TrackCollection tC = *(trackCollection.product());
@@ -85,7 +86,7 @@ void myTrackAnalyzer::analyze(const edm::Event& event, const edm::EventSetup& se
 	  float dist;
 	  PSimHit closest;
 	  matched.clear();	  
-	  matched = associate.associateHit((**it));
+	  matched = associate->associateHit((**it));
 	  if(!matched.empty()){
 	    cout << "\t\t\tmatched  " << matched.size() << endl;
 	    for(vector<PSimHit>::const_iterator m=matched.begin(); m<matched.end(); m++){

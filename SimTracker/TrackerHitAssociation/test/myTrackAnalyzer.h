@@ -58,6 +58,7 @@ class myTrackAnalyzer : public edm::EDAnalyzer {
   edm::ParameterSet conf_;
   bool doPixel_, doStrip_;
   edm::InputTag trackCollectionTag_;
+  TrackerHitAssociator * associate ;
 };
 
 #endif
