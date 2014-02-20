@@ -5,6 +5,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/Common/interface/Ref.h"
 #include "SimTracker/TrackerHitAssociation/interface/TrackerHitAssociator.h"
@@ -17,6 +18,7 @@
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 #include "SimDataFormats/EncodedEventId/interface/EncodedEventId.h"
 #include "SimTracker/TrackAssociation/interface/TrackAssociatorBase.h"
+#include "SimGeneral/TrackingAnalysis/interface/SimHitTPAssociationProducer.h"
 
 class TrackAssociatorByHits : public TrackAssociatorBase {
   
@@ -24,7 +26,7 @@ class TrackAssociatorByHits : public TrackAssociatorBase {
 
   enum SimToRecoDenomType {denomnone,denomsim,denomreco};
 
-  explicit TrackAssociatorByHits( const edm::ParameterSet& );  
+  explicit TrackAssociatorByHits( const edm::ParameterSet&, edm::ConsumesCollector && iC );  
   ~TrackAssociatorByHits();
   
   /* Associate SimTracks to RecoTracks By Hits */
@@ -103,7 +105,8 @@ class TrackAssociatorByHits : public TrackAssociatorBase {
   const TrackingRecHit* getHitPtr(edm::OwnVector<TrackingRecHit>::const_iterator iter) const {return &*iter;}
   const TrackingRecHit* getHitPtr(trackingRecHit_iterator iter) const {return &**iter;}
 
-  edm::InputTag _simHitTpMapTag;
+  edm::EDGetTokenT<SimHitTPAssociationProducer::SimHitTPAssociationList> _simHitTpMapToken;
+  TrackerHitAssociator * associate;
 };
 
 #endif
