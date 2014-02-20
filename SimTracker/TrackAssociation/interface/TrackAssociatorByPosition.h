@@ -14,6 +14,7 @@
 #include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "TrackingTools/GeomPropagators/interface/Propagator.h"
 #include "Geometry/CommonDetUnit/interface/GlobalTrackingGeometry.h"
@@ -34,7 +35,7 @@ class TrackAssociatorByPosition : public TrackAssociatorBase {
   /// Constructor with propagator and PSet
    TrackAssociatorByPosition(const edm::ParameterSet& iConfig,
 			     const TrackingGeometry * geo, 
-			     const Propagator * prop){
+			     const Propagator * prop, edm::ConsumesCollector && iC){
      theGeometry = geo;
      thePropagator = prop;
      theMinIfNoMatch = iConfig.getParameter<bool>("MinIfNoMatch");
@@ -50,7 +51,7 @@ class TrackAssociatorByPosition : public TrackAssociatorBase {
        edm::LogError("TrackAssociatorByPosition")<<meth<<" mothed not recognized. Use dr or chi2.";     }
 
      theConsiderAllSimHits = iConfig.getParameter<bool>("ConsiderAllSimHits");
-     _simHitTpMapTag = iConfig.getParameter<edm::InputTag>("simHitTpMapTag");
+     _simHitTpMapTag = iC.mayConsume<SimHitTPAssociationProducer::SimHitTPAssociationList>(iConfig.getParameter<edm::InputTag>("simHitTpMapTag"));
    };
 
 
@@ -88,7 +89,8 @@ class TrackAssociatorByPosition : public TrackAssociatorBase {
   
   FreeTrajectoryState getState(const reco::Track &) const;
   TrajectoryStateOnSurface getState(const TrackingParticleRef&, const SimHitTPAssociationProducer::SimHitTPAssociationList& simHitsTPAssoc)const;
-  edm::InputTag _simHitTpMapTag;
+  edm::EDGetTokenT<SimHitTPAssociationProducer::SimHitTPAssociationList> _simHitTpMapTag;
+
 };
 
 #endif

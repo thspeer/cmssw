@@ -120,7 +120,7 @@ RecoToSimCollection TrackAssociatorByPosition::associateRecoToSim(const edm::Ref
   edm::Handle<SimHitTPAssociationProducer::SimHitTPAssociationList> simHitsTPAssoc;
 
   //warning: make sure the TP collection used in the map is the same used in the associator!
-  e->getByLabel(_simHitTpMapTag,simHitsTPAssoc);
+  e->getByToken(_simHitTpMapTag,simHitsTPAssoc);
 
   for (unsigned int Ti=0; Ti!=tCH.size();++Ti){
     //initial state (initial OR inner OR outter)
@@ -174,7 +174,7 @@ SimToRecoCollection TrackAssociatorByPosition::associateSimToReco(const edm::Ref
   edm::Handle<SimHitTPAssociationProducer::SimHitTPAssociationList> simHitsTPAssoc;
 
   //warning: make sure the TP collection used in the map is the same used in the associator!
-  e->getByLabel(_simHitTpMapTag,simHitsTPAssoc);
+  e->getByToken(_simHitTpMapTag,simHitsTPAssoc);
 
   for (unsigned int TPi=0;TPi!=tPCH.size();++TPi){
     //get a state in the muon system

@@ -175,7 +175,7 @@ RecoToSimCollection TrackAssociatorByChi2::associateRecoToSim(const edm::RefToBa
 							      const edm::Event * e,
                                                               const edm::EventSetup *setup ) const{
   edm::Handle<reco::BeamSpot> recoBeamSpotHandle;
-  e->getByLabel(bsSrc,recoBeamSpotHandle);
+  e->getByToken(bsSrc,recoBeamSpotHandle);
   reco::BeamSpot bs = *recoBeamSpotHandle;      
 
   RecoToSimCollection  outputCollection;
@@ -232,7 +232,7 @@ SimToRecoCollection TrackAssociatorByChi2::associateSimToReco(const edm::RefToBa
 							      const edm::Event * e,
                                                               const edm::EventSetup *setup ) const {
   edm::Handle<reco::BeamSpot> recoBeamSpotHandle;
-  e->getByLabel(bsSrc,recoBeamSpotHandle);
+  e->getByToken(bsSrc,recoBeamSpotHandle);
   reco::BeamSpot bs = *recoBeamSpotHandle;      
 
   SimToRecoCollection  outputCollection;
@@ -290,7 +290,7 @@ RecoToGenCollection TrackAssociatorByChi2::associateRecoToGen(const edm::RefToBa
 							      const edm::Event * e,
                                                               const edm::EventSetup *setup ) const{
   edm::Handle<reco::BeamSpot> recoBeamSpotHandle;
-  e->getByLabel(bsSrc,recoBeamSpotHandle);
+  e->getByToken(bsSrc,recoBeamSpotHandle);
   reco::BeamSpot bs = *recoBeamSpotHandle;      
 
   RecoToGenCollection  outputCollection;
@@ -348,7 +348,7 @@ GenToRecoCollection TrackAssociatorByChi2::associateGenToReco(const edm::RefToBa
 							      const edm::EventSetup *setup ) const {
 
   edm::Handle<reco::BeamSpot> recoBeamSpotHandle;
-  e->getByLabel(bsSrc,recoBeamSpotHandle);
+  e->getByToken(bsSrc,recoBeamSpotHandle);
   reco::BeamSpot bs = *recoBeamSpotHandle;      
 
   GenToRecoCollection  outputCollection;

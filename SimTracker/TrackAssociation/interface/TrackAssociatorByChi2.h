@@ -21,6 +21,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include<map>
 
@@ -45,10 +46,12 @@ class TrackAssociatorByChi2 : public TrackAssociatorBase {
   typedef std::vector< RecoToSimPair > RecoToSimPairAssociation;
 
   /// Constructor with PSet
-  TrackAssociatorByChi2(const edm::ESHandle<MagneticField> mF, const edm::ParameterSet& conf):
+  TrackAssociatorByChi2(const edm::ESHandle<MagneticField> mF, const edm::ParameterSet& conf,
+  	edm::ConsumesCollector && iC):
     chi2cut(conf.getParameter<double>("chi2cut")),
-    onlyDiagonal(conf.getParameter<bool>("onlyDiagonal")),
-    bsSrc(conf.getParameter<edm::InputTag>("beamSpot")) {
+    onlyDiagonal(conf.getParameter<bool>("onlyDiagonal")) {
+    bsSrc = iC.mayConsume<reco::BeamSpot>(conf.getParameter<edm::InputTag>("beamSpot"));
+
     theMF=mF;  
     if (onlyDiagonal)
       edm::LogInfo("TrackAssociator") << " ---- Using Off Diagonal Covariance Terms = 0 ---- " <<  "\n";
@@ -57,7 +60,7 @@ class TrackAssociatorByChi2 : public TrackAssociatorBase {
   }
 
   /// Constructor with magnetic field, double, bool and InputTag
-  TrackAssociatorByChi2(const edm::ESHandle<MagneticField> mF, double chi2Cut, bool onlyDiag, const edm::InputTag& beamspotSrc){
+  TrackAssociatorByChi2(const edm::ESHandle<MagneticField> mF, double chi2Cut, bool onlyDiag, const edm::EDGetTokenT<reco::BeamSpot>& beamspotSrc){
     chi2cut=chi2Cut;
     onlyDiagonal=onlyDiag;
     theMF=mF;  
@@ -178,7 +181,8 @@ class TrackAssociatorByChi2 : public TrackAssociatorBase {
   edm::ESHandle<MagneticField> theMF;
   double chi2cut;
   bool onlyDiagonal;
-  edm::InputTag bsSrc;
+  edm::EDGetTokenT<reco::BeamSpot> bsSrc;
+
 };
 
 #endif
