@@ -4,6 +4,7 @@
 #include "SimTracker/TrackAssociation/interface/TrackAssociatorBase.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/TrackerRecHit2D/interface/OmniClusterRef.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "SimTracker/TrackerHitAssociation/interface/ClusterTPAssociationProducer.h"
 //#include "SimTracker/TrackerHitAssociation/plugins/Cluster2TPMapProducer.h"
@@ -59,7 +60,7 @@ class TrackerHitAssociator;
 class QuickTrackAssociatorByHits : public TrackAssociatorBase
 {
 public:
-	QuickTrackAssociatorByHits( const edm::ParameterSet& config );
+	QuickTrackAssociatorByHits( const edm::ParameterSet& config, edm::ConsumesCollector && iC );
 	~QuickTrackAssociatorByHits();
 	QuickTrackAssociatorByHits( const QuickTrackAssociatorByHits& otherAssociator );
 	QuickTrackAssociatorByHits& operator=( const QuickTrackAssociatorByHits& otherAssociator );
@@ -201,6 +202,7 @@ private:
         // Added by S. Sarkar
         mutable bool useClusterTPAssociation_;
 	edm::InputTag cluster2TPSrc_;
+	edm::EDGetTokenT<ClusterTPAssociationList> cluster2TPToken_;
 	mutable ClusterTPAssociationList pCluster2TPList_;
 }; // end of the QuickTrackAssociatorByHits class
 

@@ -14,7 +14,8 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
-QuickTrackAssociatorByHits::QuickTrackAssociatorByHits( const edm::ParameterSet& config )
+QuickTrackAssociatorByHits::QuickTrackAssociatorByHits( const edm::ParameterSet& config,
+	edm::ConsumesCollector && iC )
 	: pHitAssociator_(nullptr), pEventForWhichAssociatorIsValid_(nullptr),
 	  absoluteNumberOfHits_( config.getParameter<bool>( "AbsoluteNumberOfHits" ) ),
 	  qualitySimToReco_( config.getParameter<double>( "Quality_SimToReco" ) ),
@@ -60,6 +61,10 @@ QuickTrackAssociatorByHits::QuickTrackAssociatorByHits( const edm::ParameterSet&
 	{
 		edm::LogWarning("QuickTrackAssociatorByHits") << "UseGrouped and/or UseSplitting has been set to false, but this associator ignores that setting.";
 	}
+	if (useClusterTPAssociation_)
+	  cluster2TPToken_ = iC.consumes<ClusterTPAssociationList>(cluster2TPSrc_);
+	pHitAssociator_=new TrackerHitAssociator( hitAssociatorParameters_, std::move(iC) );
+
 }
 
 QuickTrackAssociatorByHits::~QuickTrackAssociatorByHits()
@@ -368,7 +373,7 @@ void QuickTrackAssociatorByHits::prepareCluster2TPMap(const edm::Event* pEvent) 
 {
   //get the Cluster2TPList
   edm::Handle<ClusterTPAssociationList> pCluster2TPListH;
-  pEvent->getByLabel(cluster2TPSrc_, pCluster2TPListH);
+  pEvent->getByToken(cluster2TPToken_, pCluster2TPListH);
   if (pCluster2TPListH.isValid()) {
     pCluster2TPList_ = *(pCluster2TPListH.product());
     //make sure it is properly sorted
@@ -591,14 +596,12 @@ void QuickTrackAssociatorByHits::initialiseHitAssociator( const edm::Event* pEve
 	// (since in general associateSimToReco and associateRecoToSim are called for the same
 	// event). I was doing this by recording the event pointer and checking it hasn't changed
 	// but this doesn't appear to work. Until I find a way of uniquely identifying an event
-	// I'll just create it anew each time.
+	// I'll just init it anew each time.
 //	if( pEventForWhichAssociatorIsValid_==pEvent && pEventForWhichAssociatorIsValid_!=null ) return; // Already set up so no need to do anything
 
-	// Free up the previous instantiation
-	delete pHitAssociator_;
 
 	// Create a new instantiation using the new event
-	pHitAssociator_=new TrackerHitAssociator( *pEvent, hitAssociatorParameters_ );
+	pHitAssociator_->init(*pEvent);
 	pEventForWhichAssociatorIsValid_=pEvent;
 }
 
