@@ -31,14 +31,14 @@ class StripCompactDigiSimLinksProducer : public edm::EDProducer {
         virtual void produce(edm::Event&, const edm::EventSetup&) override;
 
     private:
-        edm::InputTag src_;
+	edm::EDGetTokenT<edm::DetSetVector<StripDigiSimLink> > src_;
         uint32_t      maxHoleSize_;
 };
 
 StripCompactDigiSimLinksProducer::StripCompactDigiSimLinksProducer(const edm::ParameterSet &iConfig) :
-    src_(iConfig.getParameter<edm::InputTag>("src")),
     maxHoleSize_(iConfig.getParameter<uint32_t>("maxHoleSize"))
 {
+    src_ = consumes<edm::DetSetVector<StripDigiSimLink> >(iConfig.getParameter< edm::InputTag >("src"));
     produces<StripCompactDigiSimLinks>();
 }
 
@@ -51,7 +51,7 @@ StripCompactDigiSimLinksProducer::produce(edm::Event & iEvent, const edm::EventS
 {
     using namespace edm;
     Handle<DetSetVector<StripDigiSimLink> > src;
-    iEvent.getByLabel(src_, src);
+    iEvent.getByToken(src_, src);
 
     StripCompactDigiSimLinks::Filler output;
 

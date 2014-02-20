@@ -8,21 +8,6 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/Common/interface/Association.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-
-namespace edm { class ParameterSet; }
-
-class MCTrackMatcher : public edm::EDProducer {
- public:
-  /// constructor
-  MCTrackMatcher( const edm::ParameterSet & );
-
- private:
-  void produce( edm::Event& evt, const edm::EventSetup& es ) override;
-  std::string associator_;
-  edm::InputTag tracks_, genParticles_, trackingParticles_;
-  typedef edm::Association<reco::GenParticleCollection> GenParticleMatch;
-};
-
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -35,11 +20,31 @@ using namespace edm;
 using namespace std;
 using namespace reco;
 
+namespace edm { class ParameterSet; }
+
+class MCTrackMatcher : public edm::EDProducer {
+ public:
+  /// constructor
+  MCTrackMatcher( const edm::ParameterSet & );
+
+ private:
+  void produce( edm::Event& evt, const edm::EventSetup& es ) override;
+  std::string associator_;
+  edm::EDGetTokenT<edm::View<reco::Track> > trToken;
+  edm::EDGetTokenT<TrackingParticleCollection> tpToken;
+  edm::EDGetTokenT<vector<int> > bcToken;
+  edm::EDGetTokenT<GenParticleCollection> gpToken;
+  typedef edm::Association<reco::GenParticleCollection> GenParticleMatch;
+};
+
+
 MCTrackMatcher::MCTrackMatcher(const ParameterSet & p) :
-  associator_(p.getParameter<string>("associator")),
-  tracks_(p.getParameter<InputTag>("tracks")),
-  genParticles_( p.getParameter<InputTag>("genParticles")),
-  trackingParticles_( p.getParameter<InputTag>("trackingParticles")) {
+  associator_(p.getParameter<string>("associator"))
+{
+  trToken = consumes<edm::View<reco::Track> >(p.getParameter< edm::InputTag >("tracks"));
+  tpToken = consumes<TrackingParticleCollection>(p.getParameter< edm::InputTag >("label_tp"));
+  bcToken = consumes<vector<int> >(p.getParameter< edm::InputTag >("label_tr"));
+  gpToken = consumes<GenParticleCollection>(p.getParameter< edm::InputTag >("label_tp"));
   produces<GenParticleMatch>();
 }
 
@@ -48,13 +53,13 @@ void MCTrackMatcher::produce(Event& evt, const EventSetup& es) {
   es.get<TrackAssociatorRecord>().get(associator_,assoc);
   const TrackAssociatorBase * associator = assoc.product();
   Handle<View<Track> > tracks;
-  evt.getByLabel(tracks_, tracks);
+  evt.getByToken(trToken, tracks);
   Handle<TrackingParticleCollection> trackingParticles;
-  evt.getByLabel(trackingParticles_,trackingParticles);
+  evt.getByToken(tpToken,trackingParticles);
   Handle<vector<int> > barCodes;
-  evt.getByLabel(genParticles_,barCodes );
+  evt.getByToken(bcToken,barCodes );
   Handle<GenParticleCollection> genParticles;
-  evt.getByLabel(genParticles_, genParticles );
+  evt.getByToken(gpToken, genParticles );
   RecoToSimCollection associations = associator->associateRecoToSim ( tracks, trackingParticles, & evt, &es ); 
   auto_ptr<GenParticleMatch> match(new GenParticleMatch(GenParticleRefProd(genParticles)));
   GenParticleMatch::Filler filler(*match);

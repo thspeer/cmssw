@@ -53,8 +53,8 @@ class TrackMCQuality : public edm::EDProducer {
       // ----------member data ---------------------------
 
   edm::ESHandle<TrackAssociatorBase> theAssociator;
-  edm::InputTag label_tr;
-  edm::InputTag label_tp;
+  edm::EDGetTokenT<edm::View<reco::Track> > trToken;
+  edm::EDGetTokenT<TrackingParticleCollection> tpToken;
   std::string associator;
 };
 
@@ -71,10 +71,10 @@ class TrackMCQuality : public edm::EDProducer {
 // constructors and destructor
 //
 TrackMCQuality::TrackMCQuality(const edm::ParameterSet& pset):
-  label_tr(pset.getParameter< edm::InputTag >("label_tr")),
-  label_tp(pset.getParameter< edm::InputTag >("label_tp")),
   associator(pset.getParameter< std::string >("associator"))
 {
+  trToken = consumes<edm::View<reco::Track> >(pset.getParameter< edm::InputTag >("label_tr"));
+  tpToken = consumes<TrackingParticleCollection>(pset.getParameter< edm::InputTag >("label_tp"));
   
   produces<reco::TrackCollection>();
 }
@@ -99,10 +99,10 @@ TrackMCQuality::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    using namespace edm;
    Handle<TrackingParticleCollection>  TPCollection ;
-   iEvent.getByLabel(label_tp, TPCollection);
+   iEvent.getByToken(tpToken, TPCollection);
      
    Handle<edm::View<reco::Track> > trackCollection;
-   iEvent.getByLabel (label_tr, trackCollection );
+   iEvent.getByToken (trToken, trackCollection );
 
    reco::RecoToSimCollection recSimColl=theAssociator->associateRecoToSim(trackCollection,
 									  TPCollection,

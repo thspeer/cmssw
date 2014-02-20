@@ -41,19 +41,20 @@ private:
   
   edm::ESHandle<TrackAssociatorBase> theAssociator;
   bool first;
-  edm::InputTag label_tr;
-  edm::InputTag label_tp;
+  edm::EDGetTokenT<edm::View<reco::Track> > trToken;
+  edm::EDGetTokenT<TrackingParticleCollection> tpToken;
+
   std::string associator;
   bool  theIgnoremissingtrackcollection;
 };
 
 TrackAssociatorEDProducer::TrackAssociatorEDProducer(const edm::ParameterSet& pset):
   first(true),
-  label_tr(pset.getParameter< edm::InputTag >("label_tr")),
-  label_tp(pset.getParameter< edm::InputTag >("label_tp")),
   associator(pset.getParameter< std::string >("associator")),
   theIgnoremissingtrackcollection(pset.getUntrackedParameter<bool>("ignoremissingtrackcollection",false))
 {
+  trToken = consumes<edm::View<reco::Track> >(pset.getParameter< edm::InputTag >("label_tr"));
+  tpToken = consumes<TrackingParticleCollection>(pset.getParameter< edm::InputTag >("label_tp"));
   produces<reco::SimToRecoCollection>();
   produces<reco::RecoToSimCollection>();
 }
@@ -77,10 +78,10 @@ TrackAssociatorEDProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
      first = false;
    }
    Handle<TrackingParticleCollection>  TPCollection ;
-   iEvent.getByLabel(label_tp, TPCollection);
+   iEvent.getByToken(tpToken, TPCollection);
      
    Handle<edm::View<reco::Track> > trackCollection;
-   bool trackAvailable = iEvent.getByLabel (label_tr, trackCollection );
+   bool trackAvailable = iEvent.getByToken (trToken, trackCollection );
 
    std::auto_ptr<reco::RecoToSimCollection> rts;
    std::auto_ptr<reco::SimToRecoCollection> str;
