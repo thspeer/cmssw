@@ -31,7 +31,7 @@ tobTecStepSeedClusters = cms.EDProducer("TrackClusterRemover",
     stripRecHits = cms.string('siStripMatchedRecHits'),
     Common = cms.PSet(
         maxChi2 = cms.double(9.0),
-        minGoodStripCharge = cms.double(80.0)
+        minGoodStripCharge = cms.double(2759)
     )
 )
 

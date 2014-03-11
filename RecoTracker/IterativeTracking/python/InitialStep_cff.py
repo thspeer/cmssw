@@ -14,7 +14,7 @@ initialStepClusters = cms.EDProducer("TrackClusterRemover",
                                      stripRecHits = cms.string('siStripMatchedRecHits'),
                                      Common = cms.PSet(
                                        maxChi2 = cms.double(9.0),
-                                       minGoodStripCharge = cms.double(50.0)
+                                       minGoodStripCharge = cms.double(1724)
                                       )
                                      )
 # SEEDING LAYERS
@@ -64,7 +64,6 @@ initialStepTrajectoryBuilder = RecoTracker.CkfPattern.GroupedCkfTrajectoryBuilde
     ComponentName = 'initialStepTrajectoryBuilder',
     trajectoryFilterName = 'initialStepTrajectoryFilter',
     alwaysUseInvalidHits = True,
-    clustersToSkip = cms.InputTag('initialStepClusters'),
     maxCand = 6,
     estimator = cms.string('initialStepChi2Est'),
     maxDPhiForLooperReconstruction = cms.double(2.0),
@@ -77,7 +76,7 @@ initialStepTrackCandidates = RecoTracker.CkfPattern.CkfTrackCandidates_cfi.ckfTr
     ### these two parameters are relevant only for the CachingSeedCleanerBySharedInput
     numHitsForSeedCleaner = cms.int32(50),
     onlyPixelHitsForSeedCleaner = cms.bool(True),
-
+#    clustersToSkip = cms.InputTag('initialStepClusters'),
     TrajectoryBuilder = 'initialStepTrajectoryBuilder',
     doSeedingRegionRebuilding = True,
     useHitsSplitting = True
