@@ -23,7 +23,7 @@ tobTecStepSeedClusters = tobTecStepClusters.clone(
     stripRecHits = cms.string('siStripMatchedRecHits'),
     Common = cms.PSet(
         maxChi2 = cms.double(9.0),
-        minGoodStripCharge = cms.double(2414)
+        minGoodStripCharge = cms.double(2069)
     )
 )
 
@@ -108,7 +108,7 @@ import RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cf
 tobTecStepClusterShapeHitFilter  = RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi.ClusterShapeHitFilterESProducer.clone(
 	ComponentName = cms.string('tobTecStepClusterShapeHitFilter'),
         PixelShapeFile= cms.string('RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape.par'),
-	minGoodStripCharge = cms.double(2414)
+	minGoodStripCharge = cms.double(2069)
 	)
 
 import RecoTracker.TkSeedGenerator.GlobalMixedSeeds_cff

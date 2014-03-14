@@ -23,7 +23,7 @@ pixelLessStepSeedClusters = pixelLessStepClusters.clone(
     stripRecHits = cms.string('siStripMatchedRecHits'),
     Common = cms.PSet(
         maxChi2 = cms.double(9.0),
-        minGoodStripCharge = cms.double(2414)
+        minGoodStripCharge = cms.double(2069)
     )
 )
 
@@ -118,7 +118,7 @@ import RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cf
 pixelLessStepClusterShapeHitFilter  = RecoPixelVertexing.PixelLowPtUtilities.ClusterShapeHitFilterESProducer_cfi.ClusterShapeHitFilterESProducer.clone(
 	ComponentName = cms.string('pixelLessStepClusterShapeHitFilter'),
         PixelShapeFile= cms.string('RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape.par'),
-	minGoodStripCharge = cms.double(2414)
+	minGoodStripCharge = cms.double(2069)
 	)
 
 pixelLessStepSeeds.SeedComparitorPSet = cms.PSet(
