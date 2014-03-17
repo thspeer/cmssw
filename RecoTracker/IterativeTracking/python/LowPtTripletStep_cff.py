@@ -64,7 +64,8 @@ lowPtTripletStepChi2Est = TrackingTools.KalmanUpdators.Chi2ChargeMeasurementEsti
     ComponentName = cms.string('lowPtTripletStepChi2Est'),
     nSigma = cms.double(3.0),
     MaxChi2 = cms.double(9.0),
-    minGoodStripCharge = cms.double(2069)
+    minGoodStripCharge = cms.double(2069),
+    pTChargeCutThreshold_ = cms.double(50.)
 )
 
 # TRACK BUILDING

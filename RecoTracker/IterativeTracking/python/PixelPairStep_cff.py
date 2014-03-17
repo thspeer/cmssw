@@ -11,8 +11,11 @@ pixelPairStepClusters = cms.EDProducer("TrackClusterRemover",
     minNumberOfLayersWithMeasBeforeFiltering = cms.int32(0),
     pixelClusters = cms.InputTag("siPixelClusters"),
     stripClusters = cms.InputTag("siStripClusters"),
+    doStripChargeCheck = cms.bool(True),
+    stripRecHits = cms.string('siStripMatchedRecHits'),
     Common = cms.PSet(
-        maxChi2 = cms.double(9.0)
+        maxChi2 = cms.double(9.0),
+	minGoodStripCharge = cms.double(2069)
     )
 )
 
