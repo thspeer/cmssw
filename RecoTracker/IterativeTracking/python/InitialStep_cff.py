@@ -13,8 +13,7 @@ initialStepClusters = cms.EDProducer("TrackClusterRemover",
                                      doStripChargeCheck = cms.bool(False),
                                      stripRecHits = cms.string('siStripMatchedRecHits'),
                                      Common = cms.PSet(
-                                       maxChi2 = cms.double(9.0),
-                                       minGoodStripCharge = cms.double(1724)
+                                       maxChi2 = cms.double(9.0)
                                       )
                                      )
 # SEEDING LAYERS
@@ -58,7 +57,7 @@ initialStepChi2Est = TrackingTools.KalmanUpdators.Chi2ChargeMeasurementEstimator
     nSigma = cms.double(3.0),
     MaxChi2 = cms.double(30.0),
     minGoodStripCharge = cms.double(1724),
-    pTChargeCutThreshold_ = cms.double(50.)
+    pTChargeCutThreshold = cms.double(50.)
 )
 
 import RecoTracker.CkfPattern.GroupedCkfTrajectoryBuilderESProducer_cfi

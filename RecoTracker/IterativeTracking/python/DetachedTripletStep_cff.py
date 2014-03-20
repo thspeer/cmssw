@@ -15,11 +15,10 @@ detachedTripletStepClusters = cms.EDProducer("TrackClusterRemover",
     minNumberOfLayersWithMeasBeforeFiltering = cms.int32(0),
     pixelClusters = cms.InputTag("siPixelClusters"),
     stripClusters = cms.InputTag("siStripClusters"),
-    doStripChargeCheck = cms.bool(True),
+    doStripChargeCheck = cms.bool(False),
     stripRecHits = cms.string('siStripMatchedRecHits'),
     Common = cms.PSet(
-        maxChi2 = cms.double(9.0),
-        minGoodStripCharge = cms.double(2069)
+        maxChi2 = cms.double(9.0)
     )
 )
 
@@ -68,7 +67,7 @@ detachedTripletStepChi2Est = TrackingTools.KalmanUpdators.Chi2ChargeMeasurementE
     nSigma = cms.double(3.0),
     MaxChi2 = cms.double(9.0),
     minGoodStripCharge = cms.double(2069),
-    pTChargeCutThreshold_ = cms.double(50.)
+    pTChargeCutThreshold = cms.double(50.)
 )
 
 # TRACK BUILDING
