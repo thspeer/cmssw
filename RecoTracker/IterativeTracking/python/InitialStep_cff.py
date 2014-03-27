@@ -57,7 +57,7 @@ initialStepChi2Est = TrackingTools.KalmanUpdators.Chi2ChargeMeasurementEstimator
     nSigma = cms.double(3.0),
     MaxChi2 = cms.double(30.0),
     minGoodStripCharge = cms.double(1724),
-    pTChargeCutThreshold_ = cms.double(15.)
+    pTChargeCutThreshold = cms.double(15.)
 )
 
 import RecoTracker.CkfPattern.GroupedCkfTrajectoryBuilderESProducer_cfi
