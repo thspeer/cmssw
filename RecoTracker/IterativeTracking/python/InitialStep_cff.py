@@ -52,8 +52,8 @@ initialStepTrajectoryFilter = TrackingTools.TrajectoryFiltering.TrajectoryFilter
     )
     )
 
-import TrackingTools.KalmanUpdators.Chi2MeasurementEstimatorESProducer_cfi
-initialStepChi2Est = TrackingTools.KalmanUpdators.Chi2MeasurementEstimatorESProducer_cfi.Chi2MeasurementEstimator.clone(
+import TrackingTools.KalmanUpdators.Chi2ChargeMeasurementEstimatorESProducer_cfi
+initialStepChi2Est = TrackingTools.KalmanUpdators.Chi2ChargeMeasurementEstimatorESProducer_cfi.Chi2ChargeMeasurementEstimator.clone(
     ComponentName = cms.string('initialStepChi2Est'),
     nSigma = cms.double(3.0),
     MaxChi2 = cms.double(30.0)
