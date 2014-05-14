@@ -4,15 +4,12 @@
 //
 // Package:         RecoTracker/FinalTrackSelectors
 // Class:           SimpleTrackListMerger
-// 
+//
 // Description:     Hit Dumper
 //
 // Original Author: Steve Wagner, stevew@pizero.colorado.edu
 // Created:         Sat Jan 14 22:00:00 UTC 2006
 //
-// $Author: muzaffar $
-// $Date: 2013/02/27 13:28:30 $
-// $Revision: 1.8 $
 //
 
 #include "FWCore/Framework/interface/EDProducer.h"
@@ -60,9 +57,16 @@ namespace cms
     edm::RefProd< std::vector<Trajectory> > refTrajs;
     std::vector<reco::TrackRef> trackRefs;
     edm::RefProd< TrajectorySeedCollection > refTrajSeeds;
-    
+
     bool copyExtras_;
     bool makeReKeyedSeeds_;
+    std::string trackProducer1, trackProducer2;
+    edm::EDGetTokenT<reco::TrackCollection> trackProducer1Token;
+    edm::EDGetTokenT<reco::TrackCollection> trackProducer2Token;
+    edm::EDGetTokenT< std::vector<Trajectory> > trackProducer1TrajToken;
+    edm::EDGetTokenT< TrajTrackAssociationCollection > trackProducer1AssToken;
+    edm::EDGetTokenT< std::vector<Trajectory> > trackProducer2TrajToken;
+    edm::EDGetTokenT< TrajTrackAssociationCollection > trackProducer2AssToken;
   };
 }
 

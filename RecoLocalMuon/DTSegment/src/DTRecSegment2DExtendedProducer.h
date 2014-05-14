@@ -5,8 +5,6 @@
  *
  * Producer for DT segment in one projection.
  *  
- * $Date: 2010/02/16 17:08:17 $
- * $Revision: 1.2 $
  * \author Stefano Lacaprara - INFN Legnaro <stefano.lacaprara@pd.infn.it>
  * \author Riccardo Bellan - INFN TO <riccardo.bellan@cern.ch>
  *
@@ -14,7 +12,8 @@
 
 /* Base Class Headers */
 #include "FWCore/Framework/interface/EDProducer.h"
-#include "FWCore/Utilities/interface/InputTag.h"
+#include "DataFormats/DTRecHit/interface/DTRecHitCollection.h"
+#include "DataFormats/DTRecHit/interface/DTRecClusterCollection.h"
 
 namespace edm {
   class ParameterSet;
@@ -55,8 +54,8 @@ class DTRecSegment2DExtendedProducer : public edm::EDProducer {
   DTCombinatorialExtendedPatternReco* theAlgo;
 
   //static std::string theAlgoName;
-  edm::InputTag theRecHits1DLabel;
-  edm::InputTag theRecClusLabel;
+  edm::EDGetTokenT<DTRecHitCollection> recHits1DToken_;
+  edm::EDGetTokenT<DTRecClusterCollection> recClusToken_;
 };
 #endif // DTRecHit_DTRecSegment2DExtendedProducer_h
 

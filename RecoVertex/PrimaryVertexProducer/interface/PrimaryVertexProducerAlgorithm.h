@@ -16,7 +16,6 @@
 //
 // Original Author:  Pascal Vanlaer
 //         Created:  Tue Feb 28 11:06:34 CET 2006
-// $Id: PrimaryVertexProducerAlgorithm.h,v 1.17 2012/04/27 16:12:39 werdmann Exp $
 //
 //
 
@@ -83,6 +82,7 @@ public:
   edm::InputTag trackLabel;
   edm::InputTag beamSpotLabel;
 private:
+  using VertexReconstructor::vertices;
   // ----------member data ---------------------------
   TrackFilterForPVFindingBase* theTrackFilter; 
   TrackClusterizerInZ* theTrackClusterizer;

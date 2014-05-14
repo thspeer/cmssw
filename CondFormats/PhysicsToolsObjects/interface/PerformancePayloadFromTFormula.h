@@ -1,39 +1,54 @@
 #ifndef PerformancePayloadFromTFormula_h
 #define PerformancePayloadFromTFormula_h
 
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include "CondFormats/PhysicsToolsObjects/interface/PhysicsTFormulaPayload.h"
 #include "CondFormats/PhysicsToolsObjects/interface/PerformancePayload.h"
 
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <boost/shared_ptr.hpp>
+#include <iostream>
 #include "TFormula.h"
-
 #include "CondFormats/PhysicsToolsObjects/interface/BinningPointByMap.h"
 
 class PerformancePayloadFromTFormula : public PerformancePayload {
 //  class PerformancePayloadFromTFormula : public PerformancePayload, public PhysicsPerformancePayload {
  public:
 
-  static int InvalidPos;
+  static const int InvalidPos;
 
-  PerformancePayloadFromTFormula(std::vector<PerformanceResult::ResultType> r, std::vector<BinningVariables::BinningVariablesType> b  ,  PhysicsTFormulaPayload& in) : pl(in), results_(r), variables_(b) {}
+  PerformancePayloadFromTFormula(const std::vector<PerformanceResult::ResultType>& r, 
+				 const std::vector<BinningVariables::BinningVariablesType>& b  ,  
+				 PhysicsTFormulaPayload& in) : pl(in), results_(r), variables_(b) {
+    initialize();
+  }
 
   PerformancePayloadFromTFormula(){}
-  virtual ~PerformancePayloadFromTFormula(){
-    for (unsigned int i=0; i< compiledFormulas_.size(); ++i){
-      delete compiledFormulas_[i];
-    }
+
+  void initialize(); 
+
+ PerformancePayloadFromTFormula(const PerformancePayloadFromTFormula& b) :
+    pl(b.pl), 
+    results_(b.results_), 
+    variables_(b.variables_), 
+    compiledFormulas_(b.compiledFormulas_) {}
+
+  virtual ~PerformancePayloadFromTFormula(){    
     compiledFormulas_.clear();
   }
 
-  float getResult(PerformanceResult::ResultType,BinningPointByMap) const ; // gets from the full payload
+
+
+  float getResult(PerformanceResult::ResultType,const BinningPointByMap&) const ; // gets from the full payload
   
   virtual bool isParametrizedInVariable(const BinningVariables::BinningVariablesType p)  const {
     return (limitPos(p) != PerformancePayloadFromTFormula::InvalidPos);
   }
   
-  virtual bool isInPayload(PerformanceResult::ResultType,BinningPointByMap) const ;
+  virtual bool isInPayload(PerformanceResult::ResultType,const BinningPointByMap&) const ;
   
   const PhysicsTFormulaPayload & formulaPayload() const {return pl;}
   
@@ -60,9 +75,7 @@ class PerformancePayloadFromTFormula : public PerformancePayload {
   }
 
 
-  bool isOk(BinningPointByMap p) const; 
-
-  void check() const;
+  bool isOk(const BinningPointByMap& p) const; 
 
   PhysicsTFormulaPayload pl;
   //
@@ -73,7 +86,9 @@ class PerformancePayloadFromTFormula : public PerformancePayload {
   //
   // the transient part
   //
-  mutable   std::vector<TFormula *> compiledFormulas_;
+  mutable   std::vector< boost::shared_ptr<TFormula> > compiledFormulas_ COND_TRANSIENT;
+
+ COND_SERIALIZABLE;
 };
 
 #endif

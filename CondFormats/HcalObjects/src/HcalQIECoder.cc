@@ -3,8 +3,8 @@
 \author Fedor Ratnikov (UMd)
 POOL object to store QIE coder parameters for one channel
 $Author: ratnikov
-$Date: 2013/03/25 16:23:33 $
-$Revision: 1.4 $
+$Date: 2010/12/06 20:04:16 $
+$Revision: 1.3 $
 */
 
 #include <iostream>
@@ -14,9 +14,9 @@ $Revision: 1.4 $
 
 namespace {
   // pack range/capId in the plain index
-  unsigned index (unsigned fRange, unsigned fCapId) {return fCapId * 4 + fRange;}
-  unsigned range (unsigned fIndex) {return fIndex % 4;}
-  unsigned capId (unsigned fIndex) {return fIndex / 4;}
+  inline unsigned index (unsigned fRange, unsigned fCapId) {return fCapId * 4 + fRange;}
+  inline unsigned range (unsigned fIndex) {return fIndex % 4;}
+  inline unsigned capId (unsigned fIndex) {return fIndex / 4;}
 }
 
 float HcalQIECoder::charge (const HcalQIEShape& fShape, unsigned fAdc, unsigned fCapId) const {

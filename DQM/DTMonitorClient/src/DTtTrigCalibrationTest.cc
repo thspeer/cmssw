@@ -1,8 +1,6 @@
 /*
  * \file DTtTrigCalibrationTest.cc
  * 
- * $Date: 2010/01/05 10:15:46 $
- * $Revision: 1.20 $
  * \author M. Zanetti - CERN
  * Modified by G. Mila - INFN Torino
  *
@@ -137,8 +135,8 @@ void DTtTrigCalibrationTest::endLuminosityBlock(LuminosityBlock const& lumiSeg, 
     }
   }
   
-  vector<DTChamber*>::const_iterator ch_it = muonGeom->chambers().begin();
-  vector<DTChamber*>::const_iterator ch_end = muonGeom->chambers().end();
+  vector<const DTChamber*>::const_iterator ch_it = muonGeom->chambers().begin();
+  vector<const DTChamber*>::const_iterator ch_end = muonGeom->chambers().end();
   for (; ch_it != ch_end; ++ch_it) {
     
     vector<const DTSuperLayer*>::const_iterator sl_it = (*ch_it)->superLayers().begin(); 

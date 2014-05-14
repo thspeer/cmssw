@@ -6,8 +6,8 @@
  *                  
 */                  
 //
-//   $Date: 2008/11/05 17:19:49 $
-//   $Revision: 1.1 $
+//   $Date$
+//   $Revision$
 //
 //
 //   Author :
@@ -17,6 +17,8 @@
 //--------------------------------------------------
 #ifndef CondFormatsL1TObjects_L1MuGMTChannelMask_h
 #define CondFormatsL1TObjects_L1MuGMTChannelMask_h
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <string>
 
@@ -32,6 +34,8 @@ private:
 
   unsigned m_SubsystemMask;
 
+
+  COND_SERIALIZABLE;
 };
 
 

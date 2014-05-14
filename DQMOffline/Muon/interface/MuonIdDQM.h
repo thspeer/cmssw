@@ -13,7 +13,6 @@
 //
 // Original Author:  Jacob Ribnik
 //         Created:  Wed Apr 18 13:48:08 CDT 2007
-// $Id: MuonIdDQM.h,v 1.4 2012/10/12 23:03:53 slava77 Exp $
 //
 //
 
@@ -34,8 +33,8 @@
 
 #include "DQMServices/Core/interface/DQMStore.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
+#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
 
-#include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -48,23 +47,22 @@
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "Geometry/Records/interface/GlobalTrackingGeometryRecord.h"
 
-class MuonIdDQM : public edm::EDAnalyzer {
+class MuonIdDQM : public thread_unsafe::DQMEDAnalyzer {
    public:
       explicit MuonIdDQM(const edm::ParameterSet&);
       ~MuonIdDQM();
 
+      /* Operations */
+      void analyze(const edm::Event&, const edm::EventSetup&);
+      void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
+
    private:
-      virtual void beginJob();
-      virtual void analyze(const edm::Event&, const edm::EventSetup&);
-      virtual void endJob();
       virtual void Fill(MonitorElement*, float);
 
-      DQMStore* dbe_;
-
       // ----------member data ---------------------------
-      edm::InputTag inputMuonCollection_;
-      edm::InputTag inputDTRecSegment4DCollection_;
-      edm::InputTag inputCSCSegmentCollection_;
+      edm::EDGetTokenT<reco::MuonCollection> inputMuonCollection_;
+      edm::EDGetTokenT<DTRecSegment4DCollection> inputDTRecSegment4DCollection_;
+      edm::EDGetTokenT<CSCSegmentCollection> inputCSCSegmentCollection_;
       bool useTrackerMuons_;
       bool useGlobalMuons_;
       bool useTrackerMuonsNotGlobalMuons_;

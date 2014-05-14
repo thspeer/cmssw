@@ -3,7 +3,7 @@
 #include "Geometry/CommonDetUnit/interface/GeomDetEnumerators.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
 #include "Geometry/Records/interface/IdealGeometryRecord.h"
-#include "ThirdHitPredictionFromCircle.h"
+#include "RecoPixelVertexing/PixelTriplets/interface/ThirdHitPredictionFromCircle.h"
 #include "TrackingTools/DetLayers/interface/DetLayer.h"
 #include "MatchedHitRZCorrectionFromBending.h"
 
@@ -34,7 +34,7 @@ MatchedHitRZCorrectionFromBending::
 double MatchedHitRZCorrectionFromBending::
     tibMatchedHitZFixup(const ThirdHitPredictionFromCircle &pred,
                         double curvature, double r,
-                        const TransientTrackingRecHit &hit,
+                        const TrackingRecHit &hit,
 			const TrackerTopology *tTopo)
 {
   // the factors for [ TIB1=0, TIB2=1 ] [ inner string=0, outer string=1 ]

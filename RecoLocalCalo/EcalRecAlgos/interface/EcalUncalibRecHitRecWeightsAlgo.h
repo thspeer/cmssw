@@ -5,9 +5,6 @@
   *  Template used to compute amplitude, pedestal, time jitter, chi2 of a pulse
   *  using a weights method
   *
-  *  $Id: EcalUncalibRecHitRecWeightsAlgo.h,v 1.14 2012/05/13 21:00:57 argiro Exp $
-  *  $Date: 2012/05/13 21:00:57 $
-  *  $Revision: 1.14 $
   *  \author R. Bruneliere - A. Zabi
   *  
   *  The chi2 computation with matrix is replaced by the chi2express which is  moved outside the weight algo
@@ -73,8 +70,8 @@ template<class C> class EcalUncalibRecHitRecWeightsAlgo
     ROOT::Math::SVector <double,3> param = (*(weights[iGainSwitch])) * frame;
     amplitude_ = param(EcalUncalibRecHitRecAbsAlgo<C>::iAmplitude);
     pedestal_ = param(EcalUncalibRecHitRecAbsAlgo<C>::iPedestal);
-    if (amplitude_) jitter_ = param(EcalUncalibRecHitRecAbsAlgo<C>::iTime);
-
+    if (amplitude_) jitter_ = -param(EcalUncalibRecHitRecAbsAlgo<C>::iTime) / amplitude_;
+    else jitter_ = 0.;
 
     //When saturated gain flag i
     if (isSaturated)

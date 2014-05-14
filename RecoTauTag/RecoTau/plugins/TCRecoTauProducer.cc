@@ -22,7 +22,7 @@ class TCRecoTauProducer : public edm::EDProducer {
         explicit TCRecoTauProducer(const edm::ParameterSet& iConfig);
         ~TCRecoTauProducer();
 
-        virtual void produce(edm::Event&,const edm::EventSetup&);
+        virtual void produce(edm::Event&,const edm::EventSetup&) override;
 
     private:
         edm::InputTag    caloRecoTauProducer;
@@ -31,7 +31,7 @@ class TCRecoTauProducer : public edm::EDProducer {
 
 TCRecoTauProducer::TCRecoTauProducer(const edm::ParameterSet& iConfig){
   	caloRecoTauProducer = iConfig.getParameter<edm::InputTag>("CaloRecoTauProducer");
-	tcTauAlgorithm = new TCTauAlgorithm(iConfig);
+	tcTauAlgorithm = new TCTauAlgorithm(iConfig, consumesCollector());
 
   	produces<CaloTauCollection>();
 }

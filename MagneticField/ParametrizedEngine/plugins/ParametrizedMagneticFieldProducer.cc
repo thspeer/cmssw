@@ -1,15 +1,13 @@
 /** \file
  *
- *  $Date: 2011/04/16 10:20:40 $
- *  $Revision: 1.3 $
  *  \author Massimiliano Chiorboli, updated NA 03/08
  */
 
 #include "MagneticField/ParametrizedEngine/plugins/ParametrizedMagneticFieldProducer.h"
 #include "OAEParametrizedMagneticField.h"
+#include "ParabolicParametrizedMagneticField.h"
 #include "OAE85lParametrizedMagneticField.h"
 #include "PolyFit2DParametrizedMagneticField.h"
-#include "PolyFit3DParametrizedMagneticField.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -54,9 +52,11 @@ ParametrizedMagneticFieldProducer::produce(const IdealMagneticFieldRecord& iReco
     return result;
   } else if (version=="PolyFit3D") {
     // V. Maroussov polynomial fit to mapping data
-    std::auto_ptr<MagneticField> result( new PolyFit3DParametrizedMagneticField(parameters));
+    throw cms::Exception("InvalidParameter")<<"PolyFit3D is not supported anymore";
+  } else if (version=="Parabolic"){
+    std::auto_ptr<MagneticField> result( new ParabolicParametrizedMagneticField());
     return result;
-  } else {
+  }  else {
     throw cms::Exception("InvalidParameter")<<"Invalid parametrization version " << version;
   }
   return std::auto_ptr<MagneticField>(0); //make compiler happy

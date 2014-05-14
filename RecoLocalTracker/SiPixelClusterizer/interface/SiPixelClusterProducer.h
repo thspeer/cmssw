@@ -63,11 +63,10 @@ namespace cms
     void setupClusterizer();
 
     // Begin Job
-    //virtual void beginJob( const edm::EventSetup& );
-    virtual void beginJob( );
+    virtual void beginJob( ) override;
 
     //--- The top-level event method.
-    virtual void produce(edm::Event& e, const edm::EventSetup& c);
+    virtual void produce(edm::Event& e, const edm::EventSetup& c) override;
 
     //--- Execute the algorithm(s).
     void run(const edm::DetSetVector<PixelDigi>   & input,
@@ -76,6 +75,7 @@ namespace cms
 
   private:
     edm::ParameterSet conf_;
+    edm::EDGetTokenT<edm::DetSetVector<PixelDigi>> tPixelDigi;
     // TO DO: maybe allow a map of pointers?
     SiPixelGainCalibrationServiceBase * theSiPixelGainCalibration_;
     std::string clusterMode_;               // user's choice of the clusterizer

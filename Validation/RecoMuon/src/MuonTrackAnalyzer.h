@@ -4,8 +4,6 @@
 /** \class MuonTrackAnalyzer
  *  Analyzer of the StandAlone muon tracks
  *
- *  $Date: 2010/02/20 21:02:35 $
- *  $Revision: 1.6 $
  *  \author R. Bellan - INFN Torino <riccardo.bellan@cern.ch>
  */
 
@@ -13,13 +11,21 @@
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
-#include "DQMServices/Core/interface/DQMStore.h"
+
 #include "DQMServices/Core/interface/MonitorElement.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include "FWCore/Framework/interface/ESHandle.h"
-#include "SimDataFormats/Track/interface/SimTrackContainer.h"
+
 #include "TrackingTools/TrajectoryState/interface/FreeTrajectoryState.h"
+
+#include "SimDataFormats/Track/interface/SimTrackContainer.h"
+#include "DataFormats/TrajectorySeed/interface/TrajectorySeedCollection.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHit.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 
 namespace edm {class ParameterSet; class Event; class EventSetup;}
 namespace reco {class TransientTrack;}
@@ -36,9 +42,10 @@ class MuonServiceProxy;
 class MuonPatternRecoDumper;
 class TrajectorySeed;
 class MuonUpdatorAtVertex;
+class DQMStore;
 
-class MuonTrackAnalyzer: public edm::EDAnalyzer {
 
+class MuonTrackAnalyzer: public thread_unsafe::DQMEDAnalyzer {
  public:
   enum EtaRange{all,barrel,endcap};
 
@@ -59,7 +66,8 @@ class MuonTrackAnalyzer: public edm::EDAnalyzer {
     
 
   virtual void beginJob() ;
-  virtual void endJob() ;
+  virtual void endRun(DQMStore::IBooker & ibooker) ;
+  void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
  protected:
 
  private:
@@ -84,15 +92,26 @@ class MuonTrackAnalyzer: public edm::EDAnalyzer {
   std::string dirName_;
 
   std::string out;
+  std::string subsystemname_;
+  edm::ParameterSet pset;
   //TFile* theFile;
 
   EtaRange theEtaRange;
   
-  edm::InputTag theTracksLabel;
+  edm::InputTag theSimTracksLabel;
   edm::InputTag theSeedsLabel;
+  edm::InputTag theTracksLabel;
   edm::InputTag theCSCSimHitLabel;
   edm::InputTag theDTSimHitLabel; 
   edm::InputTag theRPCSimHitLabel;
+
+  edm::EDGetTokenT<edm::SimTrackContainer> theSimTracksToken;
+  edm::EDGetTokenT<TrajectorySeedCollection> theSeedsToken;
+  edm::EDGetTokenT<reco::TrackCollection> theTracksToken;
+  edm::EDGetTokenT<std::vector<PSimHit> > theCSCSimHitToken;
+  edm::EDGetTokenT<std::vector<PSimHit> > theDTSimHitToken;
+  edm::EDGetTokenT<std::vector<PSimHit> > theRPCSimHitToken;
+
 
   bool doTracksAnalysis;
   bool doSeedsAnalysis;

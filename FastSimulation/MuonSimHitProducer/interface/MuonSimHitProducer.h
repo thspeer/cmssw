@@ -15,7 +15,7 @@
 //
 //  Author:  Martijn Mulders
 // Created:  Wed July 11 12:37:24 CET 2007
-// $Id: MuonSimHitProducer.h,v 1.11 2013/02/27 22:22:53 wdd Exp $
+// $Id: MuonSimHitProducer.h,v 1.10 2010/05/13 15:23:21 aperrott Exp $
 //
 
 
@@ -27,7 +27,6 @@
 #include "TrackingTools/KalmanUpdators/interface/Chi2MeasurementEstimator.h"
 
 // FastSimulation headers
-class RandomEngine;
 class MagneticField;
 class TrackerGeometry;
 class DTGeometry;
@@ -37,7 +36,9 @@ class MuonServiceProxy;
 class MaterialEffects;
 class TrajectoryStateOnSurface;
 class Propagator;
-
+class RandomEngineAndDistribution;
+class SimTrack;
+class SimVertex;
 /*
 namespace reco { 
   class Muon;
@@ -62,7 +63,6 @@ class MuonSimHitProducer : public edm::EDProducer {
 
    private:
 
-      const RandomEngine * random;
       MuonServiceProxy *theService;
       Chi2MeasurementEstimator theEstimator;
 
@@ -90,13 +90,23 @@ class MuonSimHitProducer : public edm::EDProducer {
       /// Simulate material effects in iron (dE/dx, multiple scattering)
       void applyMaterialEffects(TrajectoryStateOnSurface& tsosWithdEdx,
 				TrajectoryStateOnSurface& tsos,
-				double radPath);
+				double radPath,
+                                RandomEngineAndDistribution const*);
 
           
-  // ----------- parameters ---------------------------- 
+      // ----------- parameters ---------------------------- 
       bool fullPattern_;
       bool doL1_ , doL3_ , doGL_;
-      std::string theSimModuleLabel_ , theSimModuleProcess_, theTrkModuleLabel_ ;
+
+      // tags
+      edm::InputTag simMuonLabel;
+      edm::InputTag simVertexLabel;
+
+      // tokens
+      edm::EDGetTokenT<std::vector<SimTrack> > simMuonToken;
+      edm::EDGetTokenT<std::vector<SimVertex> > simVertexToken;
+      
+      
 };
 
 #endif

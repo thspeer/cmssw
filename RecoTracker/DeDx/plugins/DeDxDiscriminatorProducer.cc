@@ -15,7 +15,6 @@
 //         Created:  Thu May 31 14:09:02 CEST 2007
 //    Code Updates:  loic Quertenmont (querten)
 //         Created:  Thu May 10 14:09:02 CEST 2008
-// $Id: DeDxDiscriminatorProducer.cc,v 1.3 2013/02/27 13:28:30 muzaffar Exp $
 //
 //
 
@@ -51,8 +50,8 @@ DeDxDiscriminatorProducer::DeDxDiscriminatorProducer(const edm::ParameterSet& iC
 
    produces<ValueMap<DeDxData> >();
 
-   m_tracksTag = iConfig.getParameter<edm::InputTag>("tracks");
-   m_trajTrackAssociationTag   = iConfig.getParameter<edm::InputTag>("trajectoryTrackAssociation");
+   m_tracksTag                 = consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("tracks"));
+   m_trajTrackAssociationTag   = consumes<TrajTrackAssociationCollection>(iConfig.getParameter<edm::InputTag>("trajectoryTrackAssociation"));
 
    usePixel = iConfig.getParameter<bool>("UsePixel"); 
    useStrip = iConfig.getParameter<bool>("UseStrip");
@@ -184,7 +183,7 @@ void  DeDxDiscriminatorProducer::beginRun(edm::Run const& run, const edm::EventS
       iSetup.get<TrackerDigiGeometryRecord>().get( tkGeom );
       m_tracker = tkGeom.product();
 
-      vector<GeomDet*> Det = tkGeom->dets();
+      auto const & Det = tkGeom->dets();
       for(unsigned int i=0;i<Det.size();i++){
          DetId  Detid  = Det[i]->geographicalId();
          int    SubDet = Detid.subdetId();
@@ -192,7 +191,7 @@ void  DeDxDiscriminatorProducer::beginRun(edm::Run const& run, const edm::EventS
          if( SubDet == StripSubdetector::TIB ||  SubDet == StripSubdetector::TID ||
              SubDet == StripSubdetector::TOB ||  SubDet == StripSubdetector::TEC  ){
 
-             StripGeomDetUnit* DetUnit     = dynamic_cast<StripGeomDetUnit*> (Det[i]);
+             auto DetUnit     = dynamic_cast<StripGeomDetUnit const*> (Det[i]);
              if(!DetUnit)continue;
 
              const StripTopology& Topo     = DetUnit->specificTopology();
@@ -218,7 +217,7 @@ void  DeDxDiscriminatorProducer::beginRun(edm::Run const& run, const edm::EventS
 
 }
 
-void  DeDxDiscriminatorProducer::endJob()
+void  DeDxDiscriminatorProducer::endStream()
 {
    MODsColl.clear();
 }
@@ -231,11 +230,11 @@ void DeDxDiscriminatorProducer::produce(edm::Event& iEvent, const edm::EventSetu
   ValueMap<DeDxData>::Filler filler(*trackDeDxDiscrimAssociation);
 
   Handle<TrajTrackAssociationCollection> trajTrackAssociationHandle;
-  iEvent.getByLabel(m_trajTrackAssociationTag, trajTrackAssociationHandle);
+  iEvent.getByToken(m_trajTrackAssociationTag, trajTrackAssociationHandle);
   const TrajTrackAssociationCollection TrajToTrackMap = *trajTrackAssociationHandle.product();
 
   edm::Handle<reco::TrackCollection> trackCollectionHandle;
-  iEvent.getByLabel(m_tracksTag,trackCollectionHandle);
+  iEvent.getByToken(m_tracksTag,trackCollectionHandle);
 
    edm::ESHandle<TrackerGeometry> tkGeom;
    iSetup.get<TrackerDigiGeometryRecord>().get( tkGeom );

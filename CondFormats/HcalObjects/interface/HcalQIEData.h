@@ -7,9 +7,11 @@
    (preserve backwards compatibility of methods for this release)
 POOL object to store QIE parameters
 $Author: ratnikov
-$Date: 2012/11/12 20:51:13 $
-$Revision: 1.14 $
+$Date: 2012/11/02 14:13:11 $
+$Revision: 1.13 $
 */
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <vector>
 #include <algorithm>
@@ -48,8 +50,10 @@ class HcalQIEData: public HcalCondObjectContainer<HcalQIECoder>
   //not needed/not used  HcalQIEData(const HcalQIEData&);
 
  private:
-  HcalQIEShape mShape[2];
+  HcalQIEShape mShape[2] COND_TRANSIENT;
 
+
+ COND_SERIALIZABLE;
 };
 
 #endif

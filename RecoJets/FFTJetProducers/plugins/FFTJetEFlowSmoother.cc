@@ -13,7 +13,6 @@
 //
 // Original Author:  Igor Volobouev
 //         Created:  Thu Jun  2 18:49:49 CDT 2011
-// $Id: FFTJetEFlowSmoother.cc,v 1.1 2011/06/03 05:05:44 igv Exp $
 //
 //
 
@@ -31,12 +30,10 @@
 
 // framework include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/Common/interface/View.h"
-#include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Histograms/interface/MEtoEDMFormat.h"
 
 // parameter parser header
@@ -50,7 +47,7 @@ using namespace fftjetcms;
 //
 // class declaration
 //
-class FFTJetEFlowSmoother : public edm::EDProducer, public FFTJetInterface
+class FFTJetEFlowSmoother : public FFTJetInterface
 {
 public:
     explicit FFTJetEFlowSmoother(const edm::ParameterSet&);
@@ -58,9 +55,9 @@ public:
 
 protected:
     // methods
-    void beginJob() ;
-    void produce(edm::Event&, const edm::EventSetup&);
-    void endJob() ;
+    void beginJob() override ;
+    void produce(edm::Event&, const edm::EventSetup&) override;
+    void endJob() override ;
 
 private:
     FFTJetEFlowSmoother();

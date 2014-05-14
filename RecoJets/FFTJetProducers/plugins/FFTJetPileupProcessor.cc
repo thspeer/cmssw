@@ -13,7 +13,6 @@
 //
 // Original Author:  Igor Volobouev
 //         Created:  Wed Apr 20 13:52:23 CDT 2011
-// $Id: FFTJetPileupProcessor.cc,v 1.11 2012/11/21 03:13:26 igv Exp $
 //
 //
 
@@ -28,13 +27,10 @@
 
 // framework include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/Common/interface/View.h"
-#include "DataFormats/Common/interface/Handle.h"
-// #include "DataFormats/Histograms/interface/MEtoEDMFormat.h"
 #include "DataFormats/JetReco/interface/DiscretizedEnergyFlow.h"
 
 #include "RecoJets/FFTJetAlgorithms/interface/gridConverters.h"
@@ -54,7 +50,7 @@ using namespace fftjetcms;
 //
 // class declaration
 //
-class FFTJetPileupProcessor : public edm::EDProducer, public FFTJetInterface
+class FFTJetPileupProcessor : public FFTJetInterface
 {
 public:
     explicit FFTJetPileupProcessor(const edm::ParameterSet&);
@@ -62,9 +58,9 @@ public:
 
 protected:
     // methods
-    void beginJob() ;
-    void produce(edm::Event&, const edm::EventSetup&);
-    void endJob() ;
+    void beginJob() override ;
+    void produce(edm::Event&, const edm::EventSetup&) override;
+    void endJob() override ;
 
 private:
     FFTJetPileupProcessor();

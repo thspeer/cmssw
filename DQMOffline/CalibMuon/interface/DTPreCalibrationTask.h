@@ -5,8 +5,6 @@
  *  Analysis on DT digis (TB + occupancy) before the calibration step
  *
  *
- *  $Date: 2010/01/07 16:31:59 $
- *  $Revision: 1.4 $
  *  \author G. Mila - INFN Torino
  */
 
@@ -20,10 +18,15 @@
 #include "DQMServices/Core/interface/MonitorElement.h"
 #include "RecoMuon/TrackingTools/interface/MuonServiceProxy.h"
 
+#include <DataFormats/DTDigi/interface/DTDigi.h>
+#include "DataFormats/DTDigi/interface/DTDigiCollection.h"
+
 #include <string>
 #include <map>
 #include <vector>
 
+using namespace edm;
+using namespace std;
 
 class DQMStore;
 class MonitorElement;
@@ -54,7 +57,7 @@ public:
 private:
 
   DQMStore* dbe;
-  std::string digiLabel;
+  edm::EDGetTokenT<DTDigiCollection> digiLabel;
   int  minTriggerWidth;
   int  maxTriggerWidth;
   bool saveFile;

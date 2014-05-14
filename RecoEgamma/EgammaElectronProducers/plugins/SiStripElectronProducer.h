@@ -16,7 +16,6 @@
 //
 // Original Author:  Jim Pivarski
 //         Created:  Fri May 26 16:11:37 EDT 2006
-// $Id: SiStripElectronProducer.h,v 1.1 2007/04/20 14:54:21 uberthon Exp $
 //
 
 // system include files
@@ -24,14 +23,16 @@
 // user include files
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 
 #include "DataFormats/EgammaCandidates/interface/SiStripElectron.h"
 #include "RecoEgamma/EgammaElectronAlgos/interface/SiStripElectronAlgo.h"
+#include "DataFormats/EgammaCandidates/interface/SiStripElectronFwd.h"
+#include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
 
 // forward declarations
 
-class SiStripElectronProducer : public edm::EDProducer {
+class SiStripElectronProducer : public edm::stream::EDProducer<> {
    public:
       explicit SiStripElectronProducer(const edm::ParameterSet&);
       ~SiStripElectronProducer();
@@ -48,6 +49,13 @@ class SiStripElectronProducer : public edm::EDProducer {
       std::string superClusterCollection_;
       std::string siStripElectronsLabel_;
       std::string trackCandidatesLabel_;
+
+      edm::EDGetTokenT<SiStripRecHit2DCollection> rphi_sistrips2dtag_;
+      edm::EDGetTokenT<SiStripRecHit2DCollection> stereo_sistrips2dtag_;
+      edm::EDGetTokenT<SiStripMatchedRecHit2DCollection> matched_sistrips2dtag_;
+      edm::EDGetTokenT<reco::SuperClusterCollection> superClustertag_;
+      
+      
 
       SiStripElectronAlgo* algo_p;
 };

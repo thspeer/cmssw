@@ -4,8 +4,6 @@
 /** \class TrackProducerAlgorithm
  *  This class calls the Final Fit and builds the Tracks then produced by the TrackProducer or by the TrackRefitter
  *
- *  $Date: 2012/11/09 13:17:23 $
- *  $Revision: 1.29 $
  *  \author cerati
  */
 
@@ -18,14 +16,26 @@
 #include "TrackingTools/TransientTrackingRecHit/interface/TransientTrackingRecHit.h"
 #include "TrackingTools/PatternTools/interface/TrackConstraintAssociation.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
+#include "RecoTracker/TransientTrackingRecHit/interface/TkTransientTrackingRecHitBuilder.h"
+#include "TrackingTools/TrackFitters/interface/TrajectoryFitter.h"
+
 
 class MagneticField;
 class TrackingGeometry;
-class TrajectoryFitter;
 class Propagator;
 class Trajectory;
 class TrajectoryStateOnSurface;
-class TransientTrackingRecHitBuilder;
+
+struct FitterCloner {
+   std::unique_ptr<TrajectoryFitter> fitter;
+   TkClonerImpl hitCloner;
+
+  FitterCloner(const TrajectoryFitter * theFitter,const TransientTrackingRecHitBuilder* builder):
+    fitter(theFitter->clone()),
+    hitCloner(static_cast<TkTransientTrackingRecHitBuilder const *>(builder)->cloner()){
+    fitter->setHitCloner(&hitCloner);
+  }
+};
 
 
 template <class T>

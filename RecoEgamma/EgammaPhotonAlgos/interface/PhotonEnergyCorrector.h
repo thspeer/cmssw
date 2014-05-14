@@ -3,9 +3,6 @@
 /** \class PhotonEnergyCorrector
  **  
  **
- **  $Id: PhotonEnergyCorrector.h,v 1.7 2012/03/26 14:38:40 nancy Exp $ 
- **  $Date: 2012/03/26 14:38:40 $ 
- **  $Revision: 1.7 $
  **  \author Nancy Marinelli, U. of Notre Dame, US
  **
  ***/
@@ -24,13 +21,18 @@
 #include "RecoEgamma/EgammaPhotonAlgos/interface/EnergyUncertaintyPhotonSpecific.h"
 #include <iostream>
 
+#include "RecoEgamma/EgammaTools/interface/BaselinePFSCRegression.h"
+
 class PhotonEnergyCorrector
  {
   public:
 
-   PhotonEnergyCorrector(const edm::ParameterSet& config);
+   PhotonEnergyCorrector(const edm::ParameterSet& config, edm::ConsumesCollector && iC);
    ~PhotonEnergyCorrector();
 
+   std::unique_ptr<PFSCRegressionCalc>& gedRegression() 
+     { return gedRegression_; }
+   
    void init(const edm::EventSetup& theEventSetup );
    void calculate( edm::Event& evt, reco::Photon &, int subdet,const reco::VertexCollection& vtxcol,const edm::EventSetup& iSetup) ;
    double applyCrackCorrection(const reco::SuperCluster &cl, EcalClusterFunctionBaseClass* crackCorrectionFunction);
@@ -46,11 +48,14 @@ class PhotonEnergyCorrector
    EcalClusterFunctionBaseClass * scCrackEnergyFunction_;
    EcalClusterFunctionBaseClass * scEnergyErrorFunction_;
    EcalClusterFunctionBaseClass * photonEcalEnergyCorrFunction_;
+   std::unique_ptr<PFSCRegressionCalc> gedRegression_;
    double minR9Barrel_;
    double minR9Endcap_;
-   edm::ESHandle<CaloGeometry> theCaloGeom_; 
+   edm::ESHandle<CaloGeometry> theCaloGeom_;
    edm::InputTag barrelEcalHits_;
    edm::InputTag endcapEcalHits_;
+   edm::EDGetTokenT<EcalRecHitCollection> barrelEcalHitsToken_;
+   edm::EDGetTokenT<EcalRecHitCollection> endcapEcalHitsToken_;
 
    EnergyUncertaintyPhotonSpecific* photonUncertaintyCalculator_;
    

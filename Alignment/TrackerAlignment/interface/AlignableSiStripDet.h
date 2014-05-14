@@ -7,8 +7,8 @@
  *
  *  First implementation April/May 2008
  *  \author Gero Flucke, Hamburg University
- *  $Date: 2009/04/16 16:53:06 $
- *  $Revision: 1.5 $
+ *  $Date: 2008/07/13 12:26:41 $
+ *  $Revision: 1.4 $
  */
  
 #include "Alignment/CommonAlignment/interface/AlignableDet.h"
@@ -44,8 +44,8 @@ class AlignableSiStripDet: public AlignableDet {
   /// the same way as for the bounds. Sigh!
   const Bounds     *theMonoBounds;
   const Bounds     *theStereoBounds;
-  StripGeomDetType &theMonoType;
-  StripGeomDetType &theStereoType;
+  const StripGeomDetType &theMonoType;
+  const StripGeomDetType &theStereoType;
 };
 
 #endif

@@ -15,7 +15,6 @@
 //
 // Original Author:  Ursula Berthon, Claude Charlot
 //         Created:  Mon Mar 27 13:22:06 CEST 2006
-// $Id: PixelMatchStartLayers.h,v 1.3 2006/06/08 16:54:51 uberthon Exp $
 //
 //
 #include "TrackingTools/DetLayers/interface/ForwardDetLayer.h" 
@@ -32,11 +31,11 @@ class GeometricSearchTracker;
 class PixelMatchStartLayers {
 
 public:
-  typedef std::vector<ForwardDetLayer*> ForwardLayerContainer;
-  typedef std::vector<ForwardDetLayer*>::const_iterator ForwardLayerIterator;
+  typedef std::vector<const ForwardDetLayer*> ForwardLayerContainer;
+  typedef std::vector<const ForwardDetLayer*>::const_iterator ForwardLayerIterator;
 
-  typedef std::vector<BarrelDetLayer*> BarrelLayerContainer;
-  typedef std::vector<BarrelDetLayer*>::const_iterator BarrelLayerIterator;
+  typedef std::vector<const BarrelDetLayer*> BarrelLayerContainer;
+  typedef std::vector<const BarrelDetLayer*>::const_iterator BarrelLayerIterator;
 
   PixelMatchStartLayers();
   void setup(const GeometricSearchTracker *);

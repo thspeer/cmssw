@@ -1,5 +1,4 @@
 //
-// $Id: Photon.h,v 1.24 2011/06/08 20:40:18 rwolf Exp $
 //
 
 #ifndef DataFormats_PatCandidates_Photon_h
@@ -16,7 +15,6 @@
    https://hypernews.cern.ch/HyperNews/CMS/get/physTools.html
 
   \author   Steven Lowette, Giovanni Petrucciani, Frederic Ronga
-  \version  $Id: Photon.h,v 1.24 2011/06/08 20:40:18 rwolf Exp $
 */
 
 #include "DataFormats/PatCandidates/interface/PATObject.h"
@@ -24,6 +22,9 @@
 #include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/PatCandidates/interface/Isolation.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+#include "DataFormats/Common/interface/AtomicPtrCache.h"
 
 
 // Define typedefs for convenience
@@ -41,7 +42,7 @@ namespace reco {
 
 // Class definition
 namespace pat {
-
+  class PATPhotonSlimmer;
 
   class Photon : public PATObject<reco::Photon> {
 
@@ -66,9 +67,29 @@ namespace pat {
       // ---- methods for content embedding ----
       /// override the superCluster method from CaloJet, to access the internal storage of the supercluster
       reco::SuperClusterRef superCluster() const;
+      /// direct access to the seed cluster
+      reco::CaloClusterPtr seed() const; 
+
+      //method to access the basic clusters
+      const std::vector<reco::CaloCluster>& basicClusters() const { return basicClusters_ ; }
+      //method to access the preshower clusters
+      const std::vector<reco::CaloCluster>& preshowerClusters() const { return preshowerClusters_ ; }      
+      
+      //method to access embedded ecal RecHits
+      const EcalRecHitCollection * recHits() const { return &recHits_;}      
+      
       /// method to store the photon's supercluster internally
       void embedSuperCluster();
-
+      /// method to store the electron's seedcluster internally
+      void embedSeedCluster();
+      /// method to store the electron's basic clusters
+      void embedBasicClusters();
+      /// method to store the electron's preshower clusters
+      void embedPreshowerClusters();
+      /// method to store the RecHits internally - can be called from the PATElectronProducer
+      void embedRecHits(const EcalRecHitCollection * rechits); 
+      
+      
       // ---- methods for access the generated photon ----
       /// return the match to the generated photon
       const reco::Candidate * genPhoton() const { return genParticle(); }
@@ -102,6 +123,23 @@ namespace pat {
       /// Returns the calorimeter isolation combined from ecal 
       /// and hcal 
       float caloIso()  const { return ecalIso()+hcalIso(); }
+
+      /// PARTICLE FLOW ISOLATION
+      /// Returns the isolation calculated with all the PFCandidates
+      float particleIso() const { return userIsolation(pat::PfAllParticleIso); }
+      /// Returns the isolation calculated with only the charged hadron
+      /// PFCandidates
+      float chargedHadronIso() const { return userIsolation(pat::PfChargedHadronIso); }
+      /// Returns the isolation calculated with only the neutral hadron
+      /// PFCandidates
+      float neutralHadronIso() const { return userIsolation(pat::PfNeutralHadronIso); }        
+      /// Returns the isolation calculated with only the gamma
+      /// PFCandidates
+      float photonIso() const { return userIsolation(pat::PfGammaIso); }
+      /// Returns the isolation calculated with only the pile-up charged hadron
+      /// PFCandidates
+      float puChargedHadronIso() const { return userIsolation(pat::PfPUChargedHadronIso); }        
+
       /// Returns a user defined isolation value
       float userIso(uint8_t index=0)  const { return userIsolation(IsolationKeys(UserBaseIso + index)); }
       /// Returns the isolation variable for a specifc key (or 
@@ -186,18 +224,49 @@ namespace pat {
       /// pipe operator (introduced to use pat::Photon with PFTopProjectors)
       friend std::ostream& reco::operator<<(std::ostream& out, const pat::Photon& obj);
 
+      /// References to PFCandidates (e.g. to recompute isolation)
+      void setPackedPFCandidateCollection(const edm::RefProd<pat::PackedCandidateCollection> & refprod) ; 
+      /// References to PFCandidates linked to this object (e.g. for isolation vetos or masking before jet reclustering)
+      edm::RefVector<pat::PackedCandidateCollection> associatedPackedPFCandidates() const ;
+      /// References to PFCandidates linked to this object (e.g. for isolation vetos or masking before jet reclustering)
+      void setAssociatedPackedPFCandidates(const edm::RefVector<pat::PackedCandidateCollection> &refvector) ;
+
+      /// get the number of non-null PFCandidates
+      size_t numberOfSourceCandidatePtrs() const { return associatedPackedFCandidateIndices_.size(); }
+      /// get the source candidate pointer with index i
+      reco::CandidatePtr sourceCandidatePtr( size_type i ) const;
+
+      friend class PATPhotonSlimmer;
+
     protected:
 
       // ---- for content embedding ----
       bool embeddedSuperCluster_;
       std::vector<reco::SuperCluster> superCluster_;
+      /// Place to temporarily store the electron's supercluster after relinking the seed to it
+      edm::AtomicPtrCache<std::vector<reco::SuperCluster> > superClusterRelinked_;
+      /// Place to store electron's basic clusters internally 
+      std::vector<reco::CaloCluster> basicClusters_;
+      /// Place to store electron's preshower clusters internally      
+      std::vector<reco::CaloCluster> preshowerClusters_;      
+      /// True if seed cluster is stored internally
+      bool embeddedSeedCluster_;
+      /// Place to store electron's seed cluster internally
+      std::vector<reco::CaloCluster> seedCluster_;
+      /// True if RecHits stored internally
+      bool embeddedRecHits_;    
+      /// Place to store electron's RecHits internally (5x5 around seed+ all RecHits)
+      EcalRecHitCollection recHits_;      
       // ---- photon ID's holder ----
       std::vector<IdPair> photonIDs_;
       // ---- Isolation and IsoDeposit related datamebers ----
       typedef std::vector<std::pair<IsolationKeys, pat::IsoDeposit> > IsoDepositPairs;
       IsoDepositPairs    isoDeposits_;
       std::vector<float> isolations_;
-
+      
+      // ---- link to PackedPFCandidates
+      edm::RefProd<pat::PackedCandidateCollection> packedPFCandidates_;
+      std::vector<uint16_t> associatedPackedFCandidateIndices_;
   };
 
 

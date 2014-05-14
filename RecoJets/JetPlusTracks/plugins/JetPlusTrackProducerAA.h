@@ -13,7 +13,6 @@
 //
 // Original Author:  Olga Kodolova,40 R-A12,+41227671273,
 //         Created:  Fri Feb 19 10:14:02 CET 2010
-// $Id: JetPlusTrackProducerAA.h,v 1.3 2012/10/18 08:46:42 eulisse Exp $
 //
 //
 
@@ -31,6 +30,9 @@
 #include "ZSPJPTJetCorrector.h"
 #include "DataFormats/JetReco/interface/JPTJetCollection.h"
 #include "DataFormats/JetReco/interface/JPTJet.h"
+
+#include "DataFormats/JetReco/interface/CaloJet.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 
 //=>
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
@@ -65,8 +67,8 @@ class JetPlusTrackProducerAA : public edm::EDProducer {
                                                                                  reco::TrackRefVector&);
 
  private:
-      
-// Data      
+
+    // ---------- private data members ---------------------------      
       JetPlusTrackCorrector*        mJPTalgo;
       ZSPJPTJetCorrector*              mZSPalgo; 
       edm::InputTag                 src;
@@ -81,5 +83,10 @@ class JetPlusTrackProducerAA : public edm::EDProducer {
 //=>
       edm::InputTag mExtrapolations;
 //=>
-      // ----------member data ---------------------------
+
+      edm::EDGetTokenT<edm::View<reco::CaloJet> > input_jets_token_;
+      edm::EDGetTokenT<reco::VertexCollection> input_vertex_token_;  
+      edm::EDGetTokenT<reco::TrackCollection> input_tracks_token_;
+      edm::EDGetTokenT<std::vector<reco::TrackExtrapolation> > input_extrapolations_token_;
+
 };

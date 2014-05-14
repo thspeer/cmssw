@@ -5,8 +5,6 @@
  *  A Kalman Updator that uses a KFUpdator for pixel and matched hits,
  *  and a KFStrip1DUpdator for simple strip hits. Ported from ORCA.
  *
- *  $Date: 2013/01/10 11:55:10 $
- *  $Revision: 1.6 $
  *  \author todorov, cerati
  */
 
@@ -32,7 +30,7 @@ public:
   ~KFSwitching1DUpdator() {}
 
   /// update with a hit
-  virtual TSOS update(const TSOS& aTsos, const TransientTrackingRecHit& aHit) const;
+  virtual TSOS update(const TSOS& aTsos, const TrackingRecHit& aHit) const;
 
   virtual KFSwitching1DUpdator * clone() const 
   {

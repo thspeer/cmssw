@@ -1,8 +1,10 @@
-// $Id: RPCTechTriggerConfig.h,v 1.1 2009/01/28 12:54:41 aosorio Exp $
+// $Id: $
 #ifndef RPCTECHTRIGGERCONFIG_H 
 #define RPCTECHTRIGGERCONFIG_H 1
 
 // Include files
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <iostream>
 
 /** @class RPCTechTriggerConfig RPCTechTriggerConfig.h
@@ -40,5 +42,7 @@ protected:
 
 private:
 
+
+  COND_SERIALIZABLE;
 };
 #endif // RPCTECHTRIGGERCONFIG_H

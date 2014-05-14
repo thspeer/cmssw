@@ -15,7 +15,6 @@
 //         Created:  Thu May 31 14:09:02 CEST 2007
 //    Code Updates:  loic Quertenmont (querten)
 //         Created:  Thu May 10 14:09:02 CEST 2008
-// $Id: DeDxEstimatorProducer.cc,v 1.3 2013/02/27 13:28:30 muzaffar Exp $
 //
 //
 
@@ -63,8 +62,8 @@ DeDxEstimatorProducer::DeDxEstimatorProducer(const edm::ParameterSet& iConfig)
    MaxNrStrips         = iConfig.getUntrackedParameter<unsigned>("maxNrStrips"        ,  255);
    MinTrackHits        = iConfig.getUntrackedParameter<unsigned>("MinTrackHits"       ,  4);
 
-   m_tracksTag = iConfig.getParameter<edm::InputTag>("tracks");
-   m_trajTrackAssociationTag   = iConfig.getParameter<edm::InputTag>("trajectoryTrackAssociation");
+   m_tracksTag = consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("tracks"));
+   m_trajTrackAssociationTag   = consumes<TrajTrackAssociationCollection>(iConfig.getParameter<edm::InputTag>("trajectoryTrackAssociation"));
 
    usePixel = iConfig.getParameter<bool>("UsePixel"); 
    useStrip = iConfig.getParameter<bool>("UseStrip");
@@ -94,12 +93,12 @@ void  DeDxEstimatorProducer::beginRun(edm::Run const& run, const edm::EventSetup
    edm::ESHandle<TrackerGeometry> tkGeom;
    iSetup.get<TrackerDigiGeometryRecord>().get( tkGeom );
 
-   vector<GeomDet*> Det = tkGeom->dets();
+   auto const & Det = tkGeom->dets();
    for(unsigned int i=0;i<Det.size();i++){
       DetId  Detid  = Det[i]->geographicalId();
 
-       StripGeomDetUnit* StripDetUnit = dynamic_cast<StripGeomDetUnit*> (Det[i]);
-       PixelGeomDetUnit* PixelDetUnit = dynamic_cast<PixelGeomDetUnit*> (Det[i]);
+       auto StripDetUnit = dynamic_cast<StripGeomDetUnit const*> (Det[i]);
+       auto PixelDetUnit = dynamic_cast<PixelGeomDetUnit const*> (Det[i]);
 
        double Thick=-1, Dist=-1, Norma=-1;
        if(StripDetUnit){
@@ -124,12 +123,6 @@ void  DeDxEstimatorProducer::beginRun(edm::Run const& run, const edm::EventSetup
    MakeCalibrationMap();
 }
 
-// ------------ method called once each job just after ending the event loop  ------------
-void  DeDxEstimatorProducer::endJob(){
-   MODsColl.clear();
-}
-
-
 
 
 void DeDxEstimatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -138,11 +131,11 @@ void DeDxEstimatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& i
   ValueMap<DeDxData>::Filler filler(*trackDeDxEstimateAssociation);
 
   Handle<TrajTrackAssociationCollection> trajTrackAssociationHandle;
-  iEvent.getByLabel(m_trajTrackAssociationTag, trajTrackAssociationHandle);
+  iEvent.getByToken(m_trajTrackAssociationTag, trajTrackAssociationHandle);
   const TrajTrackAssociationCollection & TrajToTrackMap = *trajTrackAssociationHandle.product();
 
   edm::Handle<reco::TrackCollection> trackCollectionHandle;
-  iEvent.getByLabel(m_tracksTag,trackCollectionHandle);
+  iEvent.getByToken(m_tracksTag,trackCollectionHandle);
 
   size_t n =  TrajToTrackMap.size();
   std::vector<DeDxData> dedxEstimate(n);
@@ -185,14 +178,13 @@ void DeDxEstimatorProducer::produce(edm::Event& iEvent, const edm::EventSetup& i
 	   if(shapetest && !(DeDxTools::shapeSelection((DeDxTools::GetCluster(matchedHit->  monoHit()))->amplitudes()))) hits.push_back(mono);
         }else if(const ProjectedSiStripRecHit2D* projectedHit=dynamic_cast<const ProjectedSiStripRecHit2D*>(recHit)) {
            if(!useStrip) continue;
-           const SiStripRecHit2D* singleHit=&(projectedHit->originalHit());
            DeDxTools::RawHits mono;
 
            mono.trajectoryMeasurement = &(*it);
            mono.angleCosine = cosine;
-           mono.charge = getCharge(DeDxTools::GetCluster(singleHit),mono.NSaturating,singleHit->geographicalId());
-           mono.detId= singleHit->geographicalId();
-	   if(shapetest && !(DeDxTools::shapeSelection((DeDxTools::GetCluster(singleHit))->amplitudes()))) continue;
+           mono.charge = getCharge(DeDxTools::GetCluster(projectedHit->originalHit()),mono.NSaturating,projectedHit->originalId());
+           mono.detId= projectedHit->originalId();
+	   if(shapetest && !(DeDxTools::shapeSelection((DeDxTools::GetCluster(projectedHit->originalHit()))->amplitudes()))) continue;
            hits.push_back(mono);
         }else if(const SiStripRecHit2D* singleHit=dynamic_cast<const SiStripRecHit2D*>(recHit)){
            if(!useStrip) continue;

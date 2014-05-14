@@ -5,8 +5,6 @@
  *  
  *  Class to fill Event Generator dqm monitor elements; works on HepMCProduct
  *
- *  $Date: 2011/12/29 10:53:10 $
- *  $Revision: 1.3 $
  *
  */
 
@@ -25,6 +23,7 @@
 #include "DQMServices/Core/interface/DQMStore.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
+#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
 
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 
@@ -33,29 +32,22 @@
 #include "Validation/EventGenerator/interface/WeightManager.h"
 
 
-class WValidation : public edm::EDAnalyzer
-{
+class WValidation : public DQMEDAnalyzer{
   public:
 	explicit WValidation(const edm::ParameterSet&);
 	virtual ~WValidation();
-	virtual void beginJob();
-	virtual void endJob();  
-	virtual void analyze(const edm::Event&, const edm::EventSetup&);
-	virtual void beginRun(const edm::Run&, const edm::EventSetup&);
-	virtual void endRun(const edm::Run&, const edm::EventSetup&);
+	virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+        virtual void bookHistograms(DQMStore::IBooker &i, edm::Run const &, edm::EventSetup const &) override;
+        virtual void dqmBeginRun(const edm::Run& r, const edm::EventSetup& c) override;
 
   private:
 
-  WeightManager _wmanager;
-
-  edm::InputTag hepmcCollection_;
+	WeightManager wmanager_;
+	edm::InputTag hepmcCollection_;
 
   /// PDT table
   edm::ESHandle<HepPDT::ParticleDataTable> fPDGTable ;
   
-  ///ME's "container"
-  DQMStore *dbe;
-
   MonitorElement *nEvt;  
   MonitorElement *Wmass, *WmassPeak, /* *WmT, *WmTPeak, */  *Wpt, *WptLog, *Wrap, *Wdaughters;
   MonitorElement *lepmet_mT, *lepmet_mTPeak, *lepmet_pt, *lepmet_ptLog, *lepmet_rap;
@@ -67,6 +59,7 @@ class WValidation : public edm::EDAnalyzer
   /// decay flavor name
   std::string _name;
 
+  edm::EDGetTokenT<edm::HepMCProduct> hepmcCollectionToken_;
 };
 
 #endif

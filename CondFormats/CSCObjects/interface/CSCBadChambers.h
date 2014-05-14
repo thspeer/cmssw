@@ -1,6 +1,8 @@
 #ifndef CSCBadChambers_h
 #define CSCBadChambers_h
 
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <DataFormats/MuonDetId/interface/CSCDetId.h>
 #include <vector>
 
@@ -9,7 +11,7 @@ class CSCBadChambers{
   typedef uint16_t IndexType;
 
   CSCBadChambers() : numberOfBadChambers( 0 ), chambers( std::vector<int>() ) {};
-  CSCBadChambers(int nch, std::vector<int> ch ) : numberOfBadChambers( nch ), chambers( ch ) {};
+  CSCBadChambers(int nch, const std::vector<int>& ch ) : numberOfBadChambers( nch ), chambers( ch ) {};
   ~CSCBadChambers(){};
 
   /// How many bad chambers are there>
@@ -40,6 +42,8 @@ class CSCBadChambers{
  private:
   int numberOfBadChambers;
   std::vector<int> chambers;
+
+ COND_SERIALIZABLE;
 };
 
 #endif

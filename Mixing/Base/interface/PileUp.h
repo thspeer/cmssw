@@ -4,15 +4,14 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <boost/bind.hpp>
+//#include <boost/bind.hpp>
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Sources/interface/VectorInputSource.h"
 #include "DataFormats/Provenance/interface/EventID.h"
 #include "FWCore/Framework/interface/EventPrincipal.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-#include "CLHEP/Random/RandPoissonQ.h"
-#include "CLHEP/Random/RandFlat.h"
+#include "boost/shared_ptr.hpp"
 
 #include "TRandom.h"
 #include "TFile.h"
@@ -24,18 +23,20 @@ class TH1F;
 namespace CLHEP {
   class RandPoissonQ;
   class RandPoisson;
+  class HepRandomEngine;
 }
 
-
-
 namespace edm {
+  class SecondaryEventProvider;
+  class StreamID;
+
   class PileUp {
   public:
     explicit PileUp(ParameterSet const& pset, double averageNumber, TH1F* const histo, const bool playback);
     ~PileUp();
 
     template<typename T>
-      void readPileUp(edm::EventID const & signal, std::vector<edm::EventID> &ids, T eventOperator, const int NumPU );
+      void readPileUp(edm::EventID const & signal, std::vector<edm::EventID> &ids, T eventOperator, const int NumPU, StreamID const&);
 
     template<typename T>
       void playPileUp(const std::vector<edm::EventID> &ids, T eventOperator);
@@ -46,13 +47,20 @@ namespace edm {
     void dropUnwantedBranches(std::vector<std::string> const& wantedBranches) {
       input_->dropUnwantedBranches(wantedBranches);
     }
-    void endJob () {
-      input_->doEndJob();
-    }
+    void beginJob();
+    void endJob();
+
+    void beginRun(const edm::Run& run, const edm::EventSetup& setup);
+    void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup& setup);
+
+    void endRun(const edm::Run& run, const edm::EventSetup& setup);
+    void endLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup& setup);
+
+    void setupPileUpEvent(const edm::EventSetup& setup);
 
     void reload(const edm::EventSetup & setup);
 
-    void CalculatePileup(int MinBunch, int MaxBunch, std::vector<int>& PileupSelection, std::vector<float>& TrueNumInteractions);
+    void CalculatePileup(int MinBunch, int MaxBunch, std::vector<int>& PileupSelection, std::vector<float>& TrueNumInteractions, StreamID const&);
 
     //template<typename T>
     // void recordEventForPlayback(EventPrincipal const& eventPrincipal,
@@ -62,6 +70,11 @@ namespace edm {
     void input(unsigned int s){inputType_=s;}
 
   private:
+
+    std::unique_ptr<CLHEP::RandPoissonQ> const& poissonDistribution(StreamID const& streamID);
+    std::unique_ptr<CLHEP::RandPoisson> const& poissonDistr_OOT(StreamID const& streamID);
+    CLHEP::HepRandomEngine* randomEngine(StreamID const& streamID);
+
     unsigned int  inputType_;
     std::string type_;
     double averageNumber_;
@@ -82,13 +95,16 @@ namespace edm {
     int  intFixed_OOT_;
     int  intFixed_ITPU_;
 
-    std::unique_ptr<ProductRegistry> productRegistry_;
+    boost::shared_ptr<ProductRegistry> productRegistry_;
     std::unique_ptr<VectorInputSource> const input_;
-    std::unique_ptr<ProcessConfiguration> processConfiguration_;
+    boost::shared_ptr<ProcessConfiguration> processConfiguration_;
     std::unique_ptr<EventPrincipal> eventPrincipal_;
-    std::unique_ptr<CLHEP::RandPoissonQ> poissonDistribution_;
-    std::unique_ptr<CLHEP::RandPoisson>  poissonDistr_OOT_;
-
+    boost::shared_ptr<LuminosityBlockPrincipal> lumiPrincipal_;
+    boost::shared_ptr<RunPrincipal> runPrincipal_;
+    std::unique_ptr<SecondaryEventProvider> provider_;
+    std::vector<std::unique_ptr<CLHEP::RandPoissonQ> > vPoissonDistribution_;
+    std::vector<std::unique_ptr<CLHEP::RandPoisson> > vPoissonDistr_OOT_;
+    std::vector<CLHEP::HepRandomEngine*> randomEngines_;
 
     TH1F *h1f;
     TH1F *hprobFunction;
@@ -138,7 +154,8 @@ namespace edm {
    */
   template<typename T>
   void
-    PileUp::readPileUp(edm::EventID const & signal, std::vector<edm::EventID> &ids, T eventOperator, const int pileEventCnt) {
+    PileUp::readPileUp(edm::EventID const & signal, std::vector<edm::EventID> &ids, T eventOperator,
+                       const int pileEventCnt, StreamID const& streamID) {
 
     // One reason PileUp is responsible for recording event IDs is
     // that it is the one that knows how many events will be read.
@@ -150,7 +167,7 @@ namespace edm {
       if (sequential_)
         read = input_->loopSequentialWithID(*eventPrincipal_, lumi, pileEventCnt, recorder);
       else
-        read = input_->loopRandomWithID(*eventPrincipal_, lumi, pileEventCnt, recorder);
+        read = input_->loopRandomWithID(*eventPrincipal_, lumi, pileEventCnt, recorder, randomEngine(streamID));
     } else {
       if (sequential_) {
         // boost::bind creates a functor from recordEventForPlayback
@@ -164,7 +181,7 @@ namespace edm {
         //  );
           
       } else  {
-        read = input_->loopRandom(*eventPrincipal_, pileEventCnt, recorder);
+        read = input_->loopRandom(*eventPrincipal_, pileEventCnt, recorder, randomEngine(streamID));
         //               boost::bind(&PileUp::recordEventForPlayback<T>,
         //                             boost::ref(*this), _1, boost::ref(ids),
         //                             boost::ref(eventOperator))

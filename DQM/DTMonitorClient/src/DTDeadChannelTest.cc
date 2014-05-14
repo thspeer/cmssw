@@ -2,8 +2,6 @@
 /*
  *  See header file for a description of this class.
  *
- *  $Date: 2010/01/05 10:15:46 $
- *  $Revision: 1.15 $
  *  \author G. Mila - INFN Torino
  */
 
@@ -114,8 +112,8 @@ void DTDeadChannelTest::endLuminosityBlock(LuminosityBlock const& lumiSeg, Event
   edm::LogVerbatim ("deadChannel") <<"[DTDeadChannelTest]: "<<nLumiSegs<<" updates";
 
 
-  vector<DTChamber*>::const_iterator ch_it = muonGeom->chambers().begin();
-  vector<DTChamber*>::const_iterator ch_end = muonGeom->chambers().end();
+  vector<const DTChamber*>::const_iterator ch_it = muonGeom->chambers().begin();
+  vector<const DTChamber*>::const_iterator ch_end = muonGeom->chambers().end();
 
   edm::LogVerbatim ("deadChannel") << "[DTDeadChannelTest]: Occupancy tests results";
 

@@ -8,7 +8,7 @@
 #include <iosfwd>
 #include <string>
 #include <fstream>
-#include "ctime"
+#include <ctime>
 #include "Utilities/Timing/interface/GenTimer.h"
 
 /**
@@ -61,7 +61,7 @@ struct LCPUTime {
   };
   
   static double oneTick() {
-    static OneTick local;
+    static const OneTick local;
     return local.one;
   };
 

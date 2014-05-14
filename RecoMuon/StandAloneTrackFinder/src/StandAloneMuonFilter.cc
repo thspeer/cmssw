@@ -1,8 +1,6 @@
 /** \class StandAloneMuonFilter
  *  The inward-outward fitter (starts from seed state).
  *
- *  $Date: 2009/09/17 20:02:50 $
- *  $Revision: 1.10 $
  *  \author R. Bellan - INFN Torino <riccardo.bellan@cern.ch>
  *          D. Trocino - INFN Torino <daniele.trocino@to.infn.it>
  */
@@ -39,7 +37,8 @@ using namespace edm;
 using namespace std;
 
 StandAloneMuonFilter::StandAloneMuonFilter(const ParameterSet& par,
-					       const MuonServiceProxy* service)
+					   const MuonServiceProxy* service,
+					   edm::ConsumesCollector& iC)
 :theService(service),
  theOverlappingChambersFlag(true)
 {
@@ -92,6 +91,7 @@ StandAloneMuonFilter::StandAloneMuonFilter(const ParameterSet& par,
   theMeasurementExtractor = new MuonDetLayerMeasurements(par.getParameter<InputTag>("DTRecSegmentLabel"),
 							 par.getParameter<InputTag>("CSCRecSegmentLabel"),
 							 par.getParameter<InputTag>("RPCRecSegmentLabel"),
+							 iC,
 							 enableDTMeasurement,
 							 enableCSCMeasurement,
 							 enableRPCMeasurement);
@@ -166,13 +166,13 @@ void StandAloneMuonFilter::incrementCompatibleChamberCounters(const DetLayer *la
 
 
 vector<const DetLayer*> StandAloneMuonFilter::compatibleLayers(const DetLayer *initialLayer,
-								 FreeTrajectoryState& fts,
+								 const FreeTrajectoryState& fts,
 								 PropagationDirection propDir){
   vector<const DetLayer*> detLayers;
 
   if(theNavigationType == "Standard"){
     // ask for compatible layers
-    detLayers = initialLayer->compatibleLayers(fts,propDir);  
+    detLayers = theService->muonNavigationSchool()->compatibleLayers(*initialLayer,fts,propDir);
     // I have to fit by hand the first layer until the seedTSOS is defined on the first rechit layer
     // In fact the first layer is not returned by initialLayer->compatibleLayers.
     detLayers.insert(detLayers.begin(),initialLayer);
@@ -358,7 +358,7 @@ bool StandAloneMuonFilter::update(const DetLayer * layer,
 
 void StandAloneMuonFilter::createDefaultTrajectory(const Trajectory & oldTraj, Trajectory & defTraj) {
 
-  Trajectory::DataContainer oldMeas = oldTraj.measurements();
+  Trajectory::DataContainer const & oldMeas = oldTraj.measurements();
   defTraj.reserve(oldMeas.size());
 
   for (Trajectory::DataContainer::const_iterator itm = oldMeas.begin(); itm != oldMeas.end(); itm++) {
@@ -367,8 +367,8 @@ void StandAloneMuonFilter::createDefaultTrajectory(const Trajectory & oldTraj, T
     else {
       MuonTransientTrackingRecHit::MuonRecHitPointer invRhPtr = MuonTransientTrackingRecHit::specificBuild( (*itm).recHit()->det(), (*itm).recHit()->hit() );
       invRhPtr->invalidateHit();
-      TrajectoryMeasurement invRhMeas( (*itm).forwardPredictedState(), (*itm).updatedState(), invRhPtr.get(), (*itm).estimate(), (*itm).layer() );
-      defTraj.push( invRhMeas, (*itm).estimate() );	  
+      TrajectoryMeasurement invRhMeas( (*itm).forwardPredictedState(), (*itm).updatedState(), invRhPtr, (*itm).estimate(), (*itm).layer() );
+      defTraj.push( std::move(invRhMeas), (*itm).estimate() );	  
     }
 
   } // end for

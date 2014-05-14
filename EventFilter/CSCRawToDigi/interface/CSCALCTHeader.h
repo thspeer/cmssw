@@ -7,6 +7,7 @@
 #include <bitset>
 #include <vector>
 #include <iosfwd>
+#include <atomic>
 #include "DataFormats/CSCDigi/interface/CSCALCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCALCTStatusDigi.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCALCTHeader2006.h"
@@ -37,7 +38,7 @@ class CSCALCTHeader {
   enum FIFO_MODE {NO_DUMP, FULL_DUMP, LOCAL_DUMP};
   unsigned short int FIFOMode()       const {return header2006.fifoMode;} 
   unsigned short int NTBins()         const {
-    switch (firmwareVersion)
+    switch (firmwareVersion.load())
       {
       case 2006:
         return header2006.nTBins;
@@ -53,7 +54,7 @@ class CSCALCTHeader {
   unsigned short int ExtTrig()        const {return header2006.extTrig;}
   unsigned short int CSCID()          const {return header2006.cscID;}
   unsigned short int BXNCount()       const {
-    switch (firmwareVersion)
+    switch (firmwareVersion.load())
       {
       case 2006:
         return header2006.bxnCount;
@@ -66,7 +67,7 @@ class CSCALCTHeader {
       }
   }
   unsigned short int L1Acc()          const {
-    switch (firmwareVersion)
+    switch (firmwareVersion.load())
       {
       case 2006:
         return header2006.l1Acc;
@@ -96,7 +97,7 @@ class CSCALCTHeader {
  
   /// in 16-bit words
   int sizeInWords() {
-    switch (firmwareVersion)
+    switch (firmwareVersion.load())
       {
       case 2006:
         return 8;
@@ -110,7 +111,7 @@ class CSCALCTHeader {
   }
   
   bool check() const {
-    switch (firmwareVersion)
+    switch (firmwareVersion.load())
       {
       case 2006:
 	return header2006.flag_0 == 0xC;
@@ -144,8 +145,8 @@ class CSCALCTHeader {
   //maximum header size is 116 words
   unsigned short int theOriginalBuffer[116];
   
-  static bool debug;
-  static unsigned short int firmwareVersion;
+  static std::atomic<bool> debug;
+  static std::atomic<unsigned short int> firmwareVersion;
 
   ///size of the 2007 header in words
   unsigned short int sizeInWords2007_, bxn0, bxn1;

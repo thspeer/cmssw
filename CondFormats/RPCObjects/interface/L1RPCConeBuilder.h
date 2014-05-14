@@ -16,8 +16,10 @@
 //
 // Original Author:  Tomasz Fruboes
 //         Created:  Fri Feb 22 12:27:02 CET 2008
-// $Id: L1RPCConeBuilder.h,v 1.10 2009/04/10 15:36:25 fruboes Exp $
+// $Id: L1RPCConeBuilder.h,v 1.8 2009/03/20 15:10:53 michals Exp $
 //
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <vector>
 #include <map>
@@ -39,6 +41,8 @@ class L1RPCConeBuilder
         unsigned char m_PAC;
         unsigned char m_logplane;
         unsigned char m_logstrip;
+
+        COND_SERIALIZABLE;
       };
       typedef std::vector<TStripCon> TStripConVec;
       typedef std::map<unsigned char, TStripConVec> TStrip2ConVec;
@@ -100,6 +104,7 @@ class L1RPCConeBuilder
         
         }
         
+        COND_SERIALIZABLE;
       };
       
       typedef std::vector<TCompressedCon> TCompressedConVec;
@@ -138,6 +143,8 @@ class L1RPCConeBuilder
 
      boost::shared_ptr< TConMap > m_coneConnectionMap; 
      boost::shared_ptr< TCompressedConMap >  m_compressedConeConnectionMap;
+
+   COND_SERIALIZABLE;
 };
 
 

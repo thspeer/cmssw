@@ -60,7 +60,7 @@ private:
   // Utilities to get detector levels during a step
   void detectorLevel(const G4Step*, int&, int*, lvp*) const;
 
-  lvp lvCAST, lvCAES, lvCEDS, lvCAHS, lvCHDS, lvCAER, lvCEDR;
+  lvp lvCASTFar, lvCASTNear, lvCAST, lvCAES, lvCEDS, lvCAHS, lvCHDS, lvCAER, lvCEDR;
   lvp lvCAHR, lvCHDR, lvC3EF, lvC3HF, lvC4EF, lvC4HF;
 
 };

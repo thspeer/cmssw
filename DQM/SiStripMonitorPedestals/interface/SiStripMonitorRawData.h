@@ -16,13 +16,13 @@
 //
 // Original Author:  dutta
 //         Created:  Sat Feb  4 20:49:51 CET 2006
-// $Id: SiStripMonitorRawData.h,v 1.5 2009/11/05 21:08:29 dutta Exp $
 //
 
 // system include files
 #include <memory>
 
 // user include files
+#include "FWCore/Utilities/interface/EDGetToken.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -31,6 +31,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 
 #include "boost/cstdint.hpp"
 #include <iostream>
@@ -41,19 +43,21 @@ class MonitorElement;
 class DQMStore;
 class SiStripDetCabling;
 
-class SiStripMonitorRawData : public edm::EDAnalyzer {
+class SiStripMonitorRawData : public DQMEDAnalyzer {
  public:
   explicit SiStripMonitorRawData(const edm::ParameterSet&);
   ~SiStripMonitorRawData();
   
   virtual void beginJob() ;
-  virtual void beginRun(edm::Run const& run, edm::EventSetup const& eSetup);
+  void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   virtual void endRun(edm::Run const& run, edm::EventSetup const& eSetup);
   virtual void endJob() ;
   
   
  private:
+  edm::EDGetTokenT<edm::DetSetVector<SiStripRawDigi> > digiToken_;
+
   MonitorElement* BadFedNumber;
   
   DQMStore* dqmStore_;

@@ -7,8 +7,24 @@
 #include "CondFormats/PhysicsToolsObjects/interface/PerformancePayload.h"
 #include "CondFormats/PhysicsToolsObjects/interface/PerformanceWorkingPoint.h"
 
+#include "CondFormats/PhysicsToolsObjects/interface/PerformancePayloadFromBinnedTFormula.h"
+#include "CondFormats/PhysicsToolsObjects/interface/PerformancePayloadFromTFormula.h"
+#include "CondFormats/PhysicsToolsObjects/interface/PerformancePayloadFromTable.h"
 
+namespace cond {
+  template <> PerformancePayload* createPayload<PerformancePayload>( const std::string& payloadTypeName ){
+    if( payloadTypeName == "PerformancePayloadFromTFormula" ) return new PerformancePayloadFromTFormula;
+    if( payloadTypeName == "PerformancePayloadFromBinnedTFormula" ) return new PerformancePayloadFromBinnedTFormula;
+    if( payloadTypeName == "PerformancePayloadFromTable" ) return new PerformancePayloadFromTable;
+    throwException(std::string("Type mismatch, target object is type \"")+payloadTypeName+"\"",
+		   "createPayload" );
+  }
+}
 
-REGISTER_PLUGIN(PerformancePayloadRecord, PerformancePayload);
+namespace {
+  struct InitPerformancePayload {void operator()(PerformancePayload& e){ e.initialize();}};
+}
+
+REGISTER_PLUGIN_INIT(PerformancePayloadRecord, PerformancePayload, InitPerformancePayload);
 REGISTER_PLUGIN(PerformanceWPRecord, PerformanceWorkingPoint);
-REGISTER_PLUGIN(PFCalibrationRcd, PerformancePayload);
+REGISTER_PLUGIN_INIT(PFCalibrationRcd, PerformancePayload, InitPerformancePayload);

@@ -5,7 +5,7 @@
  *   DTTF Masks from OMDS
  *
  *
- *   $Date: 2009/05/12 09:16:28 $
+ *   $Date: 2008/05/14 14:58:02 $
  *   $Revision: 1.1 $
  *
  *   J. Troconiz            UAM Madrid
@@ -14,6 +14,8 @@
 //--------------------------------------------------
 #ifndef L1MUDTTF_MASKS_H
 #define L1MUDTTF_MASKS_H
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 //---------------
 // C++ Headers --
@@ -40,7 +42,7 @@ class L1MuDTTFMasks {
   public:
 
     /// constructor
-    L1MuDTTFMasks() {}
+    L1MuDTTFMasks() { reset(); }
 
     /// destructor
     virtual ~L1MuDTTFMasks() {}
@@ -82,6 +84,8 @@ class L1MuDTTFMasks {
     bool etsoc_chdis_st2[6][12];
     bool etsoc_chdis_st3[6][12];
 
+
+  COND_SERIALIZABLE;
 };
 
 #endif

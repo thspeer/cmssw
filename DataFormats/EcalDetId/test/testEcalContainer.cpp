@@ -2,12 +2,9 @@
    \file
    Test suit for EcalContainer
 
-   \version $Id: testEcalContainer.cpp,v 1.4 2008/10/15 15:14:15 heltsley Exp $
 
    \note This test is not exaustive     
 */
-
-static const char CVSId[] = "$Id: testEcalContainer.cpp,v 1.4 2008/10/15 15:14:15 heltsley Exp $";
 
 #include <Utilities/Testing/interface/CppUnit_testdriver.icpp>
 #include <cppunit/extensions/HelperMacros.h>

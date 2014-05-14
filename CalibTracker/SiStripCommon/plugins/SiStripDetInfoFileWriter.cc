@@ -3,7 +3,6 @@
 // Class:      SiStripDetInfoFileWriter
 // Original Author:  G. Bruno
 //         Created:  Mon May 20 10:04:31 CET 2007
-// $Id: SiStripDetInfoFileWriter.cc,v 1.3 2010/01/19 11:49:24 bbetchar Exp $
 
 #include "CalibTracker/SiStripCommon/plugins/SiStripDetInfoFileWriter.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -57,7 +56,7 @@ void SiStripDetInfoFileWriter::beginRun(const edm::EventSetup& iSetup){
     
     for(TrackerGeometry::DetUnitContainer::const_iterator it = pDD->detUnits().begin(); it != pDD->detUnits().end(); it++){
   
-      const StripGeomDetUnit* mit = dynamic_cast<StripGeomDetUnit*>(*it);
+      const StripGeomDetUnit* mit = dynamic_cast<StripGeomDetUnit const *>(*it);
 
       if(mit!=0){
 

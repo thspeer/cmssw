@@ -18,7 +18,6 @@ detector segment (detID)
 //
 // Original Author:  Vincenzo Chiochia
 //         Created:  
-// $Id: SiPixelRecHitModule.h,v 1.8 2009/06/19 09:30:00 merkelp Exp $
 //
 //  Adapted by: Keith Rose
 //  for use in SiPixelMonitorRecHit package
@@ -26,6 +25,7 @@ detector segment (detID)
 //  for pixel offline DQM 
 
 #include "DQMServices/Core/interface/MonitorElement.h"
+#include "DQMServices/Core/interface/DQMStore.h"
 #include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHit.h"
 #include "DataFormats/Common/interface/DetSetVector.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -45,8 +45,8 @@ class SiPixelRecHitModule {
   // typedef edm::DetSet<PixelRecHit>::const_iterator  RecHitsIterator;
 
   /// Book histograms
-  void book(const edm::ParameterSet& iConfig, int type=0, bool twoD=true, 
-            bool reducedSet=false);
+  void book(const edm::ParameterSet& iConfig, DQMStore::IBooker & iBooker, int type=0, bool twoD=true, 
+            bool reducedSet=false, bool isUpgrade=false);
   /// Fill histograms
   void fill(const float& rechit_x, const float& rechit_y, const int& sizeX, 
             const int& sizeY, const float& lerr_x, const float& lerr_y, 

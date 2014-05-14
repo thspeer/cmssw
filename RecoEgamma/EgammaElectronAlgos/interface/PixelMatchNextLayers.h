@@ -15,7 +15,6 @@
 //
 // Original Author:  Ursula Berthon, Claude Charlot
 //         Created:  Mon Mar 27 13:22:06 CEST 2006
-// $Id: PixelMatchNextLayers.h,v 1.10 2013/01/02 18:59:12 dlange Exp $
 //
 //
 #include "TrackingTools/PatternTools/interface/TrajectoryMeasurement.h" 
@@ -29,6 +28,7 @@ class FreeTrajectoryState;
 class PropagatorWithMaterial;
 class LayerMeasurements;
 class TrackerTopology;
+class NavigationSchool;
 
 class PixelMatchNextLayers {
 
@@ -38,6 +38,7 @@ public:
 		       const BarrelMeasurementEstimator *aBarrelMeas,
 		       const ForwardMeasurementEstimator *aForwardMeas,
 		       const TrackerTopology *tTopo,
+                       const NavigationSchool& navigationSchool,
 		       bool searchInTIDTEC);
   std::vector<TrajectoryMeasurement> measurementsInNextLayers() const;
   std::vector<TrajectoryMeasurement> badMeasurementsInNextLayers() const;

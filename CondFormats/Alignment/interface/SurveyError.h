@@ -11,10 +11,12 @@
  *    an array of 21 floats for the error matrix of 6 alignment parameters
  *  The lower triangular of the error matrix is stored.
  *
- *  $Date: 2007/10/08 14:44:38 $
- *  $Revision: 1.2 $
+ *  $Date: 2007/04/03 15:59:58 $
+ *  $Revision: 1.1 $
  *  \author Chung Khim Lae
  */
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include "CondFormats/Alignment/interface/Definitions.h"
 
@@ -46,6 +48,8 @@ private:
   align::ID m_rawId;
 
   Scalar m_errors[size_];
+
+  COND_SERIALIZABLE;
 };
 
 SurveyError::SurveyError(uint8_t structureType,

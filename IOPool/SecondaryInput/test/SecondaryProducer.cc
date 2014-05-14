@@ -31,10 +31,18 @@
 #include "FWCore/Utilities/interface/TypeID.h"
 #include "FWCore/Version/interface/GetReleaseVersion.h"
 
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "FWCore/Utilities/interface/RandomNumberGenerator.h"
+#include "FWCore/Utilities/interface/Exception.h"
+
 #include "boost/bind.hpp"
 
 #include <memory>
 #include <string>
+
+namespace CLHEP {
+  class HepRandomEngine;
+}
 
 namespace edm {
 
@@ -51,21 +59,21 @@ namespace edm {
         firstEvent_(true),
         firstLoop_(true),
         expectedEventNumber_(1) {
-    ParameterSet emptyPSet;
-    emptyPSet.registerIt();
-    processConfiguration_->setParameterSetID(emptyPSet.id());
+    processConfiguration_->setParameterSetID(ParameterSet::emptyParameterSetID());
+    processConfiguration_->setProcessConfigurationID();
  
-    secInput_->productRegistry()->setFrozen();
- 
+    productRegistry_->setFrozen();
+
     produces<edmtest::ThingCollection>();
     produces<edmtest::OtherThingCollection>("testUserTag");
+    consumes<edmtest::IntProduct>(edm::InputTag{"EventNumber"});
   }
 
   void SecondaryProducer::beginJob() {
     eventPrincipal_.reset(new EventPrincipal(secInput_->productRegistry(),
-                                            secInput_->branchIDListHelper(),
-                                            *processConfiguration_,
-                                            nullptr));
+                                             secInput_->branchIDListHelper(),
+                                             *processConfiguration_,
+                                             nullptr));
 
   }
 
@@ -74,6 +82,7 @@ namespace edm {
 
   // Functions that get called by framework every event
   void SecondaryProducer::produce(Event& e, EventSetup const&) {
+
     if(sequential_) {
       if(lumiSpecified_) {
         // Just for simplicity, we use the luminosity block ID from the primary to read the secondary.
@@ -86,11 +95,23 @@ namespace edm {
       std::vector<EventID> events(1, e.id());
       secInput_->loopSpecified(*eventPrincipal_, events, boost::bind(&SecondaryProducer::processOneEvent, this, _1, boost::ref(e)));
     } else {
+
+      edm::Service<edm::RandomNumberGenerator> rng;
+      if ( ! rng.isAvailable()) {
+        throw cms::Exception("Configuration")
+          << "SecondaryProducer in its random mode requires the RandomNumberGeneratorService\n"
+             "which is not present in the configuration file.  You must add the service\n"
+             "in the configuration file or remove the modules that require it.";
+      }
+      CLHEP::HepRandomEngine* engine = &rng->getEngine(e.streamID());
+
       if(lumiSpecified_) {
         // Just for simplicity, we use the luminosity block ID from the primary to read the secondary.
-        secInput_->loopRandomWithID(*eventPrincipal_, LuminosityBlockID(e.id().run(), e.id().luminosityBlock()), 1, boost::bind(&SecondaryProducer::processOneEvent, this, _1, boost::ref(e)));
+        secInput_->loopRandomWithID(*eventPrincipal_, LuminosityBlockID(e.id().run(), e.id().luminosityBlock()), 1,
+                                    boost::bind(&SecondaryProducer::processOneEvent, this, _1, boost::ref(e)),
+                                    engine);
       } else {
-        secInput_->loopRandom(*eventPrincipal_, 1, boost::bind(&SecondaryProducer::processOneEvent, this, _1, boost::ref(e)));
+        secInput_->loopRandom(*eventPrincipal_, 1, boost::bind(&SecondaryProducer::processOneEvent, this, _1, boost::ref(e)), engine);
       }
     }
   }
@@ -104,10 +125,12 @@ namespace edm {
     BasicHandle bhandle = eventPrincipal.getByLabel(PRODUCT_TYPE, TypeID(typeid(edmtest::IntProduct)),
                                                     "EventNumber",
                                                     "",
-                                                    "");
+                                                    "",
+                                                    nullptr,
+                                                    nullptr);
     assert(bhandle.isValid());
     Handle<edmtest::IntProduct> handle;
-    convert_handle<edmtest::IntProduct>(bhandle, handle);
+    convert_handle<edmtest::IntProduct>(std::move(bhandle), handle);
     assert(static_cast<EventNumber_t>(handle->value) == en);
 
     // Check that primary source products are retrieved from the same event as the EventAuxiliary
@@ -117,7 +140,9 @@ namespace edm {
     BasicHandle bh = eventPrincipal.getByLabel(PRODUCT_TYPE, TypeID(typeid(TC)),
                                                "Thing",
                                                "",
-                                               "");
+                                               "",
+                                               nullptr,
+                                               nullptr);
     assert(bh.isValid());
     if(!(bh.interface()->dynamicTypeInfo() == typeid(TC))) {
       handleimpl::throwConvertTypeError(typeid(TC), bh.interface()->dynamicTypeInfo());
@@ -147,11 +172,12 @@ namespace edm {
 
   boost::shared_ptr<VectorInputSource> SecondaryProducer::makeSecInput(ParameterSet const& ps) {
     ParameterSet const& sec_input = ps.getParameterSet("input");
+    PreallocationConfiguration dummy;
     InputSourceDescription desc(ModuleDescription(),
                                 *productRegistry_,
 				boost::shared_ptr<BranchIDListHelper>(new BranchIDListHelper),
 				boost::shared_ptr<ActivityRegistry>(new ActivityRegistry),
-				-1, -1);
+				-1, -1, dummy);
     boost::shared_ptr<VectorInputSource> input_(static_cast<VectorInputSource *>
       (VectorInputSourceFactory::get()->makeVectorInputSource(sec_input,
       desc).release()));

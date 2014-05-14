@@ -3,12 +3,8 @@
    unit test file for class FEDRawDataProduct 
 
    \author Stefano ARGIRO
-   \version $Id: FEDRawDataProduct_t.cc,v 1.4 2005/10/06 18:25:22 namapane Exp $
    \date 28 Jun 2005
 */
-
-static const char CVSId[] = "$Id: FEDRawDataProduct_t.cc,v 1.4 2005/10/06 18:25:22 namapane Exp $";
-
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <DataFormats/FEDRawData/interface/FEDRawData.h>

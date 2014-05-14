@@ -4,38 +4,51 @@
 ----------------------------------------------------------------------*/
 
 #include "FWCore/Framework/interface/EDProducer.h"
-#include "FWCore/Framework/src/CPCSentry.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/LuminosityBlock.h"
 #include "FWCore/Framework/interface/Run.h"
 #include "FWCore/Framework/src/edmodule_mightGet_config.h"
+#include "FWCore/Framework/src/EventSignalsSentry.h"
 
 #include "FWCore/ParameterSet/interface/ConfigurationDescriptions.h"
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
+
+#include "SharedResourcesRegistry.h"
 
 namespace edm {
   EDProducer::EDProducer() :
       ProducerBase(),
       moduleDescription_(),
-      current_context_(nullptr),
       previousParentage_(),
-      previousParentageId_() { }
+      previousParentageId_() {
+        SharedResourcesRegistry::instance()->registerSharedResource(
+                                                                    SharedResourcesRegistry::kLegacyModuleResourceName);
+      }
 
   EDProducer::~EDProducer() { }
 
   bool
   EDProducer::doEvent(EventPrincipal& ep, EventSetup const& c,
-			     CurrentProcessingContext const* cpc) {
-    detail::CPCSentry sentry(current_context_, cpc);
-    Event e(ep, moduleDescription_);
+                      ActivityRegistry* act,
+                      ModuleCallingContext const* mcc) {
+    Event e(ep, moduleDescription_, mcc);
     e.setConsumer(this);
-    this->produce(e, c);
-    commit_(e, &previousParentage_, &previousParentageId_);
+    {
+      std::lock_guard<std::mutex> guard(mutex_);
+      {
+        std::lock_guard<SharedResourcesAcquirer> guardAcq(resourceAcquirer_);
+        EventSignalsSentry sentry(act,mcc);
+        this->produce(e, c);
+      }
+      commit_(e, &previousParentage_, &previousParentageId_);
+    }
     return true;
   }
 
   void 
   EDProducer::doBeginJob() {
+    std::vector<std::string> res = {SharedResourcesRegistry::kLegacyModuleResourceName};
+    resourceAcquirer_ = SharedResourcesRegistry::instance()->createAcquirer(res);
     this->beginJob();
   }
   
@@ -46,9 +59,8 @@ namespace edm {
 
   void
   EDProducer::doBeginRun(RunPrincipal& rp, EventSetup const& c,
-			CurrentProcessingContext const* cpc) {
-    detail::CPCSentry sentry(current_context_, cpc);
-    Run r(rp, moduleDescription_);
+                         ModuleCallingContext const* mcc) {
+    Run r(rp, moduleDescription_, mcc);
     r.setConsumer(this);
     Run const& cnstR = r;
     this->beginRun(cnstR, c);
@@ -57,9 +69,8 @@ namespace edm {
 
   void
   EDProducer::doEndRun(RunPrincipal& rp, EventSetup const& c,
-			CurrentProcessingContext const* cpc) {
-    detail::CPCSentry sentry(current_context_, cpc);
-    Run r(rp, moduleDescription_);
+                       ModuleCallingContext const* mcc) {
+    Run r(rp, moduleDescription_, mcc);
     r.setConsumer(this);
     Run const& cnstR = r;
     this->endRun(cnstR, c);
@@ -68,9 +79,8 @@ namespace edm {
 
   void
   EDProducer::doBeginLuminosityBlock(LuminosityBlockPrincipal& lbp, EventSetup const& c,
-			CurrentProcessingContext const* cpc) {
-    detail::CPCSentry sentry(current_context_, cpc);
-    LuminosityBlock lb(lbp, moduleDescription_);
+                                     ModuleCallingContext const* mcc) {
+    LuminosityBlock lb(lbp, moduleDescription_, mcc);
     lb.setConsumer(this);
     LuminosityBlock const& cnstLb = lb;
     this->beginLuminosityBlock(cnstLb, c);
@@ -79,9 +89,8 @@ namespace edm {
 
   void
   EDProducer::doEndLuminosityBlock(LuminosityBlockPrincipal& lbp, EventSetup const& c,
-			CurrentProcessingContext const* cpc) {
-    detail::CPCSentry sentry(current_context_, cpc);
-    LuminosityBlock lb(lbp, moduleDescription_);
+                                   ModuleCallingContext const* mcc) {
+    LuminosityBlock lb(lbp, moduleDescription_, mcc);
     lb.setConsumer(this);
     LuminosityBlock const& cnstLb = lb;
     this->endLuminosityBlock(cnstLb, c);
@@ -99,16 +108,6 @@ namespace edm {
   }
 
   void 
-  EDProducer::doRespondToOpenOutputFiles(FileBlock const& fb) {
-    respondToOpenOutputFiles(fb);
-  }
-
-  void
-  EDProducer::doRespondToCloseOutputFiles(FileBlock const& fb) {
-    respondToCloseOutputFiles(fb);
-  }
-
-  void 
   EDProducer::doPreForkReleaseResources() {
     preForkReleaseResources();
   }
@@ -118,11 +117,6 @@ namespace edm {
     postForkReacquireResources(iChildIndex, iNumberOfChildren);
   }
   
-  CurrentProcessingContext const*
-  EDProducer::currentContext() const {
-    return current_context_;
-  }
-
   void
   EDProducer::fillDescriptions(ConfigurationDescriptions& descriptions) {
     ParameterSetDescription desc;

@@ -18,7 +18,7 @@
 //
 // Author:      Christophe Saout
 // Created:     Sat Apr 24 15:18 CEST 2007
-// $Id: MVAComputer.cc,v 1.14 2013/01/25 17:01:38 wmtan Exp $
+// $Id: MVAComputer.cc,v 1.10 2010/01/26 19:40:03 saout Exp $
 //
 #include <functional>
 #include <algorithm>
@@ -201,6 +201,15 @@ const MVAComputer &MVAComputerContainer::find(const std::string &label) const
 			<< " not found in MVAComputerContainer." << std::endl;
 
 	return pos->second;
+}
+
+bool MVAComputerContainer::contains(const std::string &label) const
+{
+	std::vector<Entry>::const_iterator pos =
+				std::find_if(entries.begin(), entries.end(),
+				             Comparator(label));
+	if (pos == entries.end()) return false;
+	return true;
 }
 
 } // namespace Calibration

@@ -3,7 +3,6 @@
 // Class:      SiStripGainRandomCalculator
 // Original Author:  G. Bruno
 //         Created:  Mon May 20 10:04:31 CET 2007
-// $Id: SiStripGainRandomCalculator.cc,v 1.7 2010/04/12 23:23:46 elmer Exp $
 
 #include "CalibTracker/SiStripChannelGain/plugins/SiStripGainRandomCalculator.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -71,9 +70,9 @@ void SiStripGainRandomCalculator::algoAnalyze(const edm::Event & event, const ed
     
     for(TrackerGeometry::DetUnitContainer::const_iterator it = pDD->detUnits().begin(); it != pDD->detUnits().end(); it++){
   
-      if( dynamic_cast<StripGeomDetUnit*>((*it))!=0){
+      if( dynamic_cast<const StripGeomDetUnit*>((*it))!=0){
 	uint32_t detid=((*it)->geographicalId()).rawId();            
-	const StripTopology& p = dynamic_cast<StripGeomDetUnit*>((*it))->specificTopology();
+	const StripTopology & p = dynamic_cast<const StripGeomDetUnit*>((*it))->specificTopology();
 	unsigned short NAPVs = p.nstrips()/128;
 	if(NAPVs<1 || NAPVs>6 ) {
 	  edm::LogError("SiStripGainCalculator")<<" Problem with Number of strips in detector.. "<< p.nstrips() <<" Exiting program"<<endl;

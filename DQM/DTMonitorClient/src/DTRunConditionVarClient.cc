@@ -6,7 +6,6 @@
  *
  * \author : Paolo Bellan, Antonio Branca
  * $date   : 23/09/2011 15:42:04 CET $
- * $Revision: 1.3 $
  *
  * Modification:
  *
@@ -154,6 +153,12 @@ void DTRunConditionVarClient::endRun(Run const& run, EventSetup const& context)
         // Get the ME produced by DTRunConditionVar Source
         MonitorElement* VDriftME = getChamberHistos(DTChamberId(wheel,stat,sec),"VDrift_FromSegm"); 
         MonitorElement* T0ME = getChamberHistos(DTChamberId(wheel,stat,sec),"T0_FromSegm"); 
+
+	if (!VDriftME || !T0ME) {
+	  edm::LogWarning("DTRunConditionVarClient") << "ME not available" << std::endl;
+	  return;
+	}
+	  
 
         // Get the means per chamber
         float vDriftMean = VDriftME->getMean();

@@ -8,8 +8,6 @@
  *  \warning: should be revised, probably works only when local and global
  *  Z axis coincide
  *
- *  $Date: 2012/05/05 13:32:09 $
- *  $Revision: 1.2 $
  */
 
 #include "DataFormats/GeometryVector/interface/LocalPoint.h"
@@ -48,6 +46,8 @@ public:
   virtual float thickness() const { return ((theRmaxZmin-theRminZmin)+
 					    (theRmaxZmax-theRminZmax))/2.;}
   
+  using Bounds::inside;
+
   virtual bool inside( const Local3DPoint& p) const {
     float lrmin = (p.z()-theZmin)*(theRminZmax-theRminZmin)/(theZmax-theZmin);
     float lrmax = (p.z()-theZmin)*(theRmaxZmax-theRmaxZmin)/(theZmax-theZmin);

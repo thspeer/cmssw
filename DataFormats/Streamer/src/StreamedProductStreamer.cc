@@ -3,6 +3,8 @@
 
 #include "TROOT.h"
 
+#include <cassert>
+
 namespace edm {
   void 
   StreamedProductStreamer::operator()(TBuffer& R__b, void *objp) {
@@ -24,6 +26,11 @@ namespace edm {
         obj->classRef()->Streamer(obj->prod(), R__b);
       }
     }
+  }
+  
+  TClassStreamer*
+  StreamedProductStreamer::Generate() const {
+    return new StreamedProductStreamer(*this);
   }
 
   void

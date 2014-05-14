@@ -3,8 +3,10 @@
 /**
  * Author: Giovanni Franzoni, UMN
  * Created: 09 Apr 2012
- * $Id: EcalSampleMask.h,v 1.2 2012/05/10 14:59:40 argiro Exp $
+ * $Id: EcalSampleMask.h,v 1.1 2012/05/10 08:22:10 argiro Exp $
  **/
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <iostream>
 #include <vector>
@@ -41,6 +43,8 @@ class EcalSampleMask {
     unsigned int sampleMaskEB_;
     unsigned int sampleMaskEE_;
 
+
+  COND_SERIALIZABLE;
 };
 
 

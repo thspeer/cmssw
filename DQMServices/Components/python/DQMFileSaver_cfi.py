@@ -10,10 +10,15 @@ dqmSaver = cms.EDAnalyzer("DQMFileSaver",
     workflow = cms.untracked.string(''),
     # Directory in which to save the files.
     dirName = cms.untracked.string('.'),
+    # Only save this directory
+    filterName = cms.untracked.string(''),
     # Version name to be used in file name.
     version = cms.untracked.int32(1),
     # runIsComplete
     runIsComplete = cms.untracked.bool(False),
+    # Enable MultiThread behaviour, i.e., save only MonitorElements
+    # indexed by the current Run
+    enableMultiThread = cms.untracked.bool(False),
 
     # Save file every N lumi sections (-1: disabled)
     saveByLumiSection = cms.untracked.int32(-1),
@@ -25,9 +30,9 @@ dqmSaver = cms.EDAnalyzer("DQMFileSaver",
     saveByTime = cms.untracked.int32(-1),
 
     # Save file every N runs (-1: disabled)
-    saveByRun = cms.untracked.int32(1),
+    saveByRun = cms.untracked.int32(-1),
     # Save file at the end of the job
-    saveAtJobEnd = cms.untracked.bool(False),
+    saveAtJobEnd = cms.untracked.bool(True),
 
     # Ignore run number for MC data (-1: disabled)
     forceRunNumber = cms.untracked.int32(-1),

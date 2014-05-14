@@ -11,7 +11,6 @@ Forward declarations of types in the EDM.
 #include "DataFormats/Provenance/interface/ProvenanceFwd.h"
 
 namespace edm {
-  class CurrentProcessingContext;
   class PrincipalGetAdapter;
   class DelayedReader;
   class EDAnalyzer;
@@ -27,8 +26,7 @@ namespace edm {
   class LuminosityBlock;
   class LuminosityBlockPrincipal;
   class OutputModule;
-  class OutputModuleDescription;
-  class OutputWorker;
+  struct OutputModuleDescription;
   class ParameterSet;
   class Principal;
   class PrincipalCache;

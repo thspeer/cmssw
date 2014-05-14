@@ -3,8 +3,6 @@
  *  MuonChi2MeasurementEstimator inherits from the Chi2MeasurementEstimatorBase class and uses
  *  3 different estimators.
  *
- *  $Date: 2008/07/24 16:40:18 $
- *  $Revision: 1.3 $
  *  \author Giorgia Mila - INFN Torino
  */
 
@@ -34,7 +32,7 @@ MuonChi2MeasurementEstimator::MuonChi2MeasurementEstimator(double dtMaxChi2, dou
 
 std::pair<bool,double> 
 MuonChi2MeasurementEstimator::estimate(const TrajectoryStateOnSurface& tsos,
-				       const TransientTrackingRecHit& recHit) const {
+				       const TrackingRecHit& recHit) const {
   
   DetId id = recHit.geographicalId();
   

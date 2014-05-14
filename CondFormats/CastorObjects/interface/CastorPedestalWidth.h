@@ -6,10 +6,12 @@
 \author Fedor Ratnikov (UMd)
 POOL object to store PedestalWidth values 4xCapId
 $Author: ratnikov
-$Date: 2009/03/26 18:03:15 $
-$Revision: 1.2 $
+$Date: 2009/03/24 16:05:29 $
+$Revision: 1.10 $
 Adapted for CASTOR by L. Mundim
 */
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <boost/cstdint.hpp>
 
 class CastorPedestalWidth {
@@ -50,6 +52,8 @@ class CastorPedestalWidth {
   float mSigma31;
   float mSigma32;
   float mSigma33;
+
+ COND_SERIALIZABLE;
 };
 
 #endif

@@ -2,7 +2,6 @@
 //
 // Package: DQM/TrackerCommon
 //
-// $Id: TrackerRunCertification.C,v 1.5 2010/09/09 15:52:51 vadler Exp $
 //
 /**
   \brief    Performs DQM offline data certification for SiStrip, Pixel and Tracking
@@ -81,7 +80,6 @@
        display this help and exit
 
   \author   Volker Adler
-  \version  $Id: TrackerRunCertification.C,v 1.5 2010/09/09 15:52:51 vadler Exp $
 */
 
 #include <algorithm>
@@ -162,7 +160,6 @@ enum Flags { // flags' enumeration
 };
 const Double_t minGood_( 0.95 );
 const Double_t maxBad_( 0.85 );
-const Int_t    iRunStartDecon_( 110213 ); // first run in deconvolution mode
 
 // Certificates and flags
 vector< TString > sRunNumbers_;

@@ -9,9 +9,11 @@
 #include "HepMC/HEPEVT_Wrapper.h"
 #include "HepMC/IO_HEPEVT.h"
 
+#include "FWCore/Concurrency/interface/SharedResourceNames.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "GeneratorInterface/Core/interface/FortranCallback.h"
+#include "GeneratorInterface/Core/interface/FortranInstance.h"
 
 #include "GeneratorInterface/LHEInterface/interface/LHERunInfo.h"
 
@@ -29,6 +31,8 @@ HepMC::IO_HEPEVT conv;
 //
 #include "GeneratorInterface/Pythia6Interface/interface/Pythia6Service.h"
 #include "GeneratorInterface/Pythia6Interface/interface/Pythia6Declarations.h"
+
+#include <iomanip>
 
 namespace gen
 {
@@ -59,17 +63,17 @@ class Pythia6ServiceWithCallback : public Pythia6Service {
      Pythia6ServiceWithCallback( const edm::ParameterSet& ps ) : Pythia6Service(ps) {}
 
   private:
-    void upInit()
+    void upInit() override
     { FortranCallback::getInstance()->fillHeader(); }
 
-    void upEvnt()
+    void upEvnt() override
     {
       FortranCallback::getInstance()->fillEvent(); 
       if ( Pythia6Hadronizer::getJetMatching() )
         Pythia6Hadronizer::getJetMatching()->beforeHadronisationExec();    
     }
 
-    bool upVeto()
+    bool upVeto() override
     { 
       if ( !Pythia6Hadronizer::getJetMatching() )
         return false;
@@ -93,6 +97,9 @@ static struct {
 } pyjets_local;
 
 JetMatching* Pythia6Hadronizer::fJetMatching = 0;
+
+const std::vector<std::string> Pythia6Hadronizer::theSharedResources = { edm::SharedResourceNames::kPythia6,
+                                                                         gen::FortranInstance::kFortranInstance };
 
 Pythia6Hadronizer::Pythia6Hadronizer(edm::ParameterSet const& ps) 
    : BaseHadronizer(ps),
@@ -245,6 +252,11 @@ Pythia6Hadronizer::~Pythia6Hadronizer()
 {
    if ( fPy6Service != 0 ) delete fPy6Service;
    if ( fJetMatching != 0 ) delete fJetMatching;
+}
+
+void Pythia6Hadronizer::doSetRandomEngine(CLHEP::HepRandomEngine* v)
+{
+   fPy6Service->setRandomEngine(v);
 }
 
 void Pythia6Hadronizer::flushTmpStorage()

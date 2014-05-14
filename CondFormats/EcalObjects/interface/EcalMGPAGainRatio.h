@@ -3,9 +3,11 @@
 /**
  * Author: Shahram Rahatlou, University of Rome & INFN
  * Created: 22 Feb 2006
- * $Id: EcalMGPAGainRatio.h,v 1.3 2006/02/23 16:56:34 rahatlou Exp $
+ * $Id: $
  **/
 
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <iostream>
 
@@ -28,5 +30,7 @@ class EcalMGPAGainRatio {
   private:
     float gain12Over6_;
     float gain6Over1_;
+
+  COND_SERIALIZABLE;
 };
 #endif

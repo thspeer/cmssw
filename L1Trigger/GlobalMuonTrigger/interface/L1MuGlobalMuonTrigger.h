@@ -5,8 +5,6 @@
 //   Description: L1 Global Muon Trigger
 //
 //
-//   $Date: 2010/02/12 12:07:37 $
-//   $Revision: 1.7 $
 //
 //   Author :
 //   Ivan Mikulec                    HEPHY Vienna
@@ -22,7 +20,7 @@
 //----------------------
 // Base Class Headers --
 //----------------------
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/one/EDProducer.h"
 
 //------------------------------------
 // Collaborating Class Declarations --
@@ -49,7 +47,7 @@ class L1MuGMTDebugBlock;
 //---------------------
 //-- Class Interface --
 //---------------------
-class L1MuGlobalMuonTrigger : public edm::EDProducer {
+class L1MuGlobalMuonTrigger : public edm::one::EDProducer<edm::one::SharedResources> {
 
  public:
 

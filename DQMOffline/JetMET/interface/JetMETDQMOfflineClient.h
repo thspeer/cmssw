@@ -33,6 +33,7 @@
 #include "DataFormats/HLTReco/interface/TriggerObject.h"
 #include "DataFormats/HLTReco/interface/TriggerTypeDefs.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
 
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
 #include "DataFormats/METReco/interface/CaloMETCollection.h"
@@ -57,6 +58,9 @@ class JetMETDQMOfflineClient : public edm::EDAnalyzer {
   std::string dirName_;
   std::string dirNameJet_;
   std::string dirNameMET_;
+  MonitorElement *hMETRate;
+  MonitorElement *me;
+  TH1F *tMET;
 
  public:
   explicit JetMETDQMOfflineClient(const edm::ParameterSet& );
@@ -64,7 +68,7 @@ class JetMETDQMOfflineClient : public edm::EDAnalyzer {
   
   virtual void beginJob(void);
   virtual void endJob();
-  virtual void beginRun(const edm::Run& run, const edm::EventSetup& c);
+  //virtual void beginRun(const edm::Run& run, const edm::EventSetup& c);
   virtual void endRun(const edm::Run& run, const edm::EventSetup& c);
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   virtual void endLuminosityBlock(const edm::LuminosityBlock& lumiSeg, const edm::EventSetup& c);

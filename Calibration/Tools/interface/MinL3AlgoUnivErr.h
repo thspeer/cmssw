@@ -5,8 +5,6 @@
 
 /** class MinL3AlgoUnivErr
 
- * $Date: 2009/10/20 12:56:44 $
- * $Revision: 1.1 $
  * \author R.Ofierzynski, CERN, 2007/08/23
  *                              under class name MinL3AlgoUniv
  *  Modified by A.Fedotov :
@@ -722,7 +720,7 @@ getMeanPartialSolution( IDdet id ) const
     {
       int i = cell->second;
       int   n      = sumPartSolu0[ i ];
-      float meanX  = sumPartSolu1[ i ] / n;
+      meanX  = sumPartSolu1[ i ] / n;
     }
   return meanX;
 

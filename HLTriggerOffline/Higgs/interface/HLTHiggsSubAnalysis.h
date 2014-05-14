@@ -6,8 +6,6 @@
  *  Documentation available on the CMS TWiki:
  *  https://twiki.cern.ch/twiki/bin/view/CMS/HiggsWGHLTValidate
  *
- *  $Date: 2012/03/23 11:50:56 $
- *  $Revision: 1.7 $
  *  \author  J. Duarte Campderros (based and adapted on J. Klukas,
  *           M. Vander Donckt and J. Alcaraz code from the 
  *           HLTriggerOffline/Muon package)
@@ -20,7 +18,9 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "DataFormats/HLTReco/interface/TriggerEventWithRefs.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
@@ -62,30 +62,32 @@ class HLTHiggsSubAnalysis
 		};
 
 		HLTHiggsSubAnalysis(const edm::ParameterSet & pset, 
-				const std::string & analysisname );
+				    const std::string & analysisname,
+				    edm::ConsumesCollector&& iC);
 		~HLTHiggsSubAnalysis();
 	      	void beginJob();
-	      	void beginRun(const edm::Run & iRun, const edm::EventSetup & iEventSetup);
+            void beginRun(const edm::Run & iRun, const edm::EventSetup & iEventSetup);
 	      	void analyze(const edm::Event & iEvent, const edm::EventSetup & iEventSetup, EVTColContainer * cols);
+            void bookHistograms(DQMStore::IBooker &);
 
 		//! Extract what objects need this analysis
 		const std::vector<unsigned int> getObjectsType(const std::string & hltpath) const;
 
 		
        	private:
-		void bookobjects(const edm::ParameterSet & anpset);
+		void bookobjects(const edm::ParameterSet & anpset, edm::ConsumesCollector& iC);
 		void initobjects(const edm::Event & iEvent, EVTColContainer * col);
 		void InitSelector(const unsigned int & objtype);
 		void insertcandidates(const unsigned int & objtype, const EVTColContainer * col,
 				std::vector<MatchStruct> * matches);
 
 		void bookHist(const std::string & source, const std::string & objType,
-			       	const std::string & variable);
+			       	const std::string & variable, DQMStore::IBooker &);
 		void fillHist(const std::string & source,const std::string & objType, 
 				const std::string & variable, const float & value );
 
 		edm::ParameterSet _pset;
-
+		
 		std::string _analysisname;
 
 		//! The minimum number of reco/gen candidates needed by the analysis
@@ -103,13 +105,24 @@ class HLTHiggsSubAnalysis
 
 		// The name of the object collections to be used in this
 		// analysis. 
-	      	std::string _genParticleLabel;
+		edm::EDGetTokenT<reco::GenParticleCollection> _genParticleLabel;
+
 		std::map<unsigned int,std::string> _recLabels;
+		edm::EDGetTokenT<reco::MuonCollection> _recLabelsMuon;
+		edm::EDGetTokenT<reco::GsfElectronCollection> _recLabelsElec;
+		edm::EDGetTokenT<reco::PhotonCollection> _recLabelsPhoton;
+		edm::EDGetTokenT<reco::CaloMETCollection> _recLabelsCaloMET;
+		edm::EDGetTokenT<reco::PFTauCollection> _recLabelsPFTau;
+		edm::EDGetTokenT<std::vector< PileupSummaryInfo > > _puSummaryInfo;
+
 		
 		//! Some kinematical parameters
-	      	std::vector<double> _parametersEta;
-	      	std::vector<double> _parametersPhi;
-	      	std::vector<double> _parametersTurnOn;
+        std::vector<double> _parametersEta;
+        std::vector<double> _parametersPhi;
+        std::vector<double> _parametersPu;
+        std::vector<double> _parametersTurnOn;
+		edm::EDGetTokenT<edm::TriggerResults> _trigResultsTag;
+
 		
 		std::map<unsigned int,double> _cutMinPt;   
 		std::map<unsigned int,double> _cutMaxEta;
@@ -129,13 +142,13 @@ class HLTHiggsSubAnalysis
 	      	StringCutObjectSelector<reco::Photon>      * _recPhotonSelector;
 	      	StringCutObjectSelector<reco::Track>       * _recTrackSelector;
 		
+
 		// The plotters: managers of each hlt path where the plots are done
 		std::vector<HLTHiggsPlotter> _analyzers;
 		
 		HLTConfigProvider _hltConfig;
 		
-	      	DQMStore* _dbe;
-	      	std::map<std::string, MonitorElement *> _elements;		
+	      	std::map<std::string, MonitorElement *> _elements;
 };
 
 

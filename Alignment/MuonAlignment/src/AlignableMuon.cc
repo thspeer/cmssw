@@ -1,7 +1,7 @@
 /** \file
  *
- *  $Date: 2011/06/07 19:38:24 $
- *  $Revision: 1.22 $
+ *  $Date: 2008/04/25 21:23:15 $
+ *  $Revision: 1.21 $
  *  \author Andre Sznajder - UERJ(Brazil)
  */
  
@@ -80,8 +80,8 @@ void AlignableMuon::buildDTBarrel( const DTGeometry* pDT  )
     for( int ist = 1 ; ist < 5 ; ist++ ){
   
       // Loop over geom DT Chambers
-      std::vector<GeomDet*> theSLs;
-      for( std::vector<DTChamber*>::const_iterator det = pDT->chambers().begin(); 
+      std::vector<const GeomDet*> theSLs;
+      for(auto  det = pDT->chambers().begin(); 
 		   det != pDT->chambers().end(); ++det ){
         // Get the chamber ID
         DTChamberId chamberId = (*det)->id(); 
@@ -181,8 +181,8 @@ void AlignableMuon::buildCSCEndcap( const CSCGeometry* pCSC  )
       for ( int iri = 1; iri < 5; iri++ ){
 	 
 	 // Loop over geom CSC Chambers
-	 std::vector<CSCChamber*> vc = pCSC->chambers();
-	 for( std::vector<CSCChamber*>::const_iterator det = vc.begin();  det != vc.end(); ++det ){
+ 	 const CSCGeometry::ChamberContainer& vc = pCSC->chambers();
+	 for( auto det = vc.begin();  det != vc.end(); ++det ){
 
 	    // Get the CSCDet ID
 	    CSCDetId cscId = (*det)->id();

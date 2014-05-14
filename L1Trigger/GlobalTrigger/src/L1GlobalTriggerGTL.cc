@@ -10,8 +10,6 @@
  * \author: M. Fierro            - HEPHY Vienna - ORCA version
  * \author: Vasile Mihai Ghete   - HEPHY Vienna - CMSSW version
  *
- * $Date$
- * $Revision$
  *
  */
 
@@ -76,7 +74,7 @@
 // forward declarations
 
 // constructor
-L1GlobalTriggerGTL::L1GlobalTriggerGTL() :
+L1GlobalTriggerGTL::L1GlobalTriggerGTL(const edm::InputTag & m_muGmtInputTag,edm::ConsumesCollector && iC) :
     m_candL1Mu( new std::vector<const L1MuGMTCand*>),
     m_isDebugEnabled(edm::isDebugEnabled())
 {
@@ -92,6 +90,8 @@ L1GlobalTriggerGTL::L1GlobalTriggerGTL() :
     // pointer to conversion - actually done in the event loop (cached)
     m_gtEtaPhiConversions = new L1GtEtaPhiConversions();
     m_gtEtaPhiConversions->setVerbosity(m_verbosity);
+
+    iC.consumes<std::vector<L1MuGMTCand> >(m_muGmtInputTag);
 
 }
 

@@ -13,7 +13,6 @@
 //
 // Original Author:  Pascal Vanlaer
 //         Created:  Tue Feb 28 11:06:34 CET 2006
-// $Id: PrimaryVertexProducer.h,v 1.12 2011/11/09 17:23:36 dpiparo Exp $
 //
 //
 
@@ -23,13 +22,12 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/Utilities/interface/InputTag.h"
 
 //#include "RecoVertex/PrimaryVertexProducer/interface/PrimaryVertexProducerAlgorithm.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
@@ -53,7 +51,7 @@
 // class declaration
 //
 
-class PrimaryVertexProducer : public edm::EDProducer {
+class PrimaryVertexProducer : public edm::stream::EDProducer<> {
 public:
   explicit PrimaryVertexProducer(const edm::ParameterSet&);
   ~PrimaryVertexProducer();
@@ -62,8 +60,6 @@ public:
 
   // access to config
   edm::ParameterSet config() const { return theConfig; }
-  edm::InputTag trackLabel;
-  edm::InputTag beamSpotLabel;
   
 private:
   // ----------member data ---------------------------
@@ -83,4 +79,7 @@ private:
 
   edm::ParameterSet theConfig;
   bool fVerbose;
+  edm::EDGetTokenT<reco::BeamSpot> bsToken;
+  edm::EDGetTokenT<reco::TrackCollection> trkToken;
+
 };

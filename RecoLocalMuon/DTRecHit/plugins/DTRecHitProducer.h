@@ -6,13 +6,12 @@
  *  is specified with the parameter "recAlgo" and must be configured with the
  *  "recAlgoConfig" parameter set.
  *
- *  $Date: 2010/02/20 21:00:58 $
- *  $Revision: 1.3 $
  *  \author G. Cerminara
  */
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "DataFormats/DTDigi/interface/DTDigiCollection.h"
 
 namespace edm {
   class ParameterSet;
@@ -22,7 +21,7 @@ namespace edm {
 
 class DTRecHitBaseAlgo;
 
-class DTRecHitProducer : public edm::EDProducer {
+class DTRecHitProducer : public edm::stream::EDProducer<> {
 public:
   /// Constructor
   DTRecHitProducer(const edm::ParameterSet&);
@@ -35,9 +34,9 @@ public:
 
 private:
   // Switch on verbosity
-  static bool debug;
+  const bool debug;
   // The label to be used to retrieve DT digis from the event
-  edm::InputTag theDTDigiLabel;
+  edm::EDGetTokenT<DTDigiCollection> DTDigiToken_;
   // The reconstruction algorithm
   DTRecHitBaseAlgo *theAlgo;
 //   static string theAlgoName;

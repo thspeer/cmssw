@@ -11,10 +11,10 @@ Monitoring source to measure the track efficiency
 //  Original Author:  Jeremy Andrea
 // Insertion in DQM:  Anne-Catherine Le Bihan
 //          Created:  Thu 28 22:45:30 CEST 2008
-// $Id: TrackEfficiencyMonitor.h,v 1.2 2013/05/30 22:09:24 gartung Exp $
 
 #include <memory>
 #include <fstream>
+#include "FWCore/Utilities/interface/EDGetToken.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -22,6 +22,8 @@ Monitoring source to measure the track efficiency
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
+
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 
 #include "RecoMuon/GlobalTrackingTools/interface/DirectTrackerNavigation.h"
 #include "RecoMuon/TrackingTools/interface/MuonServiceProxy.h"
@@ -34,10 +36,11 @@ Monitoring source to measure the track efficiency
  
 
 namespace reco{class TransientTrack;}
+class NavigationSchool;
 
 class DQMStore;
 
-class TrackEfficiencyMonitor : public edm::EDAnalyzer {
+class TrackEfficiencyMonitor : public DQMEDAnalyzer {
    public:
       typedef reco::Track Track;
       typedef reco::TrackCollection TrackCollection;
@@ -46,14 +49,16 @@ class TrackEfficiencyMonitor : public edm::EDAnalyzer {
       virtual void beginJob(void);
       virtual void endJob(void);
       virtual void analyze(const edm::Event&, const edm::EventSetup&);
-      
+
+      void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
+
       enum SemiCylinder{Up,Down};
       std::pair<TrajectoryStateOnSurface, const DetLayer*>  findNextLayer( TrajectoryStateOnSurface startTSOS, const std::vector< const DetLayer*>& trackCompatibleLayers , bool isUpMuon   );
       SemiCylinder checkSemiCylinder(const Track&);
-      void testTrackerTracks(edm::Handle<TrackCollection> tkTracks, edm::Handle<TrackCollection> staTracks);
+      void testTrackerTracks(edm::Handle<TrackCollection> tkTracks, edm::Handle<TrackCollection> staTracks, const NavigationSchool& navigationSchool);
       void testSTATracks(edm::Handle<TrackCollection> tkTracks, edm::Handle<TrackCollection> staTracks);
       bool trackerAcceptance( TrajectoryStateOnSurface theTSOS, double theRadius, double theMaxZ );
-      int  compatibleLayers( TrajectoryStateOnSurface theTSOS );
+      int  compatibleLayers(const NavigationSchool& navigationSchool, TrajectoryStateOnSurface theTSOS );
   
   
 
@@ -75,7 +80,10 @@ class TrackEfficiencyMonitor : public edm::EDAnalyzer {
 		     
   edm::InputTag theTKTracksLabel_;
   edm::InputTag theSTATracksLabel_;
-  
+  edm::EDGetTokenT<reco::TrackCollection> theTKTracksToken_;
+  edm::EDGetTokenT<reco::TrackCollection> theSTATracksToken_;
+
+
   int failedToPropagate;
   int nCompatibleLayers;
   bool findDetLayer;

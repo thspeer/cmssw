@@ -10,10 +10,10 @@
  */
 // Original Author:  Nhan Tran
 //         Created:  Thu 28 22:45:30 CEST 2008
-// $Id: TrackSplittingMonitor.h,v 1.1 2012/10/15 13:24:45 threus Exp $
 
 #include <memory>
 #include <fstream>
+#include "FWCore/Utilities/interface/EDGetToken.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -21,6 +21,8 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
+
 #include "TrackingTools/TransientTrackingRecHit/interface/TransientTrackingRecHitBuilder.h"
 
 #include "Geometry/DTGeometry/interface/DTGeometry.h"
@@ -29,11 +31,18 @@
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
 
+
+
 class DQMStore;
 class TrackAnalyzer;
 class TProfile;
 
-class TrackSplittingMonitor : public edm::EDAnalyzer {
+#include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/MuonReco/interface/MuonFwd.h"
+
+
+
+class TrackSplittingMonitor : public DQMEDAnalyzer {
 public:
 	explicit TrackSplittingMonitor(const edm::ParameterSet&);
 	~TrackSplittingMonitor();
@@ -41,6 +50,7 @@ public:
 	virtual void endJob(void);
 	
 	virtual void analyze(const edm::Event&, const edm::EventSetup&);
+	void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
 	
 private:
 	void doProfileX(TH2 * th2, MonitorElement* me);
@@ -64,7 +74,8 @@ private:
 	
 	edm::InputTag splitTracks_;
 	edm::InputTag splitMuons_;
-	
+	edm::EDGetTokenT<std::vector<reco::Track> > splitTracksToken_;
+	edm::EDGetTokenT<std::vector<reco::Muon> > splitMuonsToken_;
 	
 	bool plotMuons_;
 	int pixelHitsPerLeg_;

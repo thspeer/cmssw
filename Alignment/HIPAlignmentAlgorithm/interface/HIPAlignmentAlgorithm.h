@@ -13,9 +13,6 @@
 #include "DataFormats/TrackerRecHit2D/interface/SiStripRecHit1D.h" 	 
 #include "DataFormats/TrackerRecHit2D/interface/SiStripRecHit2D.h" 	 
 #include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHit.h" 	 
-#include "RecoTracker/TransientTrackingRecHit/interface/TSiStripRecHit1D.h" 	 
-#include "RecoTracker/TransientTrackingRecHit/interface/TSiStripRecHit2DLocalPos.h" 	 
-#include "RecoTracker/TransientTrackingRecHit/interface/TSiPixelRecHit.h"
 
 class AlignableNavigator;
 class TFile;
@@ -50,15 +47,15 @@ class HIPAlignmentAlgorithm : public AlignmentAlgorithmBase
 
   // private member functions
 
-  bool processHit1D(const AlignableDetOrUnitPtr alidet,
+  bool processHit1D(const AlignableDetOrUnitPtr& alidet,
 		    const Alignable* ali,
 		    const TrajectoryStateOnSurface & tsos,
-		    const TransientTrackingRecHit* hit);
+		    const TrackingRecHit* hit);
 
-  bool processHit2D(const AlignableDetOrUnitPtr alidet,
+  bool processHit2D(const AlignableDetOrUnitPtr& alidet,
 		    const Alignable* ali,
 		    const TrajectoryStateOnSurface & tsos,
-		    const TransientTrackingRecHit* hit);
+		    const TrackingRecHit* hit);
   
   int readIterationFile(std::string filename);
   void writeIterationFile(std::string filename, int iter);

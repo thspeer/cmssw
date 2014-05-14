@@ -5,8 +5,6 @@
  *  Basic analyzer class which accesses 2D DTSegments
  *  and plot resolution comparing reconstructed and simulated quantities
  *
- *  $Date: 2010/09/13 09:49:18 $
- *  $Revision: 1.4 $
  *  \author S. Bolognesi and G. Cerminara - INFN Torino
  */
 
@@ -16,6 +14,8 @@
 #include "DQMServices/Core/interface/MonitorElement.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "DataFormats/DTRecHit/interface/DTRecSegment2DCollection.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 
 #include <vector>
 #include <map>
@@ -41,6 +41,9 @@ public:
 
   /// Perform the real analysis
   void analyze(const edm::Event & event, const edm::EventSetup& eventSetup);
+
+  virtual void beginRun(const edm::Run& iRun, const edm::EventSetup &setup);
+
   // Write the histos to file
   void endJob();
 
@@ -57,6 +60,9 @@ private:
   //Labels to read from event
   edm::InputTag simHitLabel;
   edm::InputTag segment2DLabel;
+  edm::EDGetTokenT<edm::PSimHitContainer> simHitToken_;
+  edm::EDGetTokenT<DTRecSegment2DCollection> segment2DToken_;
+
   //Sigma resolution on position
   double sigmaResPos;
   //Sigma resolution on angle

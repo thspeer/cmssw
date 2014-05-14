@@ -25,7 +25,9 @@ class L2TauJetsMerger: public edm::EDProducer {
  private:
     
   typedef std::vector<edm::InputTag> vtag;
+  typedef std::vector<edm::EDGetTokenT<reco::CaloJetCollection> > vtoken_cjets;
   vtag jetSrc;
+  vtoken_cjets jetSrc_token;
   double mEt_Min;
   std::map<int, const reco::CaloJet> myL2L1JetsMap; //first is # L1Tau , second is L2 jets
 
@@ -34,7 +36,7 @@ class L2TauJetsMerger: public edm::EDProducer {
       public:
 	SorterByPt() {}
 	~SorterByPt() {}
-	bool operator()(reco::CaloJet jet1 , reco::CaloJet jet2)
+	bool operator()(const reco::CaloJet& jet1 , const reco::CaloJet& jet2)
 	{
 	  return jet1.pt()>jet2.pt();
 	}

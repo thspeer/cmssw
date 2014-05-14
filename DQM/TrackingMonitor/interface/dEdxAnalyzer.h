@@ -9,6 +9,8 @@ Monitoring source for general quantities related to track dEdx.
 #include <memory>
 #include <fstream>
 
+#include "FWCore/Utilities/interface/EDGetToken.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 
@@ -21,10 +23,16 @@ Monitoring source for general quantities related to track dEdx.
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
 
+#include "DataFormats/TrackReco/interface/DeDxData.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
+
 class DQMStore;
 class GenericTriggerEventFlag;
 
-class dEdxAnalyzer : public edm::EDAnalyzer {
+class dEdxAnalyzer : public DQMEDAnalyzer {
  public:
   explicit dEdxAnalyzer(const edm::ParameterSet&);
   ~dEdxAnalyzer();
@@ -37,9 +45,11 @@ class dEdxAnalyzer : public edm::EDAnalyzer {
 
   double mass(double P, double I);
   
-  virtual void beginRun(const edm::Run&, const edm::EventSetup&); 
+  //  virtual void beginRun(const edm::Run&, const edm::EventSetup&); 
   virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
   virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+
+  void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
   
  private:
   // ----------member data ---------------------------
@@ -70,6 +80,12 @@ class dEdxAnalyzer : public edm::EDAnalyzer {
   double TrackHitMin, HIPdEdxMin;
   double dEdxK, dEdxC;
   
+  edm::InputTag trackInputTag_;
+  edm::EDGetTokenT<reco::TrackCollection> trackToken_;
+
+  std::vector<std::string> dEdxInputList_;
+  std::vector<edm::EDGetTokenT<reco::DeDxDataValueMap> > dEdxTokenList_;
+
   std::string TrackName ;
   std::vector< std::string  > AlgoNames;
   std::vector< dEdxMEs > dEdxMEsVector;

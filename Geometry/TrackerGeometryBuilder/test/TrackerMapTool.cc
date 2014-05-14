@@ -13,7 +13,6 @@
 //
 // Original Author:  Filippo Ambroglini
 //         Created:  Tue Jul 26 08:47:57 CEST 2005
-// $Id: TrackerMapTool.cc,v 1.9 2011/10/13 07:02:49 eulisse Exp $
 //
 //
 
@@ -145,8 +144,8 @@ TrackerMapTool::analyze( const edm::Event& iEvent, const edm::EventSetup& iSetup
   float width,length,thickness,widthAtHalfLength;
   std::ofstream output("tracker.dat",std::ios::out);
   
-  std::vector<GeomDetUnit*>::const_iterator begin = pDD->detUnits().begin();
-  std::vector<GeomDetUnit*>::const_iterator end = pDD->detUnits().end();
+  auto begin = pDD->detUnits().begin();
+  auto end = pDD->detUnits().end();
   
   for ( ; begin != end; ++begin) {
     ntotmod++;

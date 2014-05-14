@@ -20,8 +20,10 @@ protected:
   virtual void endLuminosityBlock(const edm::LuminosityBlock &, const edm::EventSetup &);
   virtual void endRun(const edm::Run &, const edm::EventSetup &);
   virtual void endJob(void);
+  virtual void postForkReacquireResources(unsigned int childIndex, unsigned int numberOfChildren);
 
 private:
+  void saveForOfflinePB(const std::string &workflow, int run);
   void saveForOffline(const std::string &workflow, int run, int lumi);
   void saveForOnline(const std::string &suffix, const std::string &rewrite);
   void saveJobReport(const std::string &filename);
@@ -29,15 +31,19 @@ private:
   enum Convention
   {
     Online,
-    Offline
+    Offline,
+    PB
   };
 
   Convention	convention_;
   std::string	workflow_;
   std::string	producer_;
   std::string	dirName_;
+  std::string   child_;
+  std::string	filterName_;
   int        	version_;
   bool		runIsComplete_;
+  bool          enableMultiThread_;
 
   int		saveByLumiSection_;
   int		saveByEvent_;

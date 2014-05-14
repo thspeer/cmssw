@@ -2,8 +2,6 @@
 /*
  *  See header file for a description of this class.
  *
- *  $Date: 2013/05/30 22:09:25 $
- *  $Revision: 1.3 $
  *  \author:  Mia Tosi,40 3-B32,+41227671609 
  */
 
@@ -12,8 +10,6 @@
 #include "DQMServices/Core/interface/DQMStore.h"
 
 #include "DQM/TrackingMonitor/interface/VertexMonitor.h"
-
-#include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 #include "DQM/TrackingMonitor/interface/GetLumi.h"
 
@@ -59,6 +55,15 @@ VertexMonitor::VertexMonitor(const edm::ParameterSet& iConfig, const edm::InputT
 
 }
 
+VertexMonitor::VertexMonitor(const edm::ParameterSet& iConfig, const edm::InputTag& primaryVertexInputTag, const edm::InputTag& selectedPrimaryVertexInputTag, std::string pvLabel, edm::ConsumesCollector& iC) : VertexMonitor(iConfig,primaryVertexInputTag,selectedPrimaryVertexInputTag,pvLabel)
+{
+
+  if ( doPlotsVsBXlumi_ )
+    lumiDetails_ = new GetLumi( iConfig.getParameter<edm::ParameterSet>("BXlumiSetup"), iC );
+
+  pvToken_    = iC.consumes<reco::VertexCollection>(primaryVertexInputTag_);
+  selpvToken_ = iC.consumes<reco::VertexCollection>(selectedPrimaryVertexInputTag_); 
+}
 
 VertexMonitor::~VertexMonitor()
 {
@@ -88,7 +93,7 @@ VertexMonitor::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   size_t totalNumPV = 0;
   size_t totalNumBADndofPV = 0;
   edm::Handle< reco::VertexCollection > pvHandle;
-  iEvent.getByLabel(primaryVertexInputTag_, pvHandle );
+  iEvent.getByToken(pvToken_, pvHandle );
   if ( pvHandle.isValid() )
     {
       totalNumPV = pvHandle->size();
@@ -108,7 +113,7 @@ VertexMonitor::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   
   size_t totalNumGoodPV = 0;
   edm::Handle< reco::VertexCollection > selpvHandle;
-  iEvent.getByLabel(selectedPrimaryVertexInputTag_, selpvHandle );
+  iEvent.getByToken(selpvToken_, selpvHandle );
   if ( selpvHandle.isValid() )
     totalNumGoodPV = selpvHandle->size();
   else return;
@@ -173,7 +178,7 @@ VertexMonitor::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-VertexMonitor::beginJob(DQMStore * dqmStore_)
+VertexMonitor::initHisto(DQMStore::IBooker & ibooker)
 {
     // parameters from the configuration
     std::string MEFolderName   = conf_.getParameter<std::string>("PVFolderName"); 
@@ -185,35 +190,35 @@ VertexMonitor::beginJob(DQMStore * dqmStore_)
 
     // book histo
     // ----------------------//
-    dqmStore_->setCurrentFolder(MEFolderName+"/"+label_);
+    ibooker.setCurrentFolder(MEFolderName+"/"+label_);
 
     histname = "NumberOfPVtx_" + label_;
-    NumberOfPVtx = dqmStore_->book1D(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax);
+    NumberOfPVtx = ibooker.book1D(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax);
     NumberOfPVtx->setAxisTitle("Number of PV",1);
     NumberOfPVtx->setAxisTitle("Number of Events",2);
     
     histname = "NumberOfGoodPVtx_" + label_;
-    NumberOfGoodPVtx = dqmStore_->book1D(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax);
+    NumberOfGoodPVtx = ibooker.book1D(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax);
     NumberOfGoodPVtx->setAxisTitle("Number of Good PV",1);
     NumberOfGoodPVtx->setAxisTitle("Number of Events",2);
     
     histname = "FractionOfGoodPVtx_" + label_;
-    FractionOfGoodPVtx = dqmStore_->book1D(histname,histname, 100,0.,1.);
+    FractionOfGoodPVtx = ibooker.book1D(histname,histname, 100,0.,1.);
     FractionOfGoodPVtx->setAxisTitle("fraction of Good PV",1);
     FractionOfGoodPVtx->setAxisTitle("Number of Events",2);
     
     histname = "NumberOfBADndofPVtx_" + label_;
-    NumberOfBADndofPVtx = dqmStore_->book1D(histname,histname,GoodPVtxBin,GoodPVtxMin,GoodPVtxMax);
+    NumberOfBADndofPVtx = ibooker.book1D(histname,histname,GoodPVtxBin,GoodPVtxMin,GoodPVtxMax);
     NumberOfBADndofPVtx->setAxisTitle("Number of BADndof #PV",1);
     NumberOfBADndofPVtx->setAxisTitle("Number of Events",2);
     
     histname = "GoodPVtxSumPt_" + label_;
-    GoodPVtxSumPt = dqmStore_->book1D(histname,histname,100,0.,500.);
+    GoodPVtxSumPt = ibooker.book1D(histname,histname,100,0.,500.);
     GoodPVtxSumPt->setAxisTitle("primary vertex #Sum p_{T}^{2} [GeV^{2}/c^{2}]",1);
     GoodPVtxSumPt->setAxisTitle("Number of events",2);
 
     histname = "GoodPVtxNumberOfTracks_" + label_;
-    GoodPVtxNumberOfTracks = dqmStore_->book1D(histname,histname,100,0.,100.);
+    GoodPVtxNumberOfTracks = ibooker.book1D(histname,histname,100,0.,100.);
     GoodPVtxNumberOfTracks->setAxisTitle("primary vertex number of tracks",1);
     GoodPVtxNumberOfTracks->setAxisTitle("Number of events",2);
 
@@ -224,40 +229,40 @@ VertexMonitor::beginJob(DQMStore * dqmStore_)
       double BXlumiMin   = BXlumiParameters.getParameter<double>("BXlumiMin");
       double BXlumiMax   = BXlumiParameters.getParameter<double>("BXlumiMax");
 
-      dqmStore_->setCurrentFolder(MEFolderName+"/"+label_+"/PUmonitoring/");
+      ibooker.setCurrentFolder(MEFolderName+"/"+label_+"/PUmonitoring/");
 
       histname = "NumberOfPVtxVsBXlumi_" + label_;
-      NumberOfPVtxVsBXlumi = dqmStore_->bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,60.,"");
+      NumberOfPVtxVsBXlumi = ibooker.bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,60.,"");
       NumberOfPVtxVsBXlumi->getTH1()->SetBit(TH1::kCanRebin);
       NumberOfPVtxVsBXlumi->setAxisTitle("lumi BX [10^{30}Hzcm^{-2}]",1);
       NumberOfPVtxVsBXlumi->setAxisTitle("Mean number of PV",2);
 
       histname = "NumberOfGoodPVtxVsBXlumi_" + label_;
-      NumberOfGoodPVtxVsBXlumi = dqmStore_->bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,60.,"");
+      NumberOfGoodPVtxVsBXlumi = ibooker.bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,60.,"");
       NumberOfGoodPVtxVsBXlumi->getTH1()->SetBit(TH1::kCanRebin);
       NumberOfGoodPVtxVsBXlumi->setAxisTitle("lumi BX [10^{30}Hzcm^{-2}]",1);
       NumberOfGoodPVtxVsBXlumi->setAxisTitle("Mean number of PV",2);
 
       histname = "FractionOfGoodPVtxVsBXlumi_" + label_;
-      FractionOfGoodPVtxVsBXlumi = dqmStore_->bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,1.5,"");
+      FractionOfGoodPVtxVsBXlumi = ibooker.bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,1.5,"");
       FractionOfGoodPVtxVsBXlumi->getTH1()->SetBit(TH1::kCanRebin);
       FractionOfGoodPVtxVsBXlumi->setAxisTitle("lumi BX [10^{30}Hzcm^{-2}]",1);
       FractionOfGoodPVtxVsBXlumi->setAxisTitle("Mean number of PV",2);
 
       histname = "NumberOfBADndofPVtxVsBXlumi_" + label_;
-      NumberOfBADndofPVtxVsBXlumi = dqmStore_->bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,60.,"");
+      NumberOfBADndofPVtxVsBXlumi = ibooker.bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,60.,"");
       NumberOfBADndofPVtxVsBXlumi->getTH1()->SetBit(TH1::kCanRebin);
       NumberOfBADndofPVtxVsBXlumi->setAxisTitle("BADndof #PV",1);
       NumberOfBADndofPVtxVsBXlumi->setAxisTitle("Number of Events",2);
     
       histname = "GoodPVtxSumPtVsBXlumi_" + label_;
-      GoodPVtxSumPtVsBXlumi = dqmStore_->bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,500.,"");
+      GoodPVtxSumPtVsBXlumi = ibooker.bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,500.,"");
       GoodPVtxSumPtVsBXlumi->getTH1()->SetBit(TH1::kCanRebin);
       GoodPVtxSumPtVsBXlumi->setAxisTitle("lumi BX [10^{30}Hzcm^{-2}]",1);
       GoodPVtxSumPtVsBXlumi->setAxisTitle("Mean pv #Sum p_{T}^{2} [GeV^{2}/c]^{2}",2);
       
       histname = "GoodPVtxNumberOfTracksVsBXlumi_" + label_;
-      GoodPVtxNumberOfTracksVsBXlumi = dqmStore_->bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,100.,"");
+      GoodPVtxNumberOfTracksVsBXlumi = ibooker.bookProfile(histname,histname, BXlumiBin,BXlumiMin,BXlumiMax,0.,100.,"");
       GoodPVtxNumberOfTracksVsBXlumi->getTH1()->SetBit(TH1::kCanRebin);
       GoodPVtxNumberOfTracksVsBXlumi->setAxisTitle("lumi BX [10^{30}Hzcm^{-2}]",1);
       GoodPVtxNumberOfTracksVsBXlumi->setAxisTitle("Mean pv number of tracks",2);
@@ -270,25 +275,25 @@ VertexMonitor::beginJob(DQMStore * dqmStore_)
       double Chi2ProbMax  = conf_.getParameter<double>("Chi2ProbMax");
 
       histname = "Chi2oNDFVsBXlumi_" + label_;
-      Chi2oNDFVsBXlumi  = dqmStore_->bookProfile(histname,histname,BXlumiBin, BXlumiMin,BXlumiMax,Chi2NDFMin,Chi2NDFMax,"");
+      Chi2oNDFVsBXlumi  = ibooker.bookProfile(histname,histname,BXlumiBin, BXlumiMin,BXlumiMax,Chi2NDFMin,Chi2NDFMax,"");
       Chi2oNDFVsBXlumi -> getTH1()->SetBit(TH1::kCanRebin);
       Chi2oNDFVsBXlumi -> setAxisTitle("lumi BX [10^{30}Hzcm^{-2}]",1);
       Chi2oNDFVsBXlumi -> setAxisTitle("Mean #chi^{2}/ndof",2);
 
       histname = "Chi2ProbVsBXlumi_" + label_;
-      Chi2ProbVsBXlumi  = dqmStore_->bookProfile(histname,histname,BXlumiBin, BXlumiMin,BXlumiMax,Chi2ProbMin,Chi2ProbMax,"");
+      Chi2ProbVsBXlumi  = ibooker.bookProfile(histname,histname,BXlumiBin, BXlumiMin,BXlumiMax,Chi2ProbMin,Chi2ProbMax,"");
       Chi2ProbVsBXlumi -> getTH1()->SetBit(TH1::kCanRebin);
       Chi2ProbVsBXlumi -> setAxisTitle("lumi BX [10^{30}Hzcm^{-2}]",1);
       Chi2ProbVsBXlumi -> setAxisTitle("Mean #chi^{2}/prob",2);
 
       histname = "GoodPVtxChi2oNDFVsBXlumi_" + label_;
-      GoodPVtxChi2oNDFVsBXlumi  = dqmStore_->bookProfile(histname,histname,BXlumiBin, BXlumiMin,BXlumiMax,Chi2NDFMin,Chi2NDFMax,"");
+      GoodPVtxChi2oNDFVsBXlumi  = ibooker.bookProfile(histname,histname,BXlumiBin, BXlumiMin,BXlumiMax,Chi2NDFMin,Chi2NDFMax,"");
       GoodPVtxChi2oNDFVsBXlumi -> getTH1()->SetBit(TH1::kCanRebin);
       GoodPVtxChi2oNDFVsBXlumi -> setAxisTitle("lumi BX [10^{30}Hzcm^{-2}]",1);
       GoodPVtxChi2oNDFVsBXlumi -> setAxisTitle("Mean PV #chi^{2}/ndof",2);
 
       histname = "GoodPVtxChi2ProbVsBXlumi_" + label_;
-      GoodPVtxChi2ProbVsBXlumi  = dqmStore_->bookProfile(histname,histname,BXlumiBin, BXlumiMin,BXlumiMax,Chi2ProbMin,Chi2ProbMax,"");
+      GoodPVtxChi2ProbVsBXlumi  = ibooker.bookProfile(histname,histname,BXlumiBin, BXlumiMin,BXlumiMax,Chi2ProbMin,Chi2ProbMax,"");
       GoodPVtxChi2ProbVsBXlumi -> getTH1()->SetBit(TH1::kCanRebin);
       GoodPVtxChi2ProbVsBXlumi -> setAxisTitle("lumi BX [10^{30}Hzcm^{-2}]",1);
       GoodPVtxChi2ProbVsBXlumi -> setAxisTitle("Mean PV #chi^{2}/prob",2);
@@ -296,40 +301,40 @@ VertexMonitor::beginJob(DQMStore * dqmStore_)
 
     if ( doPlotsVsGoodPVtx_ ) {
 
-      dqmStore_->setCurrentFolder(MEFolderName+"/"+label_+"/PUmonitoring/VsGoodPVtx");
+      ibooker.setCurrentFolder(MEFolderName+"/"+label_+"/PUmonitoring/VsGoodPVtx");
 
       histname = "NumberOfPVtxVsGoodPVtx_" + label_;
-      NumberOfPVtxVsGoodPVtx = dqmStore_->bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,60.,"");
+      NumberOfPVtxVsGoodPVtx = ibooker.bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,60.,"");
       NumberOfPVtxVsGoodPVtx->getTH1()->SetBit(TH1::kCanRebin);
       NumberOfPVtxVsGoodPVtx->setAxisTitle("Number of Good PV",1);
       NumberOfPVtxVsGoodPVtx->setAxisTitle("Mean number of PV",2);
 
       histname = "FractionOfGoodPVtxVsGoodPVtx_" + label_;
-      FractionOfGoodPVtxVsGoodPVtx = dqmStore_->bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,60.,"");
+      FractionOfGoodPVtxVsGoodPVtx = ibooker.bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,60.,"");
       FractionOfGoodPVtxVsGoodPVtx->getTH1()->SetBit(TH1::kCanRebin);
       FractionOfGoodPVtxVsGoodPVtx->setAxisTitle("Number of Good PV",1);
       FractionOfGoodPVtxVsGoodPVtx->setAxisTitle("Mean fraction of Good PV",2);
 
       histname = "FractionOfGoodPVtxVsPVtx_" + label_;
-      FractionOfGoodPVtxVsPVtx = dqmStore_->bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,60.,"");
+      FractionOfGoodPVtxVsPVtx = ibooker.bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,60.,"");
       FractionOfGoodPVtxVsPVtx->getTH1()->SetBit(TH1::kCanRebin);
       FractionOfGoodPVtxVsPVtx->setAxisTitle("Number of Good PV",1);
       FractionOfGoodPVtxVsPVtx->setAxisTitle("Mean number of Good PV",2);
 
       histname = "NumberOfBADndofPVtxVsGoodPVtx_" + label_;
-      NumberOfBADndofPVtxVsGoodPVtx = dqmStore_->bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,60.,"");
+      NumberOfBADndofPVtxVsGoodPVtx = ibooker.bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,60.,"");
       NumberOfBADndofPVtxVsGoodPVtx->getTH1()->SetBit(TH1::kCanRebin);
       NumberOfBADndofPVtxVsGoodPVtx->setAxisTitle("Number of Good PV",1);
       NumberOfBADndofPVtxVsGoodPVtx->setAxisTitle("Mean Number of BAD PV",2);
     
       histname = "GoodPVtxSumPtVsGoodPVtx_" + label_;
-      GoodPVtxSumPtVsGoodPVtx = dqmStore_->bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,500.,"");
+      GoodPVtxSumPtVsGoodPVtx = ibooker.bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,500.,"");
       GoodPVtxSumPtVsGoodPVtx->getTH1()->SetBit(TH1::kCanRebin);
       GoodPVtxSumPtVsGoodPVtx->setAxisTitle("Number of Good PV",1);
       GoodPVtxSumPtVsGoodPVtx->setAxisTitle("Mean pv #Sum p_{T}^{2} [GeV^{2}/c]^{2}",2);
       
       histname = "GoodPVtxNumberOfTracksVsGoodPVtx_" + label_;
-      GoodPVtxNumberOfTracksVsGoodPVtx = dqmStore_->bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,100.,"");
+      GoodPVtxNumberOfTracksVsGoodPVtx = ibooker.bookProfile(histname,histname, GoodPVtxBin,GoodPVtxMin,GoodPVtxMax,0.,100.,"");
       GoodPVtxNumberOfTracksVsGoodPVtx->getTH1()->SetBit(TH1::kCanRebin);
       GoodPVtxNumberOfTracksVsGoodPVtx->setAxisTitle("Number of Good PV",1);
       GoodPVtxNumberOfTracksVsGoodPVtx->setAxisTitle("Mean pv number of tracks",2);
@@ -342,13 +347,13 @@ VertexMonitor::beginJob(DQMStore * dqmStore_)
       double Chi2ProbMax  = conf_.getParameter<double>("Chi2ProbMax");
 
       histname = "GoodPVtxChi2oNDFVsGoodPVtx_" + label_;
-      GoodPVtxChi2oNDFVsGoodPVtx  = dqmStore_->bookProfile(histname,histname,GoodPVtxBin, GoodPVtxMin,GoodPVtxMax,Chi2NDFMin,Chi2NDFMax,"");
+      GoodPVtxChi2oNDFVsGoodPVtx  = ibooker.bookProfile(histname,histname,GoodPVtxBin, GoodPVtxMin,GoodPVtxMax,Chi2NDFMin,Chi2NDFMax,"");
       GoodPVtxChi2oNDFVsGoodPVtx -> getTH1()->SetBit(TH1::kCanRebin);
       GoodPVtxChi2oNDFVsGoodPVtx -> setAxisTitle("Number of Good PV",1);
       GoodPVtxChi2oNDFVsGoodPVtx -> setAxisTitle("Mean PV #chi^{2}/ndof",2);
 
       histname = "GoodPVtxChi2ProbVsGoodPVtx_" + label_;
-      GoodPVtxChi2ProbVsGoodPVtx  = dqmStore_->bookProfile(histname,histname,GoodPVtxBin, GoodPVtxMin,GoodPVtxMax,Chi2ProbMin,Chi2ProbMax,"");
+      GoodPVtxChi2ProbVsGoodPVtx  = ibooker.bookProfile(histname,histname,GoodPVtxBin, GoodPVtxMin,GoodPVtxMax,Chi2ProbMin,Chi2ProbMax,"");
       GoodPVtxChi2ProbVsGoodPVtx -> getTH1()->SetBit(TH1::kCanRebin);
       GoodPVtxChi2ProbVsGoodPVtx -> setAxisTitle("Number of Good PV",1);
       GoodPVtxChi2ProbVsGoodPVtx -> setAxisTitle("Mean PV #chi^{2}/prob",2);

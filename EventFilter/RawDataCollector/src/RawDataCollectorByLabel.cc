@@ -4,12 +4,12 @@
  */
 
 #include "EventFilter/RawDataCollector/src/RawDataCollectorByLabel.h"
-#include <DataFormats/FEDRawData/interface/FEDRawDataCollection.h> 
-#include <DataFormats/FEDRawData/interface/FEDRawData.h>
-#include <DataFormats/FEDRawData/interface/FEDNumbering.h>
+#include "DataFormats/FEDRawData/interface/FEDRawDataCollection.h" 
+#include "DataFormats/FEDRawData/interface/FEDRawData.h"
+#include "DataFormats/FEDRawData/interface/FEDNumbering.h"
 
-#include <DataFormats/Common/interface/Handle.h>
-#include <FWCore/Framework/interface/Event.h>
+#include "DataFormats/Common/interface/Handle.h"
+#include "FWCore/Framework/interface/Event.h"
 #include "DataFormats/Provenance/interface/ProcessHistory.h" 
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -25,6 +25,10 @@ RawDataCollectorByLabel::RawDataCollectorByLabel(const edm::ParameterSet& pset) 
   inputTags_ = pset.getParameter<std::vector<InputTag> >("RawCollectionList");
   verbose_ = pset.getUntrackedParameter<int>("verbose",0);
 
+  inputTokens_.reserve(inputTags_.size());
+  for(tag_iterator_t inputTag = inputTags_.begin(); inputTag != inputTags_.end(); ++inputTag ) {
+    inputTokens_.push_back(consumes<FEDRawDataCollection>(*inputTag));
+  }
   produces<FEDRawDataCollection>();
 }
 
@@ -37,9 +41,10 @@ void RawDataCollectorByLabel::produce(Event & e, const EventSetup& c){
 
  /// Get Data from all FEDs
  std::vector< Handle<FEDRawDataCollection> > rawData;
- for(tag_iterator_t inputTag = inputTags_.begin(); inputTag != inputTags_.end(); ++inputTag ) {
+ rawData.reserve(inputTokens_.size());
+ for(tok_iterator_t inputTok = inputTokens_.begin(); inputTok != inputTokens_.end(); ++inputTok ) {
    Handle<FEDRawDataCollection> input;
-   if (e.getByLabel(*inputTag,input)){
+   if (e.getByToken(*inputTok,input)){
      rawData.push_back(input);
    }
    //else{     //skipping the inputtag requested. but this is a normal operation to bare data & MC. silent warning   }

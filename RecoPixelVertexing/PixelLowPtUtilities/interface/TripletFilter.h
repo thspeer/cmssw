@@ -10,16 +10,17 @@ namespace edm { class EventSetup; }
 class TrackingRecHit;
 class ClusterShapeHitFilter;
 class TrackerTopology;
+class SiPixelClusterShapeCache;
 
 class TripletFilter 
 {
  public:
   TripletFilter(const edm::EventSetup& es);
   ~TripletFilter();
-  bool checkTrack(std::vector<const TrackingRecHit*> recHits,
-                  std::vector<LocalVector> localDirs,const TrackerTopology *tTopo);
-  bool checkTrack(std::vector<const TrackingRecHit*> recHits,
-                  std::vector<GlobalVector> globalDirs, const TrackerTopology *tTopo);
+  bool checkTrack(const std::vector<const TrackingRecHit*>& recHits,
+                  const std::vector<LocalVector>& localDirs,const TrackerTopology *tTopo, const SiPixelClusterShapeCache& clusterShapeCache);
+  bool checkTrack(const std::vector<const TrackingRecHit*>& recHits,
+                  const std::vector<GlobalVector>& globalDirs, const TrackerTopology *tTopo, const SiPixelClusterShapeCache& clusterShapeCache);
 
  private:
   const ClusterShapeHitFilter * theFilter;

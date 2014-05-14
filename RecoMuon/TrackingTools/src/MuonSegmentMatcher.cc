@@ -6,7 +6,6 @@
 //
 // Original Author:  Alan Tua
 //         Created:  Wed Jul  9 21:40:17 CEST 2008
-// $Id: MuonSegmentMatcher.cc,v 1.12 2011/11/09 12:19:25 ptraczyk Exp $
 //
 //
 
@@ -43,7 +42,7 @@ using namespace std;
 
 // constructors and destructor
 
-MuonSegmentMatcher::MuonSegmentMatcher(const edm::ParameterSet& matchParameters, MuonServiceProxy* service)
+MuonSegmentMatcher::MuonSegmentMatcher(const edm::ParameterSet& matchParameters, MuonServiceProxy* service,edm::ConsumesCollector& iC)
   :
   theService(service),
   DTSegmentTags_(matchParameters.getParameter<edm::InputTag>("DTsegments")),
@@ -52,6 +51,9 @@ MuonSegmentMatcher::MuonSegmentMatcher(const edm::ParameterSet& matchParameters,
   dtTightMatch(matchParameters.getParameter<bool>("TightMatchDT")),
   cscTightMatch(matchParameters.getParameter<bool>("TightMatchCSC"))
 {
+  dtRecHitsToken = iC.consumes<DTRecSegment4DCollection>(DTSegmentTags_);
+  allSegmentsCSCToken = iC.consumes<CSCSegmentCollection>(CSCSegmentTags_) ;
+
 }
 
 MuonSegmentMatcher::~MuonSegmentMatcher()
@@ -64,7 +66,7 @@ vector<const DTRecSegment4D*> MuonSegmentMatcher::matchDT(const reco::Track &muo
   using namespace edm;
 
   edm::Handle<DTRecSegment4DCollection> dtRecHits;
-  event.getByLabel(DTSegmentTags_, dtRecHits);  
+  event.getByToken(dtRecHitsToken, dtRecHits);  
   
   vector<const DTRecSegment4D*> pointerTo4DSegments;
 
@@ -74,13 +76,15 @@ vector<const DTRecSegment4D*> MuonSegmentMatcher::matchDT(const reco::Track &muo
 
   // Loop and select DT recHits
   for(trackingRecHit_iterator hit = muon.recHitsBegin(); hit != muon.recHitsEnd(); ++hit) {
-    if ( !(*hit)->isValid()) continue; 
-    if ( (*hit)->geographicalId().det() != DetId::Muon ) continue; 
-    if ( (*hit)->geographicalId().subdetId() != MuonSubdetId::DT ) continue; 
     if (!(*hit)->isValid()) continue; 
-    if ((*hit)->recHits().size()>1) segments = true;
+    if ( (*hit)->geographicalId().det() != DetId::Muon ) continue; 
+    if ( (*hit)->geographicalId().subdetId() != MuonSubdetId::DT ) continue;
+    if ((*hit)->recHits().size()) 
+      if ((*(*hit)->recHits().begin())->recHits().size()>1) segments = true;
     dtHits.push_back(*hit);
   }
+  
+  //  cout << "Muon DT hits found: " << dtHits.size() << " segments " << segments << endl;
   
   double PhiCutParameter=dtRadius_;
   double ZCutParameter=dtRadius_;
@@ -89,13 +93,11 @@ vector<const DTRecSegment4D*> MuonSegmentMatcher::matchDT(const reco::Track &muo
 
   for (DTRecSegment4DCollection::const_iterator rechit = dtRecHits->begin(); rechit!=dtRecHits->end();++rechit) {
   
-    if ( !rechit->isValid()) continue; 
     LocalPoint pointLocal = rechit->localPosition();
 
     if (segments) {
       // Loop over muon recHits
       for(trackingRecHit_iterator hit = dtHits.begin(); hit != dtHits.end(); ++hit) {
-	if ( !(*hit)->isValid()) continue; 
 					
 	// Pick the one in the same DT Chamber as the muon
 	DetId idT = (*hit)->geographicalId();
@@ -233,7 +235,7 @@ vector<const CSCSegment*> MuonSegmentMatcher::matchCSC(const reco::Track& muon, 
   using namespace edm;
 
   edm::Handle<CSCSegmentCollection> allSegmentsCSC;
-  event.getByLabel(CSCSegmentTags_, allSegmentsCSC);
+  event.getByToken(allSegmentsCSCToken, allSegmentsCSC);
 
   vector<const CSCSegment*> pointerToCSCSegments;
 

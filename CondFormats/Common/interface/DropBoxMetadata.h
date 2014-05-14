@@ -4,11 +4,13 @@
 /** \class DropBoxMetadata
  *  No description available.
  *
- *  $Date: 2011/03/02 17:09:28 $
- *  $Revision: 1.2 $
+ *  $Date: 2011/02/23 16:55:18 $
+ *  $Revision: 1.1 $
  *  \author G. Cerminara - CERN
  */
 
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <map>
 #include <string>
@@ -34,7 +36,9 @@ public:
   private:
 
     std::map<std::string, std::string> theParameters;
-  };
+  
+  COND_SERIALIZABLE;
+};
 
   // Operations
   void addRecordParameters(const std::string& record, const Parameters& params);
@@ -48,6 +52,8 @@ protected:
 private:
   std::map<std::string, DropBoxMetadata::Parameters> recordSet;
 
+
+  COND_SERIALIZABLE;
 };
 #endif
 

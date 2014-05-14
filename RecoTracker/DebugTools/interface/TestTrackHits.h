@@ -15,7 +15,6 @@
 //
 // Original Author:  Giuseppe Cerati
 //         Created:  Tue Feb 13 17:29:10 CET 2007
-// $Id: TestTrackHits.h,v 1.8 2010/02/11 00:14:37 wmtan Exp $
 //
 //
 
@@ -34,6 +33,7 @@
 #include "TrackingTools/TransientTrackingRecHit/interface/TransientTrackingRecHitBuilder.h"
 #include "RecoTracker/TransientTrackingRecHit/interface/TkTransientTrackingRecHitBuilder.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
+#include "Geometry/TrackerGeometryBuilder/interface/StripGeomDetUnit.h"
 #include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h" 
 #include "TrackingTools/Records/interface/TrackingComponentsRecord.h" 

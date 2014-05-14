@@ -1,8 +1,10 @@
-// $Id: TTUBoardSpecs.h,v 1.1 2009/01/28 12:54:41 aosorio Exp $
+// $Id: $
 #ifndef CONFIGCODE_TTUBOARDSPECS_H 
 #define CONFIGCODE_TTUBOARDSPECS_H 1
 
 // Include files
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include "CondFormats/RPCObjects/interface/RPCTechTriggerConfig.h"
 #include <vector>
 #include <string>
@@ -38,9 +40,13 @@ public:
      
     std::string m_LogicType;
 
-  };
+  
+  COND_SERIALIZABLE;
+};
   
   std::vector<TTUBoardConfig> m_boardspecs;
   
+
+  COND_SERIALIZABLE;
 };
 #endif // CONFIGCODE_TTUBOARDSPECS_H

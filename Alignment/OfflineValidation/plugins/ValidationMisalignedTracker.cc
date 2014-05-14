@@ -13,7 +13,7 @@
 //
 // Original Author:  Nicola De Filippis
 //         Created:  Thu Dec 14 13:13:32 CET 2006
-// $Id: ValidationMisalignedTracker.cc,v 1.9 2013/01/09 04:19:35 dlange Exp $
+// $Id: ValidationMisalignedTracker.cc,v 1.8 2013/01/07 20:46:23 wmtan Exp $
 //
 //
 
@@ -298,7 +298,7 @@ ValidationMisalignedTracker::analyze(const edm::Event& iEvent, const edm::EventS
    //
    edm::ESHandle<TrackerGeometry> trackerGeometry;
    iSetup.get<TrackerDigiGeometryRecord>().get( trackerGeometry );
-   GeomDet* testGeomDet = trackerGeometry->detsTOB().front();
+   auto testGeomDet = trackerGeometry->detsTOB().front();
    std::cout << testGeomDet->position() << std::endl;
    
    

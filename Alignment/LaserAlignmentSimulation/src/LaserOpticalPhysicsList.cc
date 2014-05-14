@@ -1,8 +1,8 @@
 /** \file LaserOpticalPhysicsList.cc
  *  
  *
- *  $Date: 2012/11/21 16:38:47 $
- *  $Revision: 1.6 $
+ *  $Date: 2008/03/10 12:52:52 $
+ *  $Revision: 1.5 $
  *  \author Maarten Thomas
  */
 
@@ -84,10 +84,10 @@ void LaserOpticalPhysicsList::ConstructProcess()
   theScintProcess->SetScintillationExcitationRatio(0.0);
   theScintProcess->SetTrackSecondariesFirst(true);
   
-  theParticleIterator->reset();
-  while( (*theParticleIterator)() )
+  aParticleIterator->reset();
+  while( (*aParticleIterator)() )
     {
-      G4ParticleDefinition* particle = theParticleIterator->value();
+      G4ParticleDefinition* particle = aParticleIterator->value();
       pManager = particle->GetProcessManager();
 //      if(theCerenkovProcess->IsApplicable(*particle))
 //	{

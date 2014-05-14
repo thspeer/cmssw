@@ -5,8 +5,6 @@
  *  
  *  Class to monitor duplication of events
  *
- *  $Date: 2012/08/24 21:47:01 $
- *  $Revision: 1.3 $
  *
  */
 
@@ -25,6 +23,7 @@
 #include "DQMServices/Core/interface/DQMStore.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
+#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -37,8 +36,7 @@
 
 #include "Validation/EventGenerator/interface/WeightManager.h"
 
-class DuplicationChecker : public edm::EDAnalyzer
-{
+class DuplicationChecker : public DQMEDAnalyzer {
   
  public:
 
@@ -47,15 +45,14 @@ class DuplicationChecker : public edm::EDAnalyzer
 
   explicit DuplicationChecker(const edm::ParameterSet&);
   virtual ~DuplicationChecker();
-  void beginJob();
-  void endJob();  
-  void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup);
-  virtual void beginRun(const edm::Run&, const edm::EventSetup&){ return;}
-  virtual void endRun(const edm::Run&, const edm::EventSetup&){ return;}
+
+  virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+  virtual void bookHistograms(DQMStore::IBooker &i, edm::Run const &, edm::EventSetup const &) override;
+
   void findValuesAssociatedWithKey(associationMap &mMap, double &key, itemList &theObjects);  
   
  private:
-  WeightManager _wmanager;
+  WeightManager wmanager_;
   
   edm::InputTag generatedCollection_;
   edm::InputTag lheEventProduct_;
@@ -64,9 +61,10 @@ class DuplicationChecker : public edm::EDAnalyzer
 
   associationMap xBjorkenHistory;
 	
-  DQMStore *dbe;
-
   MonitorElement* xBjorkenME;
+
+  edm::EDGetTokenT<LHEEventProduct> lheEventProductToken_;
+  edm::EDGetTokenT<edm::HepMCProduct> generatedCollectionToken_;
 
 };
 

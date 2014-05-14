@@ -1,6 +1,5 @@
 // -*- C++ -*-
 //
-// $Id: ValidateGeometry.cc,v 1.37 2013/02/28 14:23:43 yana Exp $
 //
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -67,9 +66,9 @@ public:
   ~ValidateGeometry();
 
 private:
-  virtual void beginJob();
-  virtual void analyze(const edm::Event&, const edm::EventSetup&);
-  virtual void endJob();  
+  virtual void beginJob() override;
+  virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+  virtual void endJob() override;  
 
   void validateRPCGeometry(const int regionNumber, 
                            const char* regionName);
@@ -290,10 +289,10 @@ ValidateGeometry::validateRPCGeometry(const int regionNumber, const char* region
  
   std::vector<double> centers;
  
-  std::vector<RPCRoll*> rolls = rpcGeometry_->rolls();
+  auto const& rolls = rpcGeometry_->rolls();
   
-  for ( std::vector<RPCRoll*>::const_iterator it = rolls.begin(), 
-                                           itEnd = rolls.end();
+  for ( auto it = rolls.begin(), 
+	  itEnd = rolls.end();
         it != itEnd; ++it )
   {
     const RPCRoll* roll = *it;
@@ -376,10 +375,10 @@ ValidateGeometry::validateDTChamberGeometry()
 {
   clearData();
 
-  std::vector<DTChamber*> chambers = dtGeometry_->chambers();
+  auto const& chambers = dtGeometry_->chambers();
   
-  for ( std::vector<DTChamber*>::const_iterator it = chambers.begin(), 
-                                             itEnd = chambers.end(); 
+  for ( auto it = chambers.begin(), 
+	  itEnd = chambers.end(); 
         it != itEnd; ++it)
   {
     const DTChamber* chamber = *it;
@@ -424,10 +423,10 @@ ValidateGeometry::validateDTLayerGeometry()
   
   std::vector<double> wire_positions;
 
-  std::vector<DTLayer*> layers = dtGeometry_->layers();
+  auto const& layers = dtGeometry_->layers();
   
-  for ( std::vector<DTLayer*>::const_iterator it = layers.begin(), 
-                                           itEnd = layers.end(); 
+  for ( auto it = layers.begin(), 
+	  itEnd = layers.end(); 
         it != itEnd; ++it)
   {
     const DTLayer* layer = *it;
@@ -509,10 +508,10 @@ ValidateGeometry::validateCSChamberGeometry(const int endcap, const char* detnam
 {
   clearData();
 
-  std::vector<CSCChamber *> chambers = cscGeometry_->chambers();
+  auto const& chambers = cscGeometry_->chambers();
      
-  for ( std::vector<CSCChamber*>::const_iterator it = chambers.begin(), 
-                                              itEnd = chambers.end(); 
+  for ( auto it = chambers.begin(), 
+	  itEnd = chambers.end(); 
         it != itEnd; ++it )
   {
     const CSCChamber* chamber = *it;
@@ -567,10 +566,10 @@ ValidateGeometry::validateCSCLayerGeometry(const int endcap, const char* detname
   std::vector<double> me41_wiresLocal;
   std::vector<double> me42_wiresLocal;
   
-  std::vector<CSCLayer*> layers = cscGeometry_->layers();
+  auto const& layers = cscGeometry_->layers();
      
-  for ( std::vector<CSCLayer*>::const_iterator it = layers.begin(), 
-                                            itEnd = layers.end(); 
+  for ( auto it = layers.begin(), 
+	  itEnd = layers.end(); 
         it != itEnd; ++it )
   {
     const CSCLayer* layer = *it;
@@ -837,8 +836,8 @@ ValidateGeometry::validateCaloGeometry(DetId::Detector detector,
 
   const std::vector<DetId>& ids = geometry->getValidDetIds(detector, subdetector);
 
-  for (std::vector<DetId>::const_iterator it = ids.begin(), 
-                                        iEnd = ids.end(); 
+  for (auto it = ids.begin(), 
+	 iEnd = ids.end(); 
        it != iEnd; ++it) 
   {
     unsigned int rawId = (*it).rawId();

@@ -2,7 +2,7 @@
 #define TrackingAnalysis_TrackingTruthAccumulator_h
 
 #include "SimGeneral/MixingModule/interface/DigiAccumulatorMixMod.h"
-#include "CommonTools/RecoAlgos/interface/TrackingParticleSelector.h"
+#include "SimTracker/Common/interface/TrackingParticleSelector.h"
 #include <memory> // required for std::auto_ptr
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingVertexContainer.h"
@@ -12,9 +12,13 @@
 namespace edm
 {
 	class ParameterSet;
-	class EDProducer;
+        class ConsumesCollector;
+  namespace one {
+	class EDProducerBase;
+  }
 	class Event;
 	class EventSetup;
+        class StreamID;
 }
 class PileUpEventPrincipal;
 class PSimHit;
@@ -64,11 +68,11 @@ class PSimHit;
 class TrackingTruthAccumulator : public DigiAccumulatorMixMod
 {
 public:
-	explicit TrackingTruthAccumulator( const edm::ParameterSet& config, edm::EDProducer& mixMod );
+	explicit TrackingTruthAccumulator( const edm::ParameterSet& config, edm::one::EDProducerBase& mixMod, edm::ConsumesCollector& iC);
 private:
 	virtual void initializeEvent( const edm::Event& event, const edm::EventSetup& setup );
 	virtual void accumulate( const edm::Event& event, const edm::EventSetup& setup );
-	virtual void accumulate( const PileUpEventPrincipal& event, const edm::EventSetup& setup );
+	virtual void accumulate( const PileUpEventPrincipal& event, const edm::EventSetup& setup, edm::StreamID const& );
 	virtual void finalizeEvent( edm::Event& event, const edm::EventSetup& setup );
 
 	/** @brief Both forms of accumulate() delegate to this templated method. */
@@ -99,7 +103,7 @@ private:
 	const bool removeDeadModules_;
 	const edm::InputTag simTrackLabel_;
 	const edm::InputTag simVertexLabel_;
-	edm::ParameterSet simHitCollectionConfig_;
+        std::vector<edm::InputTag> collectionTags_;
 	edm::InputTag genParticleLabel_;
 
 	bool selectorFlag_;

@@ -4,8 +4,6 @@
  *     Muon Barrel Trigger Geometry
  *
  *
- *   $Date: 2009/11/02 14:18:31 $
- *   $Revision: 1.8 $
  *
  *   \author C.Grandi
  *   \modifications S.Vanini
@@ -45,7 +43,7 @@ class DTTrigGeom {
   public:
 
     /// Constructor
-    DTTrigGeom(DTChamber* stat, bool debug);
+    DTTrigGeom(const DTChamber* stat, bool debug);
   
     /// Destructor 
     ~DTTrigGeom();

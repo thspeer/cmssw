@@ -23,8 +23,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: G4MonopoleTransportation.icc,v 1.1 2010/07/29 23:05:19 sunanda Exp $
-// GEANT4 tag $Name: V02-00-04 $
+// GEANT4 tag $Name:  $
 //
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -122,7 +121,7 @@ inline void G4MonopoleTransportation::ResetKilledStatistics(G4int report)
   } 
 
   fSumEnergyKilled= 0;
-  fMaxEnergyKilled= -1.0*GeV;
+  fMaxEnergyKilled= -1.0*CLHEP::GeV;
 }
      // Statistics for tracks killed (currently due to looping in field)
 

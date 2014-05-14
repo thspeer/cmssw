@@ -10,10 +10,10 @@ Monitoring source for general quantities related to tracks.
 */
 // Original Author:  Suchandra Dutta, Giorgia Mila
 //         Created:  Thu 28 22:45:30 CEST 2008
-// $Id: TrackingMonitor.h,v 1.7 2012/10/15 13:24:45 threus Exp $
 
 #include <memory>
 #include <fstream>
+#include "FWCore/Utilities/interface/EDGetToken.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -21,7 +21,21 @@ Monitoring source for general quantities related to tracks.
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
+
 #include "TrackingTools/TransientTrackingRecHit/interface/TransientTrackingRecHitBuilder.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+
+#include "DataFormats/TrackCandidate/interface/TrackCandidateCollection.h" 
+#include "DataFormats/TrackCandidate/interface/TrackCandidate.h" 
+
+#include "DataFormats/TrajectorySeed/interface/TrajectorySeedCollection.h"
+
+#include "DataFormats/SiStripCluster/interface/SiStripCluster.h"
+#include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
+
+#include "CommonTools/Utils/interface/StringCutObjectSelector.h"
 
 class DQMStore;
 class TrackAnalyzer;
@@ -31,7 +45,7 @@ class GetLumi;
 class TProfile;
 class GenericTriggerEventFlag;
 
-class TrackingMonitor : public edm::EDAnalyzer 
+class TrackingMonitor : public DQMEDAnalyzer 
 {
     public:
         explicit TrackingMonitor(const edm::ParameterSet&);
@@ -44,7 +58,8 @@ class TrackingMonitor : public edm::EDAnalyzer
 
         virtual void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&  eSetup);
         virtual void analyze(const edm::Event&, const edm::EventSetup&);
-        virtual void beginRun(const edm::Run&, const edm::EventSetup&); 
+	void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
+	//        virtual void beginRun(const edm::Run&, const edm::EventSetup&); 
         virtual void endRun(const edm::Run&, const edm::EventSetup&);
 
     private:
@@ -57,11 +72,28 @@ class TrackingMonitor : public edm::EDAnalyzer
         std::string histname;  //for naming the histograms according to algorithm used
 
         DQMStore * dqmStore_;
+
         edm::ParameterSet conf_;
 
         // the track analyzer
-        edm::InputTag bsSrc;
-	edm::InputTag pvSrc;
+        edm::InputTag bsSrc_;
+	edm::InputTag pvSrc_;
+	edm::EDGetTokenT<reco::BeamSpot> bsSrcToken_;
+	edm::EDGetTokenT<reco::VertexCollection> pvSrcToken_;
+
+	edm::EDGetTokenT<reco::TrackCollection> allTrackToken_;
+	edm::EDGetTokenT<reco::TrackCollection> trackToken_;
+	edm::EDGetTokenT<TrackCandidateCollection> trackCandidateToken_;
+	edm::EDGetTokenT<edm::View<TrajectorySeed> > seedToken_;
+
+	edm::InputTag stripClusterInputTag_;
+	edm::InputTag pixelClusterInputTag_;
+	edm::EDGetTokenT<edmNew::DetSetVector<SiStripCluster> > stripClustersToken_;
+	edm::EDGetTokenT<edmNew::DetSetVector<SiPixelCluster> > pixelClustersToken_;
+
+	std::string Quality_;
+	std::string AlgoName_;
+
 
         TrackAnalyzer * theTrackAnalyzer;
         TrackBuildingAnalyzer  * theTrackBuildingAnalyzer;
@@ -74,11 +106,11 @@ class TrackingMonitor : public edm::EDAnalyzer
         MonitorElement * NumberOfMeanLayersPerTrack;  
 
 	// Good Tracks 
-        MonitorElement * NumberOfGoodTracks;
         MonitorElement * FractionOfGoodTracks;
 
         // Track Seeds 
         MonitorElement * NumberOfSeeds;
+        MonitorElement * NumberOfSeeds_lumiFlag;
 	std::vector<MonitorElement *> SeedsVsClusters;
 	std::vector<std::string> ClusterLabels;
 	
@@ -87,34 +119,22 @@ class TrackingMonitor : public edm::EDAnalyzer
         MonitorElement * NumberOfTrackCandidates;
 
         // Cluster Properties
-	/*
-        MonitorElement* NumberOfPixelClus;
-        MonitorElement* NumberOfStripClus;
-        MonitorElement* RatioOfPixelAndStripClus;
-	*/
 	std::vector<MonitorElement*> NumberOfTrkVsClusters;
         MonitorElement* NumberOfTrkVsClus;
         MonitorElement* NumberOfTrkVsStripClus;
         MonitorElement* NumberOfTrkVsPixelClus;
-        MonitorElement* NumberOfGoodTrkVsClus;
 
 	// Monitoring vs LS
 	MonitorElement* NumberOfTracksVsLS;
-	MonitorElement* NumberOfGoodTracksVsLS;
 	MonitorElement* GoodTracksFractionVsLS;
-	MonitorElement* GoodTracksNumberOfRecHitsPerTrackVsLS;
+	MonitorElement* NumberOfRecHitsPerTrackVsLS;
 
 	// Monitoring PU
 	MonitorElement* NumberOfTracksVsGoodPVtx;
 	MonitorElement* NumberOfTracksVsBXlumi;
-	MonitorElement* NumberOfGoodTracksVsGoodPVtx;
-	MonitorElement* NumberOfGoodTracksVsBXlumi;
-	MonitorElement* FractionOfGoodTracksVsGoodPVtx;
-	MonitorElement* FractionOfGoodTracksVsBXlumi;
-	
+
 	// add in order to deal with LS transitions
         MonitorElement * NumberOfTracks_lumiFlag;
-        MonitorElement * NumberOfGoodTracks_lumiFlag;
 
         std::string builderName;
         edm::ESHandle<TransientTrackingRecHitBuilder> theTTRHBuilder;
@@ -129,15 +149,20 @@ class TrackingMonitor : public edm::EDAnalyzer
 	bool doHitPropertiesPlots_;
 	bool doTkCandPlots;
 	bool doSeedNumberPlot;
+	bool doSeedLumiAnalysis_;
 	bool doSeedVsClusterPlot;
 	bool runTrackBuildingAnalyzerForSeed;
 	// ADD by Mia in order to have GoodTrack plots only for collision
-	bool doGoodTrackPlots_;
 	bool doPUmonitoring_;
 	bool doPlotsVsBXlumi_;
 	bool doPlotsVsGoodPVtx_;
+	bool doFractionPlot_;
 
         GenericTriggerEventFlag* genTriggerEventFlag_;
+
+	StringCutObjectSelector<reco::Track,true> numSelection_;
+	StringCutObjectSelector<reco::Track,true> denSelection_;
+
 };
 
 #endif //define TrackingMonitor_H

@@ -6,9 +6,7 @@
  * 
  * \author David Lange
  *
- * \version $Revision: 1.12 $
  *
- * $Id: MultiTrackSelector.h,v 1.12 2013/06/04 12:24:17 speer Exp $
  *
  */
 
@@ -17,7 +15,7 @@
 #include <memory>
 #include <algorithm>
 #include <map>
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
@@ -36,7 +34,7 @@
 
 namespace reco { namespace modules {
 
-    class MultiTrackSelector : public edm::EDProducer {
+    class MultiTrackSelector : public edm::stream::EDProducer<> {
         private:
         public:
             /// constructor 
@@ -66,12 +64,12 @@ namespace reco { namespace modules {
 	    void processMVA(edm::Event& evt, const edm::EventSetup& es);
 
             /// source collection label
-            edm::InputTag src_;
-            edm::InputTag beamspot_;
+            edm::EDGetTokenT<reco::TrackCollection> src_;
+            edm::EDGetTokenT<reco::BeamSpot> beamspot_;
             bool          useVertices_;
             bool          useVtxError_;
 	    bool          useAnyMVA_;
-            edm::InputTag vertices_;
+            edm::EDGetTokenT<reco::VertexCollection> vertices_;
             
             /// do I have to set a quality bit?
 	    std::vector<bool> setQualityBit_;

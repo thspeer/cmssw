@@ -20,6 +20,10 @@
 
 #include <iostream>
 
+namespace edm {
+  class ModuleCallingContext;
+}
+
 template<class HCALDIGITIZERTRAITS>
 class HcalSignalGenerator : public HcalBaseSignalGenerator
 {
@@ -27,10 +31,14 @@ public:
   typedef typename HCALDIGITIZERTRAITS::Digi DIGI;
   typedef typename HCALDIGITIZERTRAITS::DigiCollection COLLECTION;
 
-  HcalSignalGenerator(const edm::InputTag & inputTag)
-  : HcalBaseSignalGenerator(), theEvent(0), theEventPrincipal(0), theInputTag(inputTag) {}
+  HcalSignalGenerator():HcalBaseSignalGenerator() { }
+
+  HcalSignalGenerator(const edm::InputTag & inputTag, const edm::EDGetTokenT<COLLECTION> &t)
+  : HcalBaseSignalGenerator(), theEvent(0), theEventPrincipal(0), theInputTag(inputTag), tok_(t) 
+  { }
 
   virtual ~HcalSignalGenerator() {}
+
 
   void initializeEvent(const edm::Event * event, const edm::EventSetup * eventSetup)
   {
@@ -47,15 +55,16 @@ public:
     theParameterMap->setDbService(theConditions.product());
   }
 
-  virtual void fill()
+  virtual void fill(edm::ModuleCallingContext const* mcc)
   {
+
     theNoiseSignals.clear();
     edm::Handle<COLLECTION> pDigis;
     const COLLECTION *  digis = 0;
     // try accessing by whatever is set, Event or EventPrincipal
     if(theEvent) 
      {
-      if( theEvent->getByLabel(theInputTag, pDigis) ) {
+      if( theEvent->getByToken(tok_, pDigis) ) {
         digis = pDigis.product(); // get a ptr to the product
         LogTrace("HcalSignalGenerator") << "total # digis  for "  << theInputTag << " " <<  digis->size();
       }
@@ -67,7 +76,7 @@ public:
     else if(theEventPrincipal)
     {
        boost::shared_ptr<edm::Wrapper<COLLECTION>  const> digisPTR =
-          edm::getProductByTag<COLLECTION>(*theEventPrincipal, theInputTag );
+          edm::getProductByTag<COLLECTION>(*theEventPrincipal, theInputTag, mcc );
        if(digisPTR) {
           digis = digisPTR->product();
        }
@@ -79,6 +88,7 @@ public:
 
     if (digis)
     {
+
       // loop over digis, adding these to the existing maps
       for(typename COLLECTION::const_iterator it  = digis->begin();
           it != digis->end(); ++it) 
@@ -88,15 +98,30 @@ public:
         {
           int startingCapId = (*it)[0].capid();
           theElectronicsSim->setStartingCapId(startingCapId);
-          theParameterMap->setFrameSize(it->id(), it->size());
+          // theParameterMap->setFrameSize(it->id(), it->size()); //don't need this
         }
-
-        theNoiseSignals.push_back(samplesInPE(*it));
+	if(validDigi(*it)) {
+	  theNoiseSignals.push_back(samplesInPE(*it));
+	}
       }
     }
   }
 
 private:
+
+
+  virtual void fillNoiseSignals(CLHEP::HepRandomEngine*) override {}
+  virtual void fillNoiseSignals() override {}
+
+  bool validDigi(const DIGI & digi)
+  {
+    int DigiSum = 0;
+    for(int id = 0; id<digi.size(); id++) {
+      if(digi[id].adc() > 0) ++DigiSum;
+    }
+    return(DigiSum>0);
+  }
+
 
   CaloSamples samplesInPE(const DIGI & digi)
   {
@@ -109,6 +134,9 @@ private:
     CaloSamples result;
     coder.adc2fC(digi, result);
     fC2pe(result);
+
+    //    std::cout << " HcalSignalGenerator: noise input " << digi << std::endl;
+
     return result;
   }
 
@@ -119,6 +147,7 @@ private:
   edm::ESHandle<HcalDbService> theConditions;
   /// these come from the ParameterSet
   edm::InputTag theInputTag;
+  edm::EDGetTokenT<COLLECTION> tok_;
 };
 
 typedef HcalSignalGenerator<HBHEDigitizerTraits> HBHESignalGenerator;

@@ -2,8 +2,6 @@
  *
  *  Navigable layer for Barrel Muon 
  *
- *  $Date: 2007/01/29 16:24:33 $
- *  $Revision: 1.11 $
  *
  * \author : Stefano Lacaprara - INFN Padova <stefano.lacaprara@pd.infn.it>
  *
@@ -162,12 +160,12 @@ void MuonBarrelNavigableLayer::pushCompatibleResult(std::vector<const DetLayer*>
 
 }
 
-DetLayer* MuonBarrelNavigableLayer::detLayer() const {
+const DetLayer* MuonBarrelNavigableLayer::detLayer() const {
   return theDetLayer;
 }
 
 
-void MuonBarrelNavigableLayer::setDetLayer(DetLayer* dl) {
+void MuonBarrelNavigableLayer::setDetLayer(const DetLayer* dl) {
   edm::LogError("MuonBarrelNavigableLayer") << "MuonBarrelNavigableLayer::setDetLayer called!! " << endl;
 }
 

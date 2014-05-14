@@ -2,7 +2,7 @@
 #define BTagPerformanceAnalyzerOnData_H
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -20,6 +20,7 @@
 #include "DQMOffline/RecoB/interface/Tools.h"
 #include "DataFormats/JetReco/interface/Jet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
 #include <string>
 #include <vector>
@@ -33,7 +34,7 @@
  *
  */
 
-class BTagPerformanceAnalyzerOnData : public edm::EDAnalyzer {
+class BTagPerformanceAnalyzerOnData : public thread_unsafe::DQMEDAnalyzer {
    public:
       explicit BTagPerformanceAnalyzerOnData(const edm::ParameterSet& pSet);
 
@@ -53,7 +54,8 @@ class BTagPerformanceAnalyzerOnData : public edm::EDAnalyzer {
   };
 
   // Get histogram plotting options from configuration.
-  void bookHistos(const edm::ParameterSet& pSet);
+  void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
+
   EtaPtBin getEtaPtBin(const int& iEta, const int& iPt);
 
   std::vector<std::string> tiDataFormatType;
@@ -62,6 +64,8 @@ class BTagPerformanceAnalyzerOnData : public edm::EDAnalyzer {
   std::vector<double> etaRanges, ptRanges;
   bool produceEps, producePs;
   std::string psBaseName, epsBaseName, inputFile;
+  std::string JECsource;
+  bool doJEC;
   bool update, allHisto;
   bool finalize;
   bool finalizeOnly;
@@ -79,6 +83,13 @@ class BTagPerformanceAnalyzerOnData : public edm::EDAnalyzer {
   std::map<BaseTagInfoPlotter*, size_t> binTagInfoPlottersToModuleConfig;
 
   unsigned int mcPlots_;
+
+  //add consumes
+  edm::EDGetTokenT<GenEventInfoProduct> genToken;
+  edm::EDGetTokenT<reco::SoftLeptonTagInfoCollection> slInfoToken;
+  std::vector< edm::EDGetTokenT<reco::JetTagCollection> > jetTagToken;
+  std::vector< std::pair<edm::EDGetTokenT<reco::JetTagCollection>, edm::EDGetTokenT<reco::JetTagCollection>> > tagCorrelationToken;
+  std::vector<std::vector <edm::EDGetTokenT<edm::View<reco::BaseTagInfo>> >> tagInfoToken;
 
 };
 

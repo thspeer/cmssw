@@ -3,7 +3,6 @@
 //         Created:  Tue Jul 20 12:58:43 CEST 2010
 
 // Reviewed : Anna Cimmino  Tue Aug 16 10:20  2010
-// $Id: RPCEfficiencyShiftHisto.cc,v 1.2 2011/07/06 09:09:59 cimmino Exp $
 
 
 // user include files
@@ -28,7 +27,7 @@ RPCEfficiencyShiftHisto::RPCEfficiencyShiftHisto(const edm::ParameterSet& ps) {
   effCut_= ps.getUntrackedParameter<int>("EffCut", 90);
   SaveFile  = ps.getUntrackedParameter<bool>("SaveFile", false);
   NameFile  = ps.getUntrackedParameter<std::string>("NameFile","RPCEfficiency.root");
-  numberOfDisks_ = ps.getUntrackedParameter<int>("NumberOfEndcapDisks", 3);
+  numberOfDisks_ = ps.getUntrackedParameter<int>("NumberOfEndcapDisks", 4);
 }
 
 

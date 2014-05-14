@@ -3,9 +3,9 @@
 // -*- C++ -*-
 //
 // Package:     FWCore/Framework
-// Class  :     producerAbilities
+// Class  :     implementors
 // 
-/**\file producerAbilities.h "FWCore/Framework/interface/one/implementors"
+/**\file implementors.h "FWCore/Framework/interface/one/implementors.h"
 
  Description: Base classes used to implement the interfaces for the edm::one::* module  abilities
 
@@ -16,11 +16,11 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Thu, 09 May 2013 18:40:17 GMT
-// $Id: implementors.h,v 1.1 2013/05/17 14:49:44 chrjones Exp $
 //
 
 // system include files
 #include <string>
+#include <set>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -28,21 +28,28 @@
 // forward declarations
 
 namespace edm {
+   class SharedResourcesAcquirer;
+   
    namespace one {
       namespace impl {
          
-         class SharedResourcesUser {
+         template<typename T>
+         class SharedResourcesUser : public virtual T {
          public:
-            SharedResourcesUser() = default;
+            template< typename... Args>
+            SharedResourcesUser(Args... args) : T(args...) {}
             SharedResourcesUser(SharedResourcesUser const&) = delete;
             SharedResourcesUser& operator=(SharedResourcesUser const&) = delete;
             
-            virtual ~SharedResourcesUser() = default;
+            virtual ~SharedResourcesUser() {}
             
          protected:
-            static const std::string kUnknownResource;
             
-            void usesResource(std::string const& iName = kUnknownResource);
+            void usesResource(std::string const& iName);
+            void usesResource();
+         private:
+            SharedResourcesAcquirer createAcquirer() override;
+            std::set<std::string> resourceNames_;
          };
          
          template <typename T>

@@ -5,8 +5,6 @@
 //   Description: L1 Global Muon Trigger
 //
 //
-//   $Date: 2010/02/12 12:07:37 $
-//   $Revision: 1.14 $
 //
 //   Author :
 //   Norbert Neumeister              CERN EP
@@ -96,7 +94,7 @@ L1MuGlobalMuonTrigger::L1MuGlobalMuonTrigger(const edm::ParameterSet& ps) {
 
   // create new PSB
   if ( L1MuGMTConfig::Debug(2) ) edm::LogVerbatim("GMT_info") << "creating GMT PSB";
-  m_PSB = new L1MuGMTPSB(*this);
+  m_PSB = new L1MuGMTPSB(*this,consumesCollector());
 
   // create new matcher
   if ( L1MuGMTConfig::Debug(2) ) edm::LogVerbatim("GMT_info") << "creating GMT Matcher (0,1)";
@@ -125,6 +123,7 @@ L1MuGlobalMuonTrigger::L1MuGlobalMuonTrigger(const edm::ParameterSet& ps) {
   m_Sorter = new L1MuGMTSorter(*this);   // barrel
 
   if(!m_db) m_db = new L1MuGMTDebugBlock(m_config->getBxMin(),m_config->getBxMax());
+  usesResource("L1MuGlobalMuonTrigger");
 }
 
 //--------------

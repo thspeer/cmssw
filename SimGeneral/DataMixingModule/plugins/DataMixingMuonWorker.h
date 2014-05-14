@@ -17,6 +17,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventPrincipal.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "DataFormats/Provenance/interface/ProductID.h"
 #include "DataFormats/Common/interface/Handle.h"
@@ -37,6 +38,8 @@
 
 namespace edm
 {
+  class ModuleCallingContext;
+
   class DataMixingMuonWorker
     {
     public:
@@ -44,14 +47,14 @@ namespace edm
       DataMixingMuonWorker();
 
      /** standard constructor*/
-      explicit DataMixingMuonWorker(const edm::ParameterSet& ps);
+      explicit DataMixingMuonWorker(const edm::ParameterSet& ps, edm::ConsumesCollector && iC);
 
       /**Default destructor*/
       virtual ~DataMixingMuonWorker();
 
       void putMuon(edm::Event &e) ;
       void addMuonSignals(const edm::Event &e); 
-      void addMuonPileups(const int bcr, const edm::EventPrincipal*,unsigned int EventId);
+      void addMuonPileups(const int bcr, const edm::EventPrincipal*,unsigned int EventId, ModuleCallingContext const*);
 
 
     private:
@@ -71,6 +74,18 @@ namespace edm
       edm::InputTag CSCWirePileInputTag_  ; // InputTag for pileup CSC Wires
       edm::InputTag CSCStripPileInputTag_ ; // InputTag for pileup CSC Strips
       edm::InputTag CSCCompPileInputTag_ ; // InputTag for pileup CSC Comparators
+
+      edm::EDGetTokenT<DTDigiCollection> DTDigiToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<CSCStripDigiCollection> CSCStripDigiToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<CSCWireDigiCollection> CSCWireDigiToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<CSCComparatorDigiCollection> CSCCompDigiToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<RPCDigiCollection> RPCDigiToken_ ;  // Token to retrieve information 
+
+      edm::EDGetTokenT<DTDigiCollection> DTDigiPToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<CSCStripDigiCollection> CSCStripDigiPToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<CSCWireDigiCollection> CSCWireDigiPToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<CSCComparatorDigiCollection> CSCCompDigiPToken_ ;  // Token to retrieve information
+      edm::EDGetTokenT<RPCDigiCollection> RPCDigiPToken_ ;  // Token to retrieve information 
 
       std::string DTDigiCollectionDM_; // secondary name to be given to new DT digis
       std::string RPCDigiCollectionDM_; // secondary name to be given to new RPC digis

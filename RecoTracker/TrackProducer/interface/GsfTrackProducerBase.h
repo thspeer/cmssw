@@ -4,8 +4,6 @@
 /** \class GsfTrackProducerBase
  *  Produce Tracks from TrackCandidates
  *
- *  $Date: 2010/12/14 16:43:48 $
- *  $Revision: 1.10 $
  *  \author cerati
  */
 
@@ -42,7 +40,7 @@ public:
 			std::auto_ptr<reco::TrackExtraCollection>&,
 			std::auto_ptr<reco::GsfTrackExtraCollection>&,
 			std::auto_ptr<std::vector<Trajectory> >&,
-			AlgoProductCollection&,
+			AlgoProductCollection&, TransientTrackingRecHitBuilder const*,
 			const reco::BeamSpot&);
 
 

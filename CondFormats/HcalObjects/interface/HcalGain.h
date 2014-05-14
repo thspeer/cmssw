@@ -6,9 +6,11 @@
 \author Fedor Ratnikov (UMd)
 POOL object to store Gain values 4xCapId
 $Author: ratnikov
-$Date: 2007/12/14 13:31:28 $
-$Revision: 1.6 $
+$Date: 2007/12/10 18:36:56 $
+$Revision: 1.5 $
 */
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <boost/cstdint.hpp>
 
@@ -38,6 +40,8 @@ class HcalGain {
   float mValue1;
   float mValue2;
   float mValue3;
+
+ COND_SERIALIZABLE;
 };
 
 #endif

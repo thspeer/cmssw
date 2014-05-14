@@ -6,9 +6,7 @@
  * 
  * \author Paolo Azzurri, Giovanni Petrucciani 
  *
- * \version $Revision: 1.3 $
  *
- * $Id: CosmicTrackSelector.h,v 1.3 2013/02/27 13:28:30 muzaffar Exp $
  *
  */
 
@@ -17,7 +15,7 @@
 #include <memory>
 #include <algorithm>
 #include <map>
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/EventPrincipal.h" 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -34,7 +32,7 @@
 
 namespace reco { namespace modules {
     
-    class CosmicTrackSelector : public edm::EDProducer {
+    class CosmicTrackSelector : public edm::stream::EDProducer<> {
 		   private:
 		   public:
 		     // constructor 
@@ -49,12 +47,14 @@ namespace reco { namespace modules {
 		     // return class, or -1 if rejected
 		     bool select (const reco::BeamSpot &vertexBeamSpot, const reco::Track &tk);
 		     // source collection label
-		     edm::InputTag src_;
-		     edm::InputTag beamspot_;
+                     edm::EDGetTokenT<reco::TrackCollection> src_;
+                     edm::EDGetTokenT<reco::BeamSpot> beamspot_;
 		     // copy only the tracks, not extras and rechits (for AOD)
 		     bool copyExtras_;
 		     // copy also trajectories and trajectory->track associations
 		     bool copyTrajectories_;
+                     edm::EDGetTokenT<std::vector<Trajectory> >        srcTraj_;
+                     edm::EDGetTokenT<TrajTrackAssociationCollection > srcTass_;
 		     
 		     // save all the tracks
 		     bool keepAllTracks_;

@@ -13,7 +13,6 @@
 //
 // Original Author:  Yetkin Yilmaz
 //         Created:  Tue Aug 11 12:42:25 EDT 2009
-// $Id: HiCentralityBiasFilter.cc,v 1.2 2010/02/11 00:12:05 wmtan Exp $
 //
 //
 
@@ -54,9 +53,9 @@ class HiCentralityBiasFilter : public edm::EDFilter {
       ~HiCentralityBiasFilter();
 
    private:
-      virtual void beginJob() ;
-      virtual bool filter(edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
+      virtual void beginJob() override ;
+      virtual bool filter(edm::Event&, const edm::EventSetup&) override;
+      virtual void endJob() override ;
       
   edm::InputTag hepmcSrc_;
 
@@ -109,7 +108,7 @@ HiCentralityBiasFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup
 
 
 
-   CLHEP::HepRandomEngine& engine = rng_->getEngine();
+   CLHEP::HepRandomEngine& engine = rng_->getEngine(iEvent.streamID());
 
    Handle<HepMCProduct> mc;
    iEvent.getByLabel(hepmcSrc_,mc);

@@ -5,7 +5,7 @@
  *  Description:
  *       Class to compute a sequential number for drift tube layers
  *
- *  $Date: 2010/05/06 14:42:49 $
+ *  $Date: 2010/04/30 16:20:08 $
  *  $Revision: 1.1 $
  *  \author Paolo Ronchese INFN Padova
  *
@@ -40,16 +40,6 @@ class DTSequentialLayerNumber {
   static int id( int      wheel, int station, int sector,
                  int superlayer, int   layer );
   static int max();
-
- private:
-
-  static int layersPerWheel;
-  static int layersPerSector;
-  static int layersIn13Sectors;
-
-  static int* offsetChamber;
-
 };
-
 
 #endif // DTSequentialLayerNumber_H

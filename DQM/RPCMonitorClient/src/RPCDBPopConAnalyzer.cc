@@ -38,20 +38,20 @@ public:
     }
 
 private:
-  virtual void endJob() 
+  virtual void endJob() override 
   {
     m_source.initObject(rpcDQMObject);
     write();
     dbe =0;
   }
 
-  virtual void beginRun(const edm::Run& run, const edm::EventSetup& iSetup){
+  virtual void beginRun(const edm::Run& run, const edm::EventSetup& iSetup) override{
     dbe = edm::Service<DQMStore>().operator->();
     dbe->setCurrentFolder("RPCPVT");
   }//beginRun
 
 
-  virtual void analyze(const edm::Event& ev, const edm::EventSetup& iSetup){ //}
+  virtual void analyze(const edm::Event& ev, const edm::EventSetup& iSetup) override{ //}
 
   //virtual void endRun(const edm::Run& r, const edm::EventSetup& iSetup){
 
@@ -66,8 +66,8 @@ private:
     rpcdqm::utils rpcUtils;
 
     for (TrackingGeometry::DetContainer::const_iterator it=rpcGeo->dets().begin();it<rpcGeo->dets().end();it++){
-      if(dynamic_cast< RPCChamber* >( *it ) != 0 ){
-        RPCChamber* ch = dynamic_cast< RPCChamber* >( *it );
+      if(dynamic_cast< const RPCChamber* >( *it ) != 0 ){
+        const RPCChamber* ch = dynamic_cast< const RPCChamber* >( *it );
         std::vector< const RPCRoll*> roles = (ch->rolls());
         for(std::vector<const RPCRoll*>::const_iterator r = roles.begin();r != roles.end(); ++r){
 

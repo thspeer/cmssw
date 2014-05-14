@@ -1,14 +1,16 @@
 /*
  * Payload definition(s): Feb thresholds, temperatures, voltages and noises (RPCObFebmap)
  *
- *  $Date: 2009/11/16 12:59:31 $
- *  $Revision: 1.4 $
+ *  $Date: 2009/11/16 12:57:56 $
+ *  $Revision: 1.3 $
  *  \author D. Pagano - Dip. Fis. Nucl. e Teo. & INFN Pavia
  */
 
 
 #ifndef RPCObFebmap_h
 #define RPCObFebmap_h
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <vector>
 
 
@@ -32,11 +34,15 @@ class RPCObFebmap {
         int   noise2;
         int   noise3;
         int   noise4;
-    };
+    
+  COND_SERIALIZABLE;
+};
     RPCObFebmap(){}
     virtual ~RPCObFebmap(){}
     std::vector<Feb_Item> ObFebMap_rpc;
-   };
+   
+  COND_SERIALIZABLE;
+};
 
 #endif
 

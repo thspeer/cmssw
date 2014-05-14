@@ -6,7 +6,6 @@
 
 //
 // Jason Slaunwhite and Jeff Klukas
-// $Id: HLTMuonOfflineAnalyzer.cc,v 1.3 2011/04/01 20:39:01 klukas Exp $
 //
 //
 
@@ -15,15 +14,13 @@
 #include <iostream>
 
 // user include files
-#include "DQMOffline/Trigger/interface/HLTMuonMatchAndPlot.h"
+#include "DQMOffline/Trigger/interface/HLTMuonMatchAndPlotContainer.h"
 
 #include "DQMServices/Core/interface/DQMStore.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
-// #include "FWCore/Framework/interface/Event.h"
-// #include "FWCore/Framework/interface/Run.h"
-// #include "FWCore/Framework/interface/EventSetup.h"
+#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -43,7 +40,7 @@
 
 
 
-class HLTMuonOfflineAnalyzer : public edm::EDAnalyzer {
+class HLTMuonOfflineAnalyzer : public DQMEDAnalyzer {
 
 public:
 
@@ -53,9 +50,10 @@ private:
 
   // Analyzer Methods
   virtual void beginJob();
-  virtual void beginRun(const edm::Run &, const edm::EventSetup &);
-  virtual void analyze(const edm::Event &, const edm::EventSetup &);
-  virtual void endRun(const edm::Run &, const edm::EventSetup &);
+  virtual void dqmBeginRun(const edm::Run &, const edm::EventSetup &) override;
+  virtual void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;  
+  virtual void analyze(const edm::Event &, const edm::EventSetup &) override;
+  virtual void endRun(const edm::Run &, const edm::EventSetup &) override;
   virtual void endJob();
 
   // Extra Methods
@@ -64,15 +62,11 @@ private:
   // Input from Configuration File
   edm::ParameterSet pset_;
   std::string hltProcessName_;
-  std::string destination_;
   std::vector<std::string> hltPathsToCheck_;
 
   // Member Variables
-  std::vector<HLTMuonMatchAndPlot> analyzers_;
+  HLTMuonMatchAndPlotContainer plotterContainer_;
   HLTConfigProvider hltConfig_;
-
-  // Access to the DQM
-  DQMStore * dbe_;
 
 };
 
@@ -96,19 +90,17 @@ typedef vector<string> vstring;
 HLTMuonOfflineAnalyzer::HLTMuonOfflineAnalyzer(const ParameterSet& pset) :
   pset_(pset),
   hltProcessName_(pset.getParameter<string>("hltProcessName")),
-  destination_(pset.getUntrackedParameter<string>("destination")),
-  hltPathsToCheck_(pset.getParameter<vstring>("hltPathsToCheck"))
+  hltPathsToCheck_(pset.getParameter<vstring>("hltPathsToCheck")),
+  plotterContainer_(consumesCollector(),pset)
 {
-  // Prepare the DQMStore object.
-  dbe_ = edm::Service<DQMStore>().operator->();
-  dbe_->setVerbose(0);
-  dbe_->setCurrentFolder(destination_);
+
 }
 
 
 
 vector<string> 
-HLTMuonOfflineAnalyzer::moduleLabels(string path) {
+HLTMuonOfflineAnalyzer::moduleLabels(string path) 
+{
 
   vector<string> modules = hltConfig_.moduleLabels(path);
   vector<string>::iterator iter = modules.begin();
@@ -120,14 +112,15 @@ HLTMuonOfflineAnalyzer::moduleLabels(string path) {
       ++iter;
 
   return modules;
-
+  
 }
 
 
 
 void 
-HLTMuonOfflineAnalyzer::beginRun(const edm::Run & iRun, 
-                                      const edm::EventSetup & iSetup) {
+HLTMuonOfflineAnalyzer::dqmBeginRun(const edm::Run & iRun, 
+				    const edm::EventSetup & iSetup) 
+{
 
   // Initialize hltConfig
   bool changedConfig;
@@ -145,35 +138,37 @@ HLTMuonOfflineAnalyzer::beginRun(const edm::Run & iRun,
         hltPaths.insert(hltConfig_.triggerNames()[j]);
   }
   
-  // Initialize the analyzers
-  analyzers_.clear();
+  // Initialize the plotters
   set<string>::iterator iPath;
   for (iPath = hltPaths.begin(); iPath != hltPaths.end(); iPath++) {
     string path = * iPath;
     vector<string> labels = moduleLabels(path);
     if (labels.size() > 0) {
-      HLTMuonMatchAndPlot analyzer(pset_, path, moduleLabels(path));
-      analyzers_.push_back(analyzer);
+      plotterContainer_.addPlotter(pset_, path, moduleLabels(path));
     }
-  }
-
-  // Call the beginRun (which books all the histograms)
-  vector<HLTMuonMatchAndPlot>::iterator iter;
-  for (iter = analyzers_.begin(); iter != analyzers_.end(); ++iter) {
-    iter->beginRun(iRun, iSetup);
   }
 
 }
 
-void
-HLTMuonOfflineAnalyzer::analyze(const Event& iEvent, 
-                                     const EventSetup& iSetup)
+
+
+void 
+HLTMuonOfflineAnalyzer::bookHistograms(DQMStore::IBooker & iBooker, 
+				       edm::Run const & iRun, edm::EventSetup const & iSetup)
 {
 
-  vector<HLTMuonMatchAndPlot>::iterator iter;
-  for (iter = analyzers_.begin(); iter != analyzers_.end(); ++iter) {
-    iter->analyze(iEvent, iSetup);
-  }
+  plotterContainer_.beginRun(iBooker, iRun, iSetup);
+
+}
+
+
+
+void
+HLTMuonOfflineAnalyzer::analyze(const Event& iEvent, 
+				const EventSetup& iSetup)
+{
+
+  plotterContainer_.analyze(iEvent, iSetup);
 
 }
 
@@ -182,19 +177,17 @@ HLTMuonOfflineAnalyzer::analyze(const Event& iEvent,
 void 
 HLTMuonOfflineAnalyzer::beginJob()
 {
+  
 }
 
 
 
 void 
 HLTMuonOfflineAnalyzer::endRun(const edm::Run & iRun, 
-                                    const edm::EventSetup& iSetup)
+			       const edm::EventSetup& iSetup)
 {
 
-  // vector<HLTMuonMatchAndPlot>::iterator iter;
-  // for (iter = analyzers_.begin(); iter != analyzers_.end(); ++iter) {
-  //   iter->endRun(iRun, iSetup);
-  // }
+  //   plotterContainer_.endRun(iRun, iSetup);
 
 }
 
@@ -203,6 +196,7 @@ HLTMuonOfflineAnalyzer::endRun(const edm::Run & iRun,
 void 
 HLTMuonOfflineAnalyzer::endJob()
 {
+  
 }
 
 

@@ -1,8 +1,6 @@
 /*
  * \file EcalBarrelDigisValidation.cc
  *
- * $Date: 2010/01/04 15:10:59 $
- * $Revision: 1.20 $
  * \author F. Cossutti
  *
 */
@@ -16,7 +14,7 @@ using namespace edm;
 using namespace std;
 
 EcalBarrelDigisValidation::EcalBarrelDigisValidation(const ParameterSet& ps):
-  EBdigiCollection_(ps.getParameter<edm::InputTag>("EBdigiCollection"))
+  EBdigiCollection_(consumes<EBDigiCollection>(ps.getParameter<edm::InputTag>("EBdigiCollection")))
 {
   
   // verbosity switch
@@ -142,7 +140,7 @@ void EcalBarrelDigisValidation::analyze(Event const & e, EventSetup const & c){
 
   Handle<EBDigiCollection> EcalDigiEB;
 
-  e.getByLabel( EBdigiCollection_ , EcalDigiEB );
+  e.getByToken( EBdigiCollection_ , EcalDigiEB );
 
   //Return if no Barrel data 
   if( !EcalDigiEB.isValid() ) return;

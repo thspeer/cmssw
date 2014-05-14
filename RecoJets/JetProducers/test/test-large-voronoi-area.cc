@@ -12,9 +12,8 @@
 //----------------------------------------------------------------------
 
 //STARTHEADER
-// $Id: test-large-voronoi-area.cc,v 1.1 2011/07/11 12:02:16 stadie Exp $
 //
-// Copyright (c) 2005-2011, Matteo Cacciari, Gavin Salam and Gregory Soyez
+//  2005-2011, Matteo Cacciari, Gavin Salam and Gregory Soyez
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet.
@@ -53,7 +52,7 @@ int main (int argc, char ** argv) {
 
   double inputEtaMax = 5.0;
   double rhoEtaMax = 6.0;
-  int nev=1, iev=0;
+  int nev=0, iev=0;
   if ( argc > 1 ) {
     inputEtaMax = atof( argv[1] );
     cout << "inputEtaMax is now set to " << inputEtaMax << endl;

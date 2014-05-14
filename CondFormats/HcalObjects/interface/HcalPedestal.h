@@ -6,9 +6,11 @@
 \author Fedor Ratnikov (UMd)
 POOL object to store Pedestal values 4xCapId
 $Author: ratnikov
-$Date: 2009/03/24 16:05:27 $
-$Revision: 1.8 $
+$Date: 2007/12/14 13:19:53 $
+$Revision: 1.7 $
 */
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <boost/cstdint.hpp>
 
 class HcalPedestal {
@@ -44,6 +46,8 @@ class HcalPedestal {
   float mWidth1;
   float mWidth2;
   float mWidth3;
+
+ COND_SERIALIZABLE;
 };
 
 #endif

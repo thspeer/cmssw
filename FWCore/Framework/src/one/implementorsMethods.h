@@ -16,19 +16,38 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Thu, 09 May 2013 20:13:53 GMT
-// $Id: implementorsMethods.h,v 1.1 2013/05/17 14:49:46 chrjones Exp $
 //
 
 // system include files
 
 // user include files
 #include "FWCore/Framework/interface/one/implementors.h"
+#include "FWCore/Framework/src/SharedResourcesRegistry.h"
+#include "FWCore/Framework/interface/SharedResourcesAcquirer.h"
 
 // forward declarations
 
 namespace edm {
   namespace one {
     namespace impl {
+      template<typename T>
+      void SharedResourcesUser<T>::usesResource(std::string const& iName) {
+        resourceNames_.insert(iName);
+        SharedResourcesRegistry::instance()->registerSharedResource(iName);
+      }
+      template<typename T>
+      void SharedResourcesUser<T>::usesResource() {
+        this->usesResource(SharedResourcesRegistry::kLegacyModuleResourceName);
+
+      }
+      
+      template<typename T>
+      SharedResourcesAcquirer SharedResourcesUser<T>::createAcquirer() {
+        std::vector<std::string> v(resourceNames_.begin(),resourceNames_.end());
+        return SharedResourcesRegistry::instance()->createAcquirer(v);
+      }
+      
+      
       template< typename T>
       void RunWatcher<T>::doBeginRun_(Run const& rp, EventSetup const& c) {
         this->beginRun(rp,c);

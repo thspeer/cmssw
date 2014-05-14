@@ -1,5 +1,4 @@
 /*
- * $Id: LaserSorter.h,v 1.8 2012/10/09 19:00:18 wdd Exp $
  */
 
 #ifndef EVENT_SELECT_H
@@ -62,8 +61,8 @@ private:
       fedId_(fedId__),
       startingLumiBlock_(startingLumiBlock__),
       out_(out__),
-      tmpFileName_(tmpFileName__), finalFileName_(finalFileName__),
-      indexError_(false){
+      tmpFileName_(tmpFileName__), finalFileName_(finalFileName__)
+      {
       indices_.reserve(indexReserve_);
     }
     
@@ -101,11 +100,6 @@ private:
      * of events already present in the file are excluded. 
      */
     std::set<uint32_t> excludedOrbit_; 
-    
-    /** Used to invalidate index table in case a problem preventing
-     * indexing is encountered: in principle non unicity of the orbit id.
-     */
-    bool indexError_;
 
     /** Initial memory allocation for index table (see vector::reserve()).
      */

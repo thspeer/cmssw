@@ -1,12 +1,10 @@
 #include "HcalHitReconstructor.h"
-#include "DataFormats/HcalDigi/interface/HcalDigiCollections.h"
 #include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h"
 #include "DataFormats/Common/interface/EDCollection.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "CalibFormats/HcalObjects/interface/HcalCoderDb.h"
-#include "CalibFormats/HcalObjects/interface/HcalCalibrations.h"
 #include "CalibFormats/HcalObjects/interface/HcalDbService.h"
 #include "CalibFormats/HcalObjects/interface/HcalDbRecord.h"
 #include "RecoLocalCalo/HcalRecAlgos/interface/HcalSeverityLevelComputer.h"
@@ -16,7 +14,6 @@
 #include "Geometry/Records/interface/IdealGeometryRecord.h"
 #include <iostream>
 #include <fstream>
-
 
 /*  Hcal Hit reconstructor allows for CaloRecHits with status words */
 
@@ -41,6 +38,12 @@ HcalHitReconstructor::HcalHitReconstructor(edm::ParameterSet const& conf):
   paramTS(0),
   theTopology(0)
 {
+
+  // register for data access
+  tok_hbhe_ = consumes<HBHEDigiCollection>(inputLabel_);
+  tok_ho_ = consumes<HODigiCollection>(inputLabel_);
+  tok_hf_ = consumes<HFDigiCollection>(inputLabel_);
+  tok_calib_ = consumes<HcalCalibDigiCollection>(inputLabel_);
 
   std::string subd=conf.getParameter<std::string>("Subdetector");
   //Set all FlagSetters to 0
@@ -275,7 +278,7 @@ void HcalHitReconstructor::produce(edm::Event& e, const edm::EventSetup& eventSe
   edm::ESHandle<HcalDbService> conditions;
   eventSetup.get<HcalDbRecord>().get(conditions);
   // HACK related to HB- corrections
-  if(e.isRealData()) reco_.setForData();    
+  if(e.isRealData()) reco_.setForData(e.run());    
   if(useLeakCorrection_) reco_.setLeakCorrection();
 
   edm::ESHandle<HcalChannelQuality> p;
@@ -295,7 +298,7 @@ void HcalHitReconstructor::produce(edm::Event& e, const edm::EventSetup& eventSe
     if (subdet_==HcalBarrel || subdet_==HcalEndcap) {
       edm::Handle<HBHEDigiCollection> digi;
       
-      e.getByLabel(inputLabel_,digi);
+      e.getByToken(tok_hbhe_,digi);
       
       // create empty output
       std::auto_ptr<HBHERecHitCollection> rec(new HBHERecHitCollection);
@@ -382,15 +385,28 @@ void HcalHitReconstructor::produce(edm::Event& e, const edm::EventSetup& eventSe
 
 	rec->push_back(reco_.reconstruct(*i,first,toadd,coder,calibrations));
 
-	// Set auxiliary flag
-	int auxflag=0;
+	// Fill first auxiliary word
+	unsigned int auxflag=0;
         int fTS = firstAuxTS_;
 	if (fTS<0) fTS=0; // silly protection against time slice <0
-	for (int xx=fTS; xx<fTS+4 && xx<i->size();++xx)
-	  auxflag+=(i->sample(xx).adc())<<(7*(xx-fTS)); // store the time slices in the first 28 bits of aux, a set of 4 7-bit adc values
+	for (int xx=fTS; xx<fTS+4 && xx<i->size();++xx) {
+          int adcv = i->sample(xx).adc();
+	  auxflag+=((adcv&0x7F)<<(7*(xx-fTS))); // store the time slices in the first 28 bits of aux, a set of 4 7-bit adc values
 	// bits 28 and 29 are reserved for capid of the first time slice saved in aux
+	}
 	auxflag+=((i->sample(fTS).capid())<<28);
 	(rec->back()).setAux(auxflag);
+
+	// Fill second auxiliary word
+	auxflag=0;
+        int fTS2 = (firstAuxTS_-4 < 0) ? 0 : firstAuxTS_-4;  
+	for (int xx = fTS2; xx < fTS2+4 && xx<i->size(); ++xx) {
+          int adcv = i->sample(xx).adc();
+	  auxflag+=((adcv&0x7F)<<(7*(xx-fTS2))); 
+	}
+	auxflag+=((i->sample(fTS2).capid())<<28);
+	(rec->back()).setAuxHBHE(auxflag);
+
 
 	(rec->back()).setFlags(0);  // this sets all flag bits to 0
 	// Set presample flag
@@ -429,7 +445,7 @@ void HcalHitReconstructor::produce(edm::Event& e, const edm::EventSetup& eventSe
       //  HO ------------------------------------------------------------------
     } else if (subdet_==HcalOuter) {
       edm::Handle<HODigiCollection> digi;
-      e.getByLabel(inputLabel_,digi);
+      e.getByToken(tok_ho_,digi);
       
       // create empty output
       std::auto_ptr<HORecHitCollection> rec(new HORecHitCollection);
@@ -513,7 +529,7 @@ void HcalHitReconstructor::produce(edm::Event& e, const edm::EventSetup& eventSe
       // HF -------------------------------------------------------------------
     } else if (subdet_==HcalForward) {
       edm::Handle<HFDigiCollection> digi;
-      e.getByLabel(inputLabel_,digi);
+      e.getByToken(tok_hf_,digi);
 
 
       ///////////////////////////////////////////////////////////////// HF
@@ -656,7 +672,7 @@ void HcalHitReconstructor::produce(edm::Event& e, const edm::EventSetup& eventSe
       e.put(rec);     
     } else if (subdet_==HcalOther && subdetOther_==HcalCalibration) {
       edm::Handle<HcalCalibDigiCollection> digi;
-      e.getByLabel(inputLabel_,digi);
+      e.getByToken(tok_calib_,digi);
       
       // create empty output
       std::auto_ptr<HcalCalibRecHitCollection> rec(new HcalCalibRecHitCollection);

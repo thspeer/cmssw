@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-__version__ = "$Revision: 1.20 $"
+__version__ = "$Revision: 1.19 $"
 __source__ = "$Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v $"
 
 import FWCore.ParameterSet.Config as cms
@@ -33,9 +33,9 @@ defaultOptions.arguments = ""
 defaultOptions.name = "NO NAME GIVEN"
 defaultOptions.evt_type = ""
 defaultOptions.filein = ""
-defaultOptions.dbsquery=""
+defaultOptions.dasquery=""
 defaultOptions.secondfilein = ""
-defaultOptions.customisation_file = ""
+defaultOptions.customisation_file = []
 defaultOptions.customise_commands = ""
 defaultOptions.inline_custom=False
 defaultOptions.particleTable = 'pythiapdt'
@@ -116,13 +116,13 @@ def filesFromList(fileName,s=None):
 		print "found parent files:",sec
 	return (prim,sec)
 	
-def filesFromDBSQuery(query,s=None):
+def filesFromDASQuery(query,s=None):
 	import os
 	import FWCore.ParameterSet.Config as cms
 	prim=[]
 	sec=[]
 	print "the query is",query
-	for line in os.popen('dbs search --query "%s"'%(query)):
+	for line in os.popen('das_client.py --query "%s"'%(query)):
 		if line.count(".root")>=2:
 			#two files solution...
 			entries=line.replace("\n","").split()
@@ -170,7 +170,7 @@ class ConfigBuilder(object):
         #if not self._options.conditions:
         #        raise Exception("ERROR: No conditions given!\nPlease specify conditions. E.g. via --conditions=IDEAL_30X::All")
 
-	if hasattr(self._options,"datatier") and self._options.datatier and 'DQMROOT' in self._options.datatier and 'ENDJOB' in self._options.step:
+	if hasattr(self._options,"datatier") and self._options.datatier and 'DQMIO' in self._options.datatier and 'ENDJOB' in self._options.step:
 		self._options.step=self._options.step.replace(',ENDJOB','')
 		
         # what steps are provided by this class?
@@ -296,6 +296,10 @@ class ConfigBuilder(object):
                     self.process.options = cms.untracked.PSet( Rethrow = cms.untracked.vstring('ProductNotFound'),fileMode = cms.untracked.string('FULLMERGE'))
             else:
                     self.process.options = cms.untracked.PSet( )
+
+	    if self._options.runUnscheduled:
+		    self.process.options.allowUnscheduled=cms.untracked.bool(True)
+		    
             self.addedObjects.append(("","options"))
 
             if self._options.lazy_download:
@@ -335,8 +339,8 @@ class ConfigBuilder(object):
 			print "entry",entry
 			if entry.startswith("filelist:"):
 				filesFromList(entry[9:],self.process.source)
-			elif entry.startswith("dbs:"):
-				filesFromDBSQuery('find file where dataset = %s'%(entry[4:]),self.process.source)
+			elif entry.startswith("dbs:") or entry.startswith("das:"):
+				filesFromDASQuery('file dataset = %s'%(entry[4:]),self.process.source)
 			else:
 				self.process.source.fileNames.append(self._options.dirin+entry)
 		if self._options.secondfilein:
@@ -346,12 +350,12 @@ class ConfigBuilder(object):
 				print "entry",entry
 				if entry.startswith("filelist:"):
 					self.process.source.secondaryFileNames.extend((filesFromList(entry[9:]))[0])
-				elif entry.startswith("dbs:"):
-					self.process.source.secondaryFileNames.extend((filesFromDBSQuery('find file where dataset = %s'%(entry[4:])))[0])
+				elif entry.startswith("dbs:") or entry.startswith("das:"):
+					self.process.source.secondaryFileNames.extend((filesFromDASQuery('file dataset = %s'%(entry[4:])))[0])
 				else:
 					self.process.source.secondaryFileNames.append(self._options.dirin+entry)
 
-        if self._options.filein or self._options.dbsquery:
+        if self._options.filein or self._options.dasquery:
 	   if self._options.filetype == "EDM":
 		   self.process.source=cms.Source("PoolSource",
 						  fileNames = cms.untracked.vstring(),
@@ -387,9 +391,9 @@ class ConfigBuilder(object):
            if ('HARVESTING' in self.stepMap.keys() or 'ALCAHARVEST' in self.stepMap.keys()) and (not self._options.filetype == "DQM"):
                self.process.source.processingMode = cms.untracked.string("RunsAndLumis")
 
-	if self._options.dbsquery!='':
+	if self._options.dasquery!='':
                self.process.source=cms.Source("PoolSource", fileNames = cms.untracked.vstring(),secondaryFileNames = cms.untracked.vstring())
-	       filesFromDBSQuery(self._options.dbsquery,self.process.source)
+	       filesFromDASQuery(self._options.dasquery,self.process.source)
 
 	if self._options.inputCommands:
 		if not hasattr(self.process.source,'inputCommands'): self.process.source.inputCommands=cms.untracked.vstring()
@@ -492,7 +496,7 @@ class ConfigBuilder(object):
 				
 			if len(outDefDict.keys()):
 				raise Exception("unused keys from --output options: "+','.join(outDefDict.keys()))
-			if theStreamType=='DQMROOT': theStreamType='DQM'
+			if theStreamType=='DQMIO': theStreamType='DQM'
 			if theStreamType=='ALL':
 				theEventContent = cms.PSet(outputCommands = cms.untracked.vstring('keep *'))
 			else:
@@ -502,7 +506,7 @@ class ConfigBuilder(object):
 				theFilterName='StreamALCACombined'
 
 			CppType='PoolOutputModule'
-			if theStreamType=='DQM' and theTier=='DQMROOT': CppType='DQMRootOutputModule'
+			if theStreamType=='DQM' and theTier=='DQMIO': CppType='DQMRootOutputModule'
 			output = cms.OutputModule(CppType,			
 						  theEventContent.clone(),
 						  fileName = cms.untracked.string(theFileName),
@@ -554,7 +558,7 @@ class ConfigBuilder(object):
 
         for i,(streamType,tier) in enumerate(zip(streamTypes,tiers)):
 		if streamType=='': continue
-		if streamType=='DQMROOT': streamType='DQM'
+		if streamType=='DQMIO': streamType='DQM'
                 theEventContent = getattr(self.process, streamType+"EventContent")
                 if i==0:
                         theFileName=self._options.outfile_name
@@ -563,7 +567,7 @@ class ConfigBuilder(object):
                         theFileName=self._options.outfile_name.replace('.root','_in'+streamType+'.root')
                         theFilterName=self._options.filtername
 		CppType='PoolOutputModule'
-		if streamType=='DQM' and tier=='DQMROOT': CppType='DQMRootOutputModule'
+		if streamType=='DQM' and tier=='DQMIO': CppType='DQMRootOutputModule'
                 output = cms.OutputModule(CppType,
                                           theEventContent,
                                           fileName = cms.untracked.string(theFileName),
@@ -628,20 +632,22 @@ class ConfigBuilder(object):
 			self.loadAndRemember(mixingDict['file'])
 
 		mixingDict.pop('file')
-		if self._options.pileup_input:
-			if self._options.pileup_input.startswith('dbs'):
-				mixingDict['F']=filesFromDBSQuery('find file where dataset = %s'%(self._options.pileup_input[4:],))[0]
-			else:
-				mixingDict['F']=self._options.pileup_input.split(',')
-		specialization=defineMixing(mixingDict,self._options.fast)
-		for command in specialization:
-			self.executeAndRemember(command)
-		if len(mixingDict)!=0:
-			raise Exception('unused mixing specification: '+mixingDict.keys().__str__())
+		if not "DATAMIX" in self.stepMap.keys(): # when DATAMIX is present, pileup_input refers to pre-mixed GEN-RAW
+			if self._options.pileup_input:
+				if self._options.pileup_input.startswith('dbs:') or self._options.pileup_input.startswith('das:'):
+					mixingDict['F']=filesFromDASQuery('file dataset = %s'%(self._options.pileup_input[4:],))[0]
+				else:
+					mixingDict['F']=self._options.pileup_input.split(',')
+			specialization=defineMixing(mixingDict,self._options.fast)
+			for command in specialization:
+				self.executeAndRemember(command)
+			if len(mixingDict)!=0:
+				raise Exception('unused mixing specification: '+mixingDict.keys().__str__())
 
-		if self._options.fast and not 'SIM' in self.stepMap and not 'FASTSIM' in self.stepMap:
-			self.executeAndRemember('process.mix.playback= True')
-		
+			if self._options.fast and not 'SIM' in self.stepMap and not 'FASTSIM' in self.stepMap:
+				self.executeAndRemember('process.mix.playback= True')
+
+
         # load the geometry file
         try:
 		if len(self.stepMap):
@@ -740,7 +746,9 @@ class ConfigBuilder(object):
     def addCustomise(self):
         """Include the customise code """
 
-        custOpt=self._options.customisation_file.split(",")
+	custOpt=[]
+	for c in self._options.customisation_file:
+		custOpt.extend(c.split(","))
 	custMap={}
 	for opt in custOpt:
 		if opt=='': continue
@@ -840,6 +848,7 @@ class ConfigBuilder(object):
         self.L1RecoDefaultCFF="Configuration/StandardSequences/L1Reco_cff"
         self.L1TrackTriggerDefaultCFF="Configuration/StandardSequences/L1TrackTrigger_cff"
         self.RECODefaultCFF="Configuration/StandardSequences/Reconstruction_Data_cff"
+        self.PATDefaultCFF="Configuration/StandardSequences/PAT_cff"
 	self.EIDefaultCFF=None
         self.SKIMDefaultCFF="Configuration/StandardSequences/Skims_cff"
         self.POSTRECODefaultCFF="Configuration/StandardSequences/PostRecoGenerator_cff"
@@ -855,15 +864,23 @@ class ConfigBuilder(object):
 
         if "DATAMIX" in self.stepMap.keys():
             self.DATAMIXDefaultCFF="Configuration/StandardSequences/DataMixer"+self._options.datamix+"_cff"
-            self.DIGIDefaultCFF="Configuration/StandardSequences/DigiDM_cff"
+	    if self._options.datamix == 'PreMix':
+		    self.DIGIDefaultCFF="Configuration/StandardSequences/DigiDMPreMix_cff"
+	    else:
+	            self.DIGIDefaultCFF="Configuration/StandardSequences/DigiDM_cff"
             self.DIGI2RAWDefaultCFF="Configuration/StandardSequences/DigiToRawDM_cff"
             self.L1EMDefaultCFF='Configuration/StandardSequences/SimL1EmulatorDM_cff'
+
+	if "DIGIPREMIX" in self.stepMap.keys():
+            self.DIGIDefaultCFF="Configuration/StandardSequences/Digi_PreMix_cff"
 
         self.ALCADefaultSeq=None
 	self.LHEDefaultSeq='externalLHEProducer'
         self.GENDefaultSeq='pgen'
         self.SIMDefaultSeq='psim'
         self.DIGIDefaultSeq='pdigi'
+	self.DIGIPREMIXDefaultSeq='pdigi'
+	self.DIGIPREMIX_S2DefaultSeq='pdigi'
         self.DATAMIXDefaultSeq=None
         self.DIGI2RAWDefaultSeq='DigiToRaw'
         self.HLTDefaultSeq='GRun'
@@ -889,6 +906,7 @@ class ConfigBuilder(object):
         self.PATLayer0DefaultSeq='all'
         self.ENDJOBDefaultSeq='endOfProcess'
         self.REPACKDefaultSeq='DigiToRawRepack'
+	self.PATDefaultSeq='miniAOD'
 
         self.EVTCONTDefaultCFF="Configuration/EventContent/EventContent_cff"
 
@@ -899,6 +917,7 @@ class ConfigBuilder(object):
         if self._options.isMC==True:
                 self.RAW2DIGIDefaultCFF="Configuration/StandardSequences/RawToDigi_cff"
 		self.RECODefaultCFF="Configuration/StandardSequences/Reconstruction_cff"
+		self.PATDefaultCFF="Configuration/StandardSequences/PATMC_cff"
                 self.DQMOFFLINEDefaultCFF="DQMOffline/Configuration/DQMOfflineMC_cff"
                 self.ALCADefaultCFF="Configuration/StandardSequences/AlCaRecoStreamsMC_cff"
 	else:
@@ -1250,7 +1269,7 @@ class ConfigBuilder(object):
 	except:
 		loadFailure=True
 		#if self.process.source and self.process.source.type_()=='EmptySource':
-		if not (self._options.filein or self._options.dbsquery):
+		if not (self._options.filein or self._options.dasquery):
 			raise Exception("Neither gen fragment of input files provided: this is an inconsistent GEN step configuration")
 			
 	if not loadFailure:
@@ -1352,6 +1371,34 @@ class ConfigBuilder(object):
         if self._options.himix==True:
             self.loadAndRemember("SimGeneral/MixingModule/himixDIGI_cff")
 
+        if sequence == 'pdigi_valid':
+            self.executeAndRemember("process.mix.digitizers = cms.PSet(process.theDigitizersValid)")
+
+	self.scheduleSequence(sequence.split('.')[-1],'digitisation_step')
+        return
+
+    def prepare_DIGIPREMIX(self, sequence = None):
+        """ Enrich the schedule with the digitisation step"""
+        self.loadDefaultOrSpecifiedCFF(sequence,self.DIGIDefaultCFF)
+
+	self.loadAndRemember("SimGeneral/MixingModule/digi_noNoise_cfi")
+	self.executeAndRemember("process.mix.digitizers = cms.PSet(process.theDigitizersNoNoise)")
+
+	self.scheduleSequence(sequence.split('.')[-1],'digitisation_step')
+        return
+
+    def prepare_DIGIPREMIX_S2(self, sequence = None):
+        """ Enrich the schedule with the digitisation step"""
+        self.loadDefaultOrSpecifiedCFF(sequence,self.DIGIDefaultCFF)
+
+	self.loadAndRemember("SimGeneral/MixingModule/digi_MixPreMix_cfi")
+
+
+        if sequence == 'pdigi_valid':
+            self.executeAndRemember("process.mix.digitizers = cms.PSet(process.theDigitizersMixPreMixValid)")
+	else:
+	    elf.executeAndRemember("process.mix.digitizers = cms.PSet(process.theDigitizersMixPreMix)")
+
 	self.scheduleSequence(sequence.split('.')[-1],'digitisation_step')
         return
 
@@ -1365,11 +1412,26 @@ class ConfigBuilder(object):
 	    """ Enrich the schedule with the digitisation step"""
 	    self.loadAndRemember(self.DATAMIXDefaultCFF)
 	    self.scheduleSequence('pdatamix','datamixing_step')
+
+	    if self._options.pileup_input:
+		    theFiles=''
+		    if self._options.pileup_input.startswith('dbs:') or self._options.pileup_input.startswith('das:'):
+			    theFiles=filesFromDASQuery('file dataset = %s'%(self._options.pileup_input[4:],))[0]
+		    elif self._options.pileup_input.startswith("filelist:"):
+			    theFiles= (filesFromList(self._options.pileup_input[9:]))[0]
+		    else:
+			    theFiles=self._options.pileup_input.split(',')
+		    #print theFiles
+		    self.executeAndRemember( "process.mixData.input.fileNames = cms.untracked.vstring(%s)"%(  theFiles ) )
+
 	    return
 
     def prepare_DIGI2RAW(self, sequence = None):
             self.loadDefaultOrSpecifiedCFF(sequence,self.DIGI2RAWDefaultCFF)
 	    self.scheduleSequence(sequence.split('.')[-1],'digi2raw_step')
+	    if "DIGIPREMIX" in self.stepMap.keys():
+		    self.executeAndRemember("process.esDigiToRaw.Label = cms.string('mix')")  ##terrible hack - bypass zero suppression
+
             return
 
     def prepare_REPACK(self, sequence = None):
@@ -1442,7 +1504,7 @@ class ConfigBuilder(object):
                     self.loadAndRemember('HLTrigger/Configuration/HLT_%s_cff'       % sequence)
 
         if self._options.isMC:
-		self._options.customisation_file+=",HLTrigger/Configuration/customizeHLTforMC.customizeHLTforMC"
+		self._options.customisation_file.append("HLTrigger/Configuration/customizeHLTforMC.customizeHLTforMC")
 
 	if self._options.name != 'HLT':
 		self.additionalCommands.append('from HLTrigger.Configuration.CustomConfigs import ProcessName')
@@ -1539,6 +1601,12 @@ class ConfigBuilder(object):
 	self.scheduleSequence(sequence.split('.')[-1],'reconstruction_step')
         return
 
+    def prepare_PAT(self, sequence = "miniAOD"):
+        ''' Enrich the schedule with PAT '''
+        self.loadDefaultOrSpecifiedCFF(sequence,self.PATDefaultCFF)
+	self.scheduleSequence(sequence.split('.')[-1],'pat_step')
+        return
+
     def prepare_EI(self, sequence = None):
         ''' Enrich the schedule with event interpretation '''
 	from Configuration.StandardSequences.EventInterpretation import EventInterpretation
@@ -1609,47 +1677,67 @@ class ConfigBuilder(object):
 
 
     def prepare_VALIDATION(self, sequence = 'validation'):
+	    print sequence,"in preparing validation"
             self.loadDefaultOrSpecifiedCFF(sequence,self.VALIDATIONDefaultCFF)
+	    from Validation.Configuration.autoValidation import autoValidation
             #in case VALIDATION:something:somethingelse -> something,somethingelse
             sequence=sequence.split('.')[-1]
             if sequence.find(',')!=-1:
-                    prevalSeqName=sequence.split(',')[0]
-                    valSeqName=sequence.split(',')[1]
+                    prevalSeqName=sequence.split(',')[0].split('+')
+                    valSeqName=sequence.split(',')[1].split('+')
+		    self.expandMapping(prevalSeqName,autoValidation,index=0)
+		    self.expandMapping(valSeqName,autoValidation,index=1)
             else:
-                    postfix=''
-                    if sequence:
-                            postfix='_'+sequence
-                    prevalSeqName='prevalidation'+postfix
-                    valSeqName='validation'+postfix
-                    if not hasattr(self.process,valSeqName):
-                            prevalSeqName=''
-                            valSeqName=sequence
+		    if '@' in sequence:
+			    prevalSeqName=sequence.split('+')
+			    valSeqName=sequence.split('+')
+			    self.expandMapping(prevalSeqName,autoValidation,index=0)
+			    self.expandMapping(valSeqName,autoValidation,index=1)
+		    else:
+			    postfix=''
+			    if sequence:
+				    postfix='_'+sequence
+			    prevalSeqName=['prevalidation'+postfix]
+			    valSeqName=['validation'+postfix]
+			    if not hasattr(self.process,valSeqName[0]):
+				    prevalSeqName=['']
+				    valSeqName=[sequence]
 
-            if not 'DIGI' in self.stepMap and not self._options.fast and not valSeqName.startswith('genvalid'):
+	    def NFI(index):
+		    ##name from index, required to keep backward compatibility
+		    if index==0:
+			    return ''
+		    else:
+			    return '%s'%index
+		    
+            if not 'DIGI' in self.stepMap and not self._options.fast and not any(map( lambda s : s.startswith('genvalid'), valSeqName)):
 		    if self._options.restoreRNDSeeds==False and not self._options.restoreRNDSeeds==True:
 			    self._options.restoreRNDSeeds=True
 
             #rename the HLT process in validation steps
 	    if ('HLT' in self.stepMap and not self._options.fast) or self._options.hltProcess:
-		    self.renameHLTprocessInSequence(valSeqName)
-                    if prevalSeqName:
-                            self.renameHLTprocessInSequence(prevalSeqName)
-
-            if prevalSeqName:
-                    self.process.prevalidation_step = cms.Path( getattr(self.process, prevalSeqName ) )
-                    self.schedule.append(self.process.prevalidation_step)
-
-	    self.process.validation_step = cms.EndPath( getattr(self.process,valSeqName ) )
-            self.schedule.append(self.process.validation_step)
+		    for s in valSeqName+prevalSeqName:
+			    if s:
+				    self.renameHLTprocessInSequence(s)
+	    for (i,s) in enumerate(prevalSeqName):
+		    if s:
+			    setattr(self.process,'prevalidation_step%s'%NFI(i),  cms.Path( getattr(self.process, s)) )
+			    self.schedule.append(getattr(self.process,'prevalidation_step%s'%NFI(i)))
+			    
+	    for (i,s) in enumerate(valSeqName):
+		    setattr(self.process,'validation_step%s'%NFI(i), cms.EndPath( getattr(self.process, s)))
+		    self.schedule.append(getattr(self.process,'validation_step%s'%NFI(i)))
 
 	    if not 'DIGI' in self.stepMap and not self._options.fast:
 		    self.executeAndRemember("process.mix.playback = True")
 		    self.executeAndRemember("process.mix.digitizers = cms.PSet()")
                     self.executeAndRemember("for a in process.aliases: delattr(process, a)")
+                    self._options.customisation_file.append("SimGeneral/MixingModule/fullMixCustomize_cff.setCrossingFrameOn")
 
 	    if hasattr(self.process,"genstepfilter") and len(self.process.genstepfilter.triggerConditions):
 		    #will get in the schedule, smoothly
-		    self.process.validation_step._seq = self.process.genstepfilter * self.process.validation_step._seq
+		    for (i,s) in enumerate(valSeqName):
+			    getattr(self.process,'validation_step%s'%NFI(i))._seq = self.process.genstepfilter * getattr(self.process,'validation_step%s'%NFI(i))._seq
 
             return
 
@@ -1720,7 +1808,7 @@ class ConfigBuilder(object):
 	    loadMe='from PhysicsTools.PatAlgos.tools.helpers import massSearchReplaceAnyInputTag'
 	    if not loadMe in self.additionalCommands:
 		    self.additionalCommands.append(loadMe)
-	    self.additionalCommands.append('massSearchReplaceAnyInputTag(process.%s,"%s","%s",False)'%(sequence,oldT,newT))
+	    self.additionalCommands.append('massSearchReplaceAnyInputTag(process.%s,"%s","%s",False,True)'%(sequence,oldT,newT))
 
     #change the process name used to address HLT results in any sequence
     def renameHLTprocessInSequence(self,sequence,proc=None,HLTprocess='HLT'):
@@ -1798,7 +1886,11 @@ class ConfigBuilder(object):
         # decide which HARVESTING paths to use
         harvestingList = sequence.split("+")
 	from DQMOffline.Configuration.autoDQM import autoDQM
-	self.expandMapping(harvestingList,autoDQM,index=1)
+	from Validation.Configuration.autoValidation import autoValidation
+	import copy
+	combined_mapping = copy.deepcopy( autoDQM )
+	combined_mapping.update( autoValidation )
+	self.expandMapping(harvestingList,combined_mapping,index=-1)
 	
 	if len(set(harvestingList))!=len(harvestingList):
 		harvestingList=list(set(harvestingList))
@@ -1928,7 +2020,7 @@ class ConfigBuilder(object):
     def build_production_info(self, evt_type, evtnumber):
         """ Add useful info for the production. """
         self.process.configurationMetadata=cms.untracked.PSet\
-                                            (version=cms.untracked.string("$Revision: 1.20 $"),
+                                            (version=cms.untracked.string("$Revision: 1.19 $"),
                                              name=cms.untracked.string("Applications"),
                                              annotation=cms.untracked.string(evt_type+ " nevts:"+str(evtnumber))
                                              )
@@ -2020,30 +2112,31 @@ class ConfigBuilder(object):
                 self.pythonCfgCode += dumpPython(self.process,endpath)
 
         # dump the schedule
-        self.pythonCfgCode += "\n# Schedule definition\n"
-        result = "process.schedule = cms.Schedule("
+	if not self._options.runUnscheduled:	
+		self.pythonCfgCode += "\n# Schedule definition\n"
+		result = "process.schedule = cms.Schedule("
 
-        # handling of the schedule
-        self.process.schedule = cms.Schedule()
-        for item in self.schedule:
-                if not isinstance(item, cms.Schedule):
-                        self.process.schedule.append(item)
-                else:
-                        self.process.schedule.extend(item)
+                # handling of the schedule
+		self.process.schedule = cms.Schedule()
+		for item in self.schedule:
+			if not isinstance(item, cms.Schedule):
+				self.process.schedule.append(item)
+			else:
+				self.process.schedule.extend(item)
 
-        if hasattr(self.process,"HLTSchedule"):
-            beforeHLT = self.schedule[:self.schedule.index(self.process.HLTSchedule)]
-            afterHLT = self.schedule[self.schedule.index(self.process.HLTSchedule)+1:]
-            pathNames = ['process.'+p.label_() for p in beforeHLT]
-            result += ','.join(pathNames)+')\n'
-            result += 'process.schedule.extend(process.HLTSchedule)\n'
-            pathNames = ['process.'+p.label_() for p in afterHLT]
-            result += 'process.schedule.extend(['+','.join(pathNames)+'])\n'
-        else:
-            pathNames = ['process.'+p.label_() for p in self.schedule]
-            result ='process.schedule = cms.Schedule('+','.join(pathNames)+')\n'
+		if hasattr(self.process,"HLTSchedule"):
+			beforeHLT = self.schedule[:self.schedule.index(self.process.HLTSchedule)]
+			afterHLT = self.schedule[self.schedule.index(self.process.HLTSchedule)+1:]
+			pathNames = ['process.'+p.label_() for p in beforeHLT]
+			result += ','.join(pathNames)+')\n'
+			result += 'process.schedule.extend(process.HLTSchedule)\n'
+			pathNames = ['process.'+p.label_() for p in afterHLT]
+			result += 'process.schedule.extend(['+','.join(pathNames)+'])\n'
+		else:
+			pathNames = ['process.'+p.label_() for p in self.schedule]
+			result ='process.schedule = cms.Schedule('+','.join(pathNames)+')\n'
 
-        self.pythonCfgCode += result
+	        self.pythonCfgCode += result
 
 	#repacked version
 	if self._options.isRepacked:
@@ -2081,7 +2174,7 @@ class ConfigBuilder(object):
 		if hasattr(self.process.source,"secondaryFileNames"):
 			if len(self.process.source.secondaryFileNames.value()):
 				ioJson['secondary']=self.process.source.secondaryFileNames.value()
-		if self._options.pileup_input and self._options.pileup_input.startswith('dbs'):
+		if self._options.pileup_input and (self._options.pileup_input.startswith('dbs:') or self._options.pileup_input.startswith('das:')):
 			ioJson['pileup']=self._options.pileup_input[4:]
 		for (o,om) in self.process.outputModules_().items():
 			ioJson[o]=om.fileName.value()

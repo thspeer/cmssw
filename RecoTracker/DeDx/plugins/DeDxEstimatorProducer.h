@@ -2,7 +2,7 @@
 #define TrackRecoDeDx_DeDxEstimatorProducer_H
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -21,6 +21,7 @@
 #include "DataFormats/TrackerRecHit2D/interface/SiStripRecHit2D.h"
 #include "DataFormats/TrackerRecHit2D/interface/SiStripMatchedRecHit2D.h"
 #include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHit.h"
+#include "TrackingTools/PatternTools/interface/TrajTrackAssociation.h"
 
 #include "TFile.h"
 #include "TChain.h"
@@ -30,7 +31,7 @@
 // class declaration
 //
 
-class DeDxEstimatorProducer : public edm::EDProducer {
+class DeDxEstimatorProducer : public edm::stream::EDProducer<> {
 
 public:
 
@@ -40,7 +41,6 @@ public:
 private:
   virtual void beginRun(edm::Run const& run, const edm::EventSetup&) override;
   virtual void produce(edm::Event&, const edm::EventSetup&) override;
-  virtual void endJob() ;
 
   int    getCharge(const SiStripCluster*   Cluster, int& Saturating_Strips,const uint32_t &);
 //  int    getCharge(const SiStripRecHit2D* sistripsimplehit, int& Saturating_Strips);
@@ -50,8 +50,8 @@ private:
   // ----------member data ---------------------------
   BaseDeDxEstimator*                m_estimator;
 
-  edm::InputTag                     m_trajTrackAssociationTag;
-  edm::InputTag                     m_tracksTag;
+  edm::EDGetTokenT<TrajTrackAssociationCollection>   m_trajTrackAssociationTag;
+  edm::EDGetTokenT<reco::TrackCollection>  m_tracksTag;
 
   bool usePixel;
   bool useStrip;

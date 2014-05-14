@@ -9,7 +9,6 @@
      \\\author: Michael A. Balazs, Nov 2006
 */
 //
-// $Id: EgammaBasicClusters.h,v 1.8 2009/12/14 22:24:32 wmtan Exp $
 //
 #include <string>
 
@@ -21,6 +20,9 @@
 
 #include "DQMServices/Core/interface/DQMStore.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
+
+#include "DataFormats/EgammaReco/interface/BasicCluster.h"
+#include "DataFormats/EgammaReco/interface/BasicClusterFwd.h"
 
 class EgammaBasicClusters : public edm::EDAnalyzer
 {
@@ -39,8 +41,8 @@ class EgammaBasicClusters : public edm::EDAnalyzer
 	bool verboseDBE_;
 	DQMStore* dbe_;
 
-      	edm::InputTag barrelBasicClusterCollection_;
-      	edm::InputTag endcapBasicClusterCollection_;
+      	edm::EDGetTokenT<reco::BasicClusterCollection> barrelBasicClusterCollection_;
+      	edm::EDGetTokenT<reco::BasicClusterCollection> endcapBasicClusterCollection_;
  
       	MonitorElement* hist_EB_BC_Size_;
       	MonitorElement* hist_EE_BC_Size_;

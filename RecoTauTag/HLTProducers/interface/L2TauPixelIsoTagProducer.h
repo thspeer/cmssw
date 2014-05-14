@@ -5,6 +5,10 @@
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/BeamSpot/interface/BeamSpot.h"
+#include "DataFormats/JetReco/interface/Jet.h"
 
 /** \class L2TauPixelIsoTagProducer
  * Producer of a JetTagCollection where tag is defined as # of pixel tracks
@@ -15,7 +19,6 @@
  *   - If primary vertex doesn't exist, tau jets are tagged as perfectly isolated.
  *
  * \author Vadim Khotilovich
- * $Id: L2TauPixelIsoTagProducer.h,v 1.2 2013/02/27 13:28:15 muzaffar Exp $
  */
 class L2TauPixelIsoTagProducer : public edm::EDProducer
 {
@@ -29,10 +32,10 @@ public:
 
 private:
 
-  edm::InputTag m_jetSrc;
-  edm::InputTag m_vertexSrc;
-  edm::InputTag m_trackSrc;
-  edm::InputTag m_beamSpotSrc;
+  edm::EDGetTokenT<edm::View<reco::Jet> > m_jetSrc_token;
+  edm::EDGetTokenT<reco::VertexCollection> m_vertexSrc_token;
+  edm::EDGetTokenT<reco::TrackCollection> m_trackSrc_token;
+  edm::EDGetTokenT<reco::BeamSpot> m_beamSpotSrc_token;
 
   int m_maxNumberPV;
 

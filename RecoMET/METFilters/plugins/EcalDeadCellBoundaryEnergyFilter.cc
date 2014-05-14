@@ -20,7 +20,6 @@
 //
 // Original Author:  Konstantinos Theofilatos, Ulla Gebbert and Christian Sander
 //         Created:  Sat Nov 14 18:43:21 CET 2009
-// $Id: EcalDeadCellBoundaryEnergyFilter.cc,v 1.2 2013/03/15 20:09:34 wmtan Exp $
 //
 //
 
@@ -64,15 +63,15 @@ class EcalDeadCellBoundaryEnergyFilter: public edm::EDFilter {
       ~EcalDeadCellBoundaryEnergyFilter();
 
    private:
-      virtual void beginJob();
-      virtual bool filter(edm::Event&, const edm::EventSetup&);
-      virtual void endJob();
+      virtual void beginJob() override;
+      virtual bool filter(edm::Event&, const edm::EventSetup&) override;
+      virtual void endJob() override;
 
       // ----------member data ---------------------------
       const int kMAX;
 
-      const edm::InputTag EBRecHitsLabel_;
-      const edm::InputTag EERecHitsLabel_;
+      edm::EDGetTokenT<EcalRecHitCollection> EBRecHitsToken_;
+      edm::EDGetTokenT<EcalRecHitCollection> EERecHitsToken_;
 
       const std::string FilterAlgo_;
       const bool taggingMode_;
@@ -113,11 +112,11 @@ class EcalDeadCellBoundaryEnergyFilter: public edm::EDFilter {
 //
 // constructors and destructor
 //
-EcalDeadCellBoundaryEnergyFilter::EcalDeadCellBoundaryEnergyFilter(const edm::ParameterSet& iConfig) 
+EcalDeadCellBoundaryEnergyFilter::EcalDeadCellBoundaryEnergyFilter(const edm::ParameterSet& iConfig)
    : kMAX (50)
    //now do what ever initialization is needed
-   , EBRecHitsLabel_ (iConfig.getParameter<edm::InputTag> ("recHitsEB"))
-   , EERecHitsLabel_ (iConfig.getParameter<edm::InputTag> ("recHitsEE"))
+   , EBRecHitsToken_ (consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag> ("recHitsEB")))
+   , EERecHitsToken_ (consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag> ("recHitsEE")))
 
    , FilterAlgo_ (iConfig.getUntrackedParameter<std::string> ("FilterAlgo", "TuningMode"))
    , taggingMode_ (iConfig.getParameter<bool>("taggingMode"))
@@ -182,9 +181,9 @@ bool EcalDeadCellBoundaryEnergyFilter::filter(edm::Event& iEvent, const edm::Eve
 
    // Get the Ecal RecHits
    Handle<EcalRecHitCollection> EBRecHits;
-   iEvent.getByLabel(EBRecHitsLabel_, EBRecHits);
+   iEvent.getByToken(EBRecHitsToken_, EBRecHits);
    Handle<EcalRecHitCollection> EERecHits;
-   iEvent.getByLabel(EERecHitsLabel_, EERecHits);
+   iEvent.getByToken(EERecHitsToken_, EERecHits);
 
    edm::ESHandle<CaloTopology> theCaloTopology;
    iSetup.get<CaloTopologyRecord> ().get(theCaloTopology);
@@ -430,7 +429,7 @@ bool EcalDeadCellBoundaryEnergyFilter::filter(edm::Event& iEvent, const edm::Eve
          return false;
       }
    }
-   else return pass; 
+   else return pass;
 
 /*
    if (FilterAlgo_ == "TuningMode") {

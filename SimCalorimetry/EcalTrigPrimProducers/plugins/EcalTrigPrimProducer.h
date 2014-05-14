@@ -17,8 +17,9 @@
  *
  ************************************************************/
 
+#include <memory>
  
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
  
@@ -26,11 +27,9 @@
  
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
   
-class TFile;
-class TTree;
 class EcalTrigPrimFunctionalAlgo;
  
-class EcalTrigPrimProducer : public edm::EDProducer
+class EcalTrigPrimProducer : public edm::stream::EDProducer<>
 {
  public:
   
@@ -38,24 +37,24 @@ class EcalTrigPrimProducer : public edm::EDProducer
   
   virtual ~EcalTrigPrimProducer();
   
-  void beginJob();
   void beginRun(const edm::Run& run, const edm::EventSetup& es) override;
   void endRun(const edm::Run&, const edm::EventSetup&) override;
-  virtual void produce(edm::Event& e, const edm::EventSetup& c) override;
+  void produce(edm::Event& e, const edm::EventSetup& c) override;
+
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   
  private:
-  EcalTrigPrimFunctionalAlgo *algo_;
-  TFile *histfile_;
+  std::unique_ptr<EcalTrigPrimFunctionalAlgo> algo_;
   bool barrelOnly_;
   bool tcpFormat_;
   bool debug_;
+  bool famos_;
   std::string label_;
   std::string instanceNameEB_;
   std::string instanceNameEE_;
 
   int binOfMaximum_;
-
-  const edm::ParameterSet ps_;
+  bool fillBinOfMaximumFromHistory_;
 
   //method to get EventSetupRecords
   unsigned long long getRecords(edm::EventSetup const& setup);

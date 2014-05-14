@@ -6,7 +6,7 @@ process = cms.Process("makeSD")
 process.configurationMetadata = cms.untracked.PSet(
     version = cms.untracked.string('$Revision: 1.1 $'),
     annotation = cms.untracked.string('SD and central skims'),
-    name = cms.untracked.string('$Source: /local/reps/CMSSW/CMSSW/Configuration/Skimming/test/SDmaker_6SD_3CS_PDMinBias_1e28_reprocess361p4_cfg.py,v $')
+    name = cms.untracked.string('$Source: /cvs_server/repositories/CMSSW/CMSSW/Configuration/Skimming/test/SDmaker_6SD_3CS_PDMinBias_1e28_reprocess370patch2_cfg.py,v $')
 )
 
 
@@ -348,7 +348,7 @@ process.outputCsDiJet = cms.OutputModule("PoolOutputModule",
         'keep recoPFJets_iterativeCone5PFJets_*_*',
         #------- JPTJet collections ------
         'keep *_JetPlusTrackZSPCorJetAntiKt5_*_*',
-        #'keep *_ak5JPTJets_*_*',
+        #'keep *_ak4JPTJets_*_*',
         #'keep *_iterativeCone5JPTJets_*_*',
         #------- Trigger collections ------
         'keep edmTriggerResults_TriggerResults_*_*',

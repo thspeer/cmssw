@@ -2,8 +2,6 @@
  *  
  *  Class to fill dqm monitor elements from existing EDM file
  *
- *  $Date: 2011/12/29 10:53:11 $
- *  $Revision: 1.3 $
  */
  
 #include "Validation/EventGenerator/interface/BasicGenParticleValidation.h"
@@ -14,66 +12,60 @@
 using namespace edm;
 
 BasicGenParticleValidation::BasicGenParticleValidation(const edm::ParameterSet& iPSet): 
-  _wmanager(iPSet),
+  wmanager_(iPSet,consumesCollector()),
   hepmcCollection_(iPSet.getParameter<edm::InputTag>("hepmcCollection")),
   genparticleCollection_(iPSet.getParameter<edm::InputTag>("genparticleCollection")),
   genjetCollection_(iPSet.getParameter<edm::InputTag>("genjetsCollection")),
   matchPr_(iPSet.getParameter<double>("matchingPrecision")),
   verbosity_(iPSet.getUntrackedParameter<unsigned int>("verbosity",0))
 {    
-  dbe = 0;
-  dbe = edm::Service<DQMStore>().operator->();
+
+  hepmcCollectionToken_=consumes<HepMCProduct>(hepmcCollection_);
+  genparticleCollectionToken_=consumes<reco::GenParticleCollection>(genparticleCollection_);
+  genjetCollectionToken_=consumes<reco::GenJetCollection>(genjetCollection_);
+
 }
 
 BasicGenParticleValidation::~BasicGenParticleValidation() {}
 
-void BasicGenParticleValidation::beginJob()
-{
-  if(dbe){
+
+
+void BasicGenParticleValidation::bookHistograms(DQMStore::IBooker &i, edm::Run const &, edm::EventSetup const &){
 	///Setting the DQM top directories
-	dbe->setCurrentFolder("Generator/GenParticles");
+	i.setCurrentFolder("Generator/GenParticles");
 	
 	///Booking the ME's
     
     // Number of analyzed events
-    nEvt = dbe->book1D("nEvt", "n analyzed Events", 1, 0., 1.);
+    nEvt = i.book1D("nEvt", "n analyzed Events", 1, 0., 1.);
 
 	///multiplicity
-	genPMultiplicity = dbe->book1D("genPMultiplicty", "Log(No. all GenParticles)", 50, -1, 5); //Log
+	genPMultiplicity = i.book1D("genPMultiplicty", "Log(No. all GenParticles)", 50, -1, 5); //Log
     //difference in HepMC and reco multiplicity
-    genMatched = dbe->book1D("genMatched", "Difference reco - matched", 50, -25, 25);
+    genMatched = i.book1D("genMatched", "Difference reco - matched", 50, -25, 25);
     //multiple matching
-    multipleMatching = dbe->book1D("multipleMatching", "multiple reco HepMC matching", 50, 0, 50);
+    multipleMatching = i.book1D("multipleMatching", "multiple reco HepMC matching", 50, 0, 50);
     //momentum difference of matched particles
-    matchedResolution = dbe->book1D("matchedResolution", "log10(momentum difference of matched particles)", 70, -10., -3.);
+    matchedResolution = i.book1D("matchedResolution", "log10(momentum difference of matched particles)", 70, -10., -3.);
 
     // GenJet general distributions
-    genJetMult = dbe->book1D("genJetMult", "GenJet multiplicity", 50, 0, 50);
-    genJetEnergy = dbe->book1D("genJetEnergy", "Log10(GenJet energy)", 60, -1, 5);
-    genJetPt = dbe->book1D("genJetPt", "Log10(GenJet pt)", 60, -1, 5);
-    genJetEta = dbe->book1D("genJetEta", "GenJet eta", 220, -11, 11);
-    genJetPhi = dbe->book1D("genJetPhi", "GenJet phi", 360, -180, 180);
-    genJetDeltaEtaMin = dbe->book1D("genJetDeltaEtaMin", "GenJet minimum rapidity gap", 30, 0, 30);
+    genJetMult = i.book1D("genJetMult", "GenJet multiplicity", 50, 0, 50);
+    genJetEnergy = i.book1D("genJetEnergy", "Log10(GenJet energy)", 60, -1, 5);
+    genJetPt = i.book1D("genJetPt", "Log10(GenJet pt)", 60, -1, 5);
+    genJetEta = i.book1D("genJetEta", "GenJet eta", 220, -11, 11);
+    genJetPhi = i.book1D("genJetPhi", "GenJet phi", 360, -180, 180);
+    genJetDeltaEtaMin = i.book1D("genJetDeltaEtaMin", "GenJet minimum rapidity gap", 30, 0, 30);
     
-    genJetPto1 = dbe->book1D("genJetPto1", "GenJet multiplicity above 1 GeV", 50, 0, 50);
-    genJetPto10 = dbe->book1D("genJetPto10", "GenJet multiplicity above 10 GeV", 50, 0, 50);
-    genJetPto100 = dbe->book1D("genJetPto100", "GenJet multiplicity above 100 GeV", 50, 0, 50);
-    genJetCentral = dbe->book1D("genJetCentral", "GenJet multiplicity |eta|.lt.2.5", 50, 0, 50);
+    genJetPto1 = i.book1D("genJetPto1", "GenJet multiplicity above 1 GeV", 50, 0, 50);
+    genJetPto10 = i.book1D("genJetPto10", "GenJet multiplicity above 10 GeV", 50, 0, 50);
+    genJetPto100 = i.book1D("genJetPto100", "GenJet multiplicity above 100 GeV", 50, 0, 50);
+    genJetCentral = i.book1D("genJetCentral", "GenJet multiplicity |eta|.lt.2.5", 50, 0, 50);
 
-    genJetTotPt = dbe->book1D("genJetTotPt", "Log10(GenJet total pt)", 100, -5, 5);
+    genJetTotPt = i.book1D("genJetTotPt", "Log10(GenJet total pt)", 100, -5, 5);
 
-  }
   return;
 }
 
-void BasicGenParticleValidation::endJob(){return;}
-void BasicGenParticleValidation::beginRun(const edm::Run& iRun,const edm::EventSetup& iSetup)
-{
-  ///Get PDT Table
-  iSetup.getData( fPDGTable );
-  return;
-}
-void BasicGenParticleValidation::endRun(const edm::Run& iRun,const edm::EventSetup& iSetup){return;}
 void BasicGenParticleValidation::analyze(const edm::Event& iEvent,const edm::EventSetup& iSetup)
 { 
 
@@ -81,12 +73,12 @@ void BasicGenParticleValidation::analyze(const edm::Event& iEvent,const edm::Eve
 
   ///Gathering the HepMCProduct information
   edm::Handle<HepMCProduct> evt;
-  iEvent.getByLabel(hepmcCollection_, evt);
+  iEvent.getByToken(hepmcCollectionToken_, evt);
 
   //Get HepMC EVENT
   HepMC::GenEvent *myGenEvent = new HepMC::GenEvent(*(evt->GetEvent()));
 
-  double weight = _wmanager.weight(iEvent);
+  double weight =    wmanager_.weight(iEvent);
 
   nEvt->Fill(0.5, weight);
 
@@ -110,7 +102,7 @@ void BasicGenParticleValidation::analyze(const edm::Event& iEvent,const edm::Eve
 
   // Gather information on the reco::GenParticle collection
   edm::Handle<reco::GenParticleCollection> genParticles;
-  iEvent.getByLabel(genparticleCollection_, genParticles );
+  iEvent.getByToken(genparticleCollectionToken_, genParticles );
   
   std::vector<const reco::GenParticle*> particles;
   particles.reserve(initSize);
@@ -183,7 +175,7 @@ void BasicGenParticleValidation::analyze(const edm::Event& iEvent,const edm::Eve
 
   // Gather information in the GenJet collection
   edm::Handle<reco::GenJetCollection> genJets;
-  iEvent.getByLabel(genjetCollection_, genJets );
+  iEvent.getByToken(genjetCollectionToken_, genJets );
 
   int nJets = 0;
   int nJetso1 = 0;

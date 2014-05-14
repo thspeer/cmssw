@@ -9,7 +9,6 @@
  *
  * \author Luca Lista, INFN
  *
- * \version $Id: TrackExtra.h,v 1.30 2011/08/03 09:53:09 vlimant Exp $
  *
  */
 #include <Rtypes.h>
@@ -20,6 +19,7 @@
 #include "DataFormats/TrackReco/interface/TrackResiduals.h"
 #include "DataFormats/TrajectorySeed/interface/PropagationDirection.h"
 #include "DataFormats/TrajectorySeed/interface/TrajectorySeed.h"
+#include "FWCore/Utilities/interface/thread_safety_macros.h"
 
 namespace reco {
   class TrackExtra : public TrackExtraBase {
@@ -110,9 +110,9 @@ namespace reco {
     /// innermost trajectory state curvilinear errors
     CovarianceMatrix innerStateCovariance() const;
     /// fill outermost trajectory state curvilinear errors
-    CovarianceMatrix & fillOuter( CovarianceMatrix & v ) const;
+    CovarianceMatrix & fillOuter CMS_THREAD_SAFE ( CovarianceMatrix & v ) const;
     /// fill outermost trajectory state curvilinear errors
-    CovarianceMatrix & fillInner( CovarianceMatrix & v ) const;
+    CovarianceMatrix & fillInner CMS_THREAD_SAFE ( CovarianceMatrix & v ) const;
     /// DetId of the detector on which surface the outermost state is located
     unsigned int outerDetId() const { return outerDetId_; }
     /// DetId of the detector on which surface the innermost state is located

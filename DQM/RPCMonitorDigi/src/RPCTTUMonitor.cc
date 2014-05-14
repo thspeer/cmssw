@@ -1,25 +1,24 @@
 #include "DQM/RPCMonitorDigi/interface/RPCTTUMonitor.h"
-
-
-
+//FW Core
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 //
 RPCTTUMonitor::RPCTTUMonitor(const edm::ParameterSet& iConfig){
 
   ttuFolder    = iConfig.getUntrackedParameter<std::string>("TTUFolder", "RPC/TTU");
   outputFile    = iConfig.getUntrackedParameter<std::string>("OutPutFile", ""); 
-  m_gtReadoutLabel     = iConfig.getParameter<edm::InputTag>("GTReadoutRcd");
-  m_gmtReadoutLabel    = iConfig.getParameter<edm::InputTag>("GMTReadoutRcd");
-  m_rpcTechTrigEmu     = iConfig.getParameter<edm::InputTag>("L1TTEmuBitsLabel");
+
+  m_gtReadoutLabel     = consumes<L1GlobalTriggerReadoutRecord>(iConfig.getParameter<edm::InputTag>("GTReadoutRcd"));
+  m_gmtReadoutLabel    = consumes<L1MuGMTReadoutCollection>(iConfig.getParameter<edm::InputTag>("GMTReadoutRcd"));
+  m_rpcTechTrigEmu     = consumes<L1GtTechnicalTriggerRecord>(iConfig.getParameter<edm::InputTag>("L1TTEmuBitsLabel"));
+  
+
   m_ttBits             = iConfig.getParameter< std::vector<unsigned> >("BitNumbers");
   m_maxttBits          = m_ttBits.size();
   
 }
 
-RPCTTUMonitor::~RPCTTUMonitor()
-{
-  
-}
+RPCTTUMonitor::~RPCTTUMonitor(){}
 
 // ------------ method called to for each event  ------------
 void
@@ -29,21 +28,19 @@ RPCTTUMonitor::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //..............................................................................................
   // Data .
   edm::Handle< L1GlobalTriggerReadoutRecord > gtRecord;
-  iEvent.getByLabel( m_gtReadoutLabel, gtRecord);
+  iEvent.getByToken( m_gtReadoutLabel, gtRecord);
   
   if ( !gtRecord.isValid() ) {
-    edm::LogError("RPCTTUMonitor") << "can't find L1GlobalTriggerRecord with label: " 
-                                    << m_gtReadoutLabel << '\n';
+    edm::LogError("RPCTTUMonitor") << "can nout find L1GlobalTriggerRecord \n";
     return;
   }
   
   // Emulator .
   edm::Handle< L1GtTechnicalTriggerRecord > emuTTRecord;
-  iEvent.getByLabel( m_rpcTechTrigEmu , emuTTRecord);
+  iEvent.getByToken( m_rpcTechTrigEmu , emuTTRecord);
   
   if ( !emuTTRecord.isValid() ) {
-    edm::LogError("RPCTTUMonitor") << "can't find L1GtTechnicalTriggerRecord (emulator) with label: " 
-                                    << m_rpcTechTrigEmu << '\n';
+    edm::LogError("RPCTTUMonitor") << "can not find L1GtTechnicalTriggerRecord (emulator) \n";
     return;
   }
   
@@ -141,11 +138,11 @@ int  RPCTTUMonitor::discriminateGMT( const edm::Event& iEvent, const edm::EventS
   //.............................................................................................
   
   edm::Handle<L1MuGMTReadoutCollection> pCollection;
-  iEvent.getByLabel(m_gmtReadoutLabel,pCollection);
+  iEvent.getByToken(m_gmtReadoutLabel,pCollection);
   
   if ( ! pCollection.isValid() ) {
-    edm::LogError("discriminateGMT") << "can't find L1MuGMTReadoutCollection with label "
-                                     << m_gmtReadoutLabel ;
+    edm::LogError("discriminateGMT") << "can't find L1MuGMTReadoutCollection with label \n";
+
     return -1; 
   }
   
@@ -218,41 +215,33 @@ int  RPCTTUMonitor::discriminateGMT( const edm::Event& iEvent, const edm::EventS
   
 }
 
-void RPCTTUMonitor::discriminateDecision( bool data, bool emu , int indx ) 
-{
+void RPCTTUMonitor::discriminateDecision( bool data, bool emu , int indx ) {
  
-  if ( data == 1 && emu == 1 )
+  if ( data == 1 && emu == 1 ){
     m_dataVsemulator[indx]->Fill( 1 );
-  
-  if ( data == 1 && emu == 0 )
+  }else if ( data == 1 && emu == 0 ){
     m_dataVsemulator[indx]->Fill( 3 );
-  
-  if ( data == 0 && emu == 1 )
+  }else if ( data == 0 && emu == 1 ){
     m_dataVsemulator[indx]->Fill( 5 );
-  
-  if ( data == 0 && emu == 0 )
+  }else if ( data == 0 && emu == 0 ){
     m_dataVsemulator[indx]->Fill( 7 );
-  
+  }
   
 }
 
 
 
 
-void  RPCTTUMonitor::beginJob(){
+void  RPCTTUMonitor::bookHistograms(DQMStore::IBooker & ibooker, edm::Run const & r, edm::EventSetup const & iSetup) {
 
-  dbe = edm::Service<DQMStore>().operator->();
-  dbe->showDirStructure();
-
-  
-  dbe->setCurrentFolder(ttuFolder);
+  ibooker.setCurrentFolder(ttuFolder);
 
   
-  m_ttBitsDecisionData = dbe->book1D("TechTrigger.Bits.Data",
+  m_ttBitsDecisionData = ibooker.book1D("TechTrigger.Bits.Data",
                                              "Technical Trigger bits : Summary",
                                               10, 23, 33 );
 
-  m_ttBitsDecisionEmulator =  dbe->book1D("TechTrigger.Bits.Emulator",
+  m_ttBitsDecisionEmulator =  ibooker.book1D("TechTrigger.Bits.Emulator",
                                                  "Technical Trigger bits : Summary",
                                                  10, 23, 33 );
  for( int k=0; k < m_maxttBits; ++k) {
@@ -261,7 +250,7 @@ void  RPCTTUMonitor::beginJob(){
    
    hname << "BX.diff.PAC-TTU.bit." << m_ttBits[k];
    
-   m_bxDistDiffPac[k] =  dbe->book1D(hname.str().c_str(),
+   m_bxDistDiffPac[k] =  ibooker.book1D(hname.str().c_str(),
                                              "Timing difference between PAC and TTU",
                                              7, -3, 3);
    
@@ -269,7 +258,7 @@ void  RPCTTUMonitor::beginJob(){
    
    hname << "BX.diff.DT-TTU.bit." << m_ttBits[k];
    
-   m_bxDistDiffDt[k] =  dbe->book1D(hname.str().c_str(),
+   m_bxDistDiffDt[k] =  ibooker.book1D(hname.str().c_str(),
                                             "Timing difference between DT and TTU",
                                             7, -3, 3);
    
@@ -277,27 +266,17 @@ void  RPCTTUMonitor::beginJob(){
    
    hname << "Emu.Ttu.Compare.bit." << m_ttBits[k];
    
-   m_dataVsemulator[k] =  dbe->book1D(hname.str().c_str(),
+   m_dataVsemulator[k] =  ibooker.book1D(hname.str().c_str(),
                                               "Comparison between emulator and TT decisions", 
                                               10, 0, 10 );
    
    hname.str("");
    
  }
+
+ 
 }
 
-void RPCTTUMonitor::beginRun(const edm::EventSetup& iSetup){
-  
-}
 
-
-void 
-RPCTTUMonitor::endJob() {
-
-  if(outputFile != "")
-    dbe->save(outputFile);
-
-  dbe=0;  
-}
 
 

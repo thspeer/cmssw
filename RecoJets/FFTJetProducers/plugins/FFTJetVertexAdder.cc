@@ -13,7 +13,6 @@
 //
 // Original Author:  Igor Volobouev
 //         Created:  Thu Jun 21 19:19:40 CDT 2012
-// $Id: FFTJetVertexAdder.cc,v 1.1 2012/06/22 07:23:21 igv Exp $
 //
 //
 
@@ -51,9 +50,9 @@ public:
 
 protected:
     // methods
-    void beginJob();
-    void produce(edm::Event&, const edm::EventSetup&);
-    void endJob();
+    void beginJob() override;
+    void produce(edm::Event&, const edm::EventSetup&) override;
+    void endJob() override;
 
 private:
     FFTJetVertexAdder();
@@ -62,6 +61,10 @@ private:
 
     const edm::InputTag beamSpotLabel;
     const edm::InputTag existingVerticesLabel;
+
+    edm::EDGetTokenT<reco::BeamSpot> beamSpotToken;
+    edm::EDGetTokenT<reco::VertexCollection> existingVerticesToken;
+
     const std::string outputLabel;
 
     const bool useBeamSpot;
@@ -82,8 +85,6 @@ private:
     const double errZ;
 
     const unsigned nVerticesToMake;
-
-    CLHEP::RandGauss* rGauss_;
 };
 
 //
@@ -106,16 +107,18 @@ FFTJetVertexAdder::FFTJetVertexAdder(const edm::ParameterSet& ps)
       init_param(double, errX),
       init_param(double, errY),
       init_param(double, errZ),
-      init_param(unsigned, nVerticesToMake),
-      rGauss_(0)
+      init_param(unsigned, nVerticesToMake)
 {
+    if (useBeamSpot)
+        beamSpotToken = consumes<reco::BeamSpot>(beamSpotLabel);
+    if (addExistingVertices)
+        existingVerticesToken = consumes<reco::VertexCollection>(existingVerticesLabel);
     produces<reco::VertexCollection>(outputLabel);
 }
 
 
 FFTJetVertexAdder::~FFTJetVertexAdder()
 {
-    delete rGauss_;
 }
 
 
@@ -123,6 +126,9 @@ FFTJetVertexAdder::~FFTJetVertexAdder()
 void FFTJetVertexAdder::produce(
     edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+    edm::Service<edm::RandomNumberGenerator> rng;
+    CLHEP::RandGauss rGauss(rng->getEngine(iEvent.streamID()));
+
     // get PFCandidates
     std::auto_ptr<reco::VertexCollection> pOutput(new reco::VertexCollection);
 
@@ -137,7 +143,7 @@ void FFTJetVertexAdder::produce(
     if (useBeamSpot)
     {
         edm::Handle<reco::BeamSpot> beamSpotHandle;
-        iEvent.getByLabel(beamSpotLabel, beamSpotHandle);
+        iEvent.getByToken(beamSpotToken, beamSpotHandle);
         if (!beamSpotHandle.isValid())
             throw cms::Exception("FFTJetBadConfig")
                 << "ERROR in FFTJetVertexAdder:"
@@ -163,9 +169,9 @@ void FFTJetVertexAdder::produce(
 
     for (unsigned iv=0; iv<nVerticesToMake; ++iv)
     {
-        const double x0 = (*rGauss_)(xmean, xwidth);
-        const double y0 = (*rGauss_)(ymean, ywidth);
-        const double z0 = (*rGauss_)(zmean, zwidth);
+        const double x0 = rGauss(xmean, xwidth);
+        const double y0 = rGauss(ymean, ywidth);
+        const double z0 = rGauss(zmean, zwidth);
         const reco::Vertex::Point position(x0, y0, z0);
         pOutput->push_back(reco::Vertex(position, err, chi2, nDof, 0));
     }
@@ -175,7 +181,7 @@ void FFTJetVertexAdder::produce(
         typedef reco::VertexCollection::const_iterator IV;
 
         edm::Handle<reco::VertexCollection> vertices;
-        iEvent.getByLabel(existingVerticesLabel, vertices);
+        iEvent.getByToken(existingVerticesToken, vertices);
         if (!vertices.isValid())
             throw cms::Exception("FFTJetBadConfig")
                 << "ERROR in FFTJetVertexAdder:"
@@ -194,15 +200,12 @@ void FFTJetVertexAdder::produce(
 // ------------ method called once each job just before starting event loop
 void FFTJetVertexAdder::beginJob()
 {
-    if (!rGauss_)
-    {
-        edm::Service<edm::RandomNumberGenerator> rng;
-        if ( !rng.isAvailable() )
-            throw cms::Exception("FFTJetBadConfig")
-                << "ERROR in FFTJetVertexAdder:"
-                " failed to initialize the random number generator"
-                << std::endl;
-        rGauss_ = new CLHEP::RandGauss(rng->getEngine());
+    edm::Service<edm::RandomNumberGenerator> rng;
+    if ( !rng.isAvailable() ) {
+        throw cms::Exception("FFTJetBadConfig")
+            << "ERROR in FFTJetVertexAdder:"
+               " failed to initialize the random number generator"
+            << std::endl;
     }
 }
 

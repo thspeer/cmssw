@@ -7,8 +7,6 @@
  *  Fills the GsfElectron, Photon and Muon Ref into the PFCandidate
  *  Produces the ValueMap between GsfElectronRef/Photon/Mupns with PFCandidateRef
  *
- *  $Date: 2013/02/26 16:32:20 $
- *  $Revision: 1.7 $
  *  \author R. Bellan - UCSB <riccardo.bellan@cern.ch>, F. Beaudette - CERN <Florian.Beaudette@cern.ch>
  */
 
@@ -17,7 +15,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -25,10 +23,15 @@
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/Common/interface/ValueMap.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/MuonReco/interface/MuonToMuonMap.h"
+#include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/MuonReco/interface/MuonFwd.h"
 
 #include <string>
 
-class PFLinker : public edm::EDProducer {
+class PFLinker : public edm::stream::EDProducer<> {
  public:
 
   explicit PFLinker(const edm::ParameterSet&);
@@ -38,12 +41,6 @@ class PFLinker : public edm::EDProducer {
   virtual void produce(edm::Event&, const edm::EventSetup&) override;
 
  private:
-
-  template<typename T>
-    bool fetchCollection(edm::Handle<T>& c, 
-			 const edm::InputTag& tag, 
-			 const edm::Event& iEvent) const ;
-  
   template<typename TYPE>
     edm::ValueMap<reco::PFCandidatePtr> fillValueMap(edm::Event & event,
 						     std::string label,
@@ -54,17 +51,18 @@ class PFLinker : public edm::EDProducer {
  private:
  
   /// Input PFCandidates
-  std::vector<edm::InputTag>       inputTagPFCandidates_;
+  std::vector<edm::EDGetTokenT<reco::PFCandidateCollection> >       inputTagPFCandidates_;
 
   /// Input GsfElectrons
-  edm::InputTag       inputTagGsfElectrons_;
+  edm::EDGetTokenT<reco::GsfElectronCollection>    inputTagGsfElectrons_;
 
   /// Input Photons
-  edm::InputTag       inputTagPhotons_;
+  edm::EDGetTokenT<reco::PhotonCollection>         inputTagPhotons_;
 
   /// Input Muons
-  edm::InputTag       inputTagMuons_;
-
+  edm::InputTag muonTag_;
+  edm::EDGetTokenT<reco::MuonCollection>      inputTagMuons_;
+  edm::EDGetTokenT<reco::MuonToMuonMap> inputTagMuonMap_;
   /// name of output collection of PFCandidate
   std::string nameOutputPF_;
 
@@ -84,5 +82,7 @@ class PFLinker : public edm::EDProducer {
   bool fillMuonRefs_;
 
 };
+
+DEFINE_FWK_MODULE(PFLinker);
 
 #endif

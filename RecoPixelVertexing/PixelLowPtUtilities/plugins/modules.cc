@@ -28,10 +28,10 @@ DEFINE_EDM_PLUGIN(HitTripletGeneratorFromPairAndLayersFactory, PixelTripletLowPt
 #include "RecoPixelVertexing/PixelLowPtUtilities/interface/ClusterShapeTrackFilter.h"
 #include "RecoPixelVertexing/PixelTrackFitting/interface/PixelTrackFilter.h"
 #include "RecoPixelVertexing/PixelTrackFitting/interface/PixelTrackFilterFactory.h"
-DEFINE_EDM_PLUGIN(PixelTrackFilterWithESFactory, ClusterShapeTrackFilter, "ClusterShapeTrackFilter");
+DEFINE_EDM_PLUGIN(PixelTrackFilterFactory, ClusterShapeTrackFilter, "ClusterShapeTrackFilter");
 
 #include "RecoPixelVertexing/PixelLowPtUtilities/interface/ValidHitPairFilter.h"
-DEFINE_EDM_PLUGIN(PixelTrackFilterWithESFactory, ValidHitPairFilter, "ValidHitPairFilter");
+DEFINE_EDM_PLUGIN(PixelTrackFilterFactory, ValidHitPairFilter, "ValidHitPairFilter");
 
 // Fitter
 #include "RecoPixelVertexing/PixelTrackFitting/interface/PixelFitter.h"
@@ -50,9 +50,12 @@ DEFINE_EDM_PLUGIN(PixelTrackCleanerFactory, TrackCleaner, "TrackCleaner");
 //DEFINE_FWK_MODULE(SeedProducer);
 
 // TrajectoryFilter
-#include "RecoPixelVertexing/PixelLowPtUtilities/interface/ClusterShapeTrajectoryFilterESProducer.h"
 #include "FWCore/Utilities/interface/typelookup.h"
-DEFINE_FWK_EVENTSETUP_MODULE(ClusterShapeTrajectoryFilterESProducer);
+
+#include "TrackingTools/TrajectoryFiltering/interface/TrajectoryFilterFactory.h"
+#include "RecoPixelVertexing/PixelLowPtUtilities/interface/ClusterShapeTrajectoryFilter.h"
+DEFINE_EDM_PLUGIN(TrajectoryFilterFactory, ClusterShapeTrajectoryFilter, "ClusterShapeTrajectoryFilter");
+
 
 // HitFilter
 #include "RecoPixelVertexing/PixelLowPtUtilities/interface/ClusterShapeHitFilterESProducer.h"

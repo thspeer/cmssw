@@ -27,7 +27,7 @@ namespace edm
   DataMixingHcalWorker::DataMixingHcalWorker() { } 
 
   // Constructor 
-  DataMixingHcalWorker::DataMixingHcalWorker(const edm::ParameterSet& ps) : 
+  DataMixingHcalWorker::DataMixingHcalWorker(const edm::ParameterSet& ps, edm::ConsumesCollector && iC) : 
 							    label_(ps.getParameter<std::string>("Label"))
 
   {                                                         
@@ -54,6 +54,17 @@ namespace edm
     HFRecHitCollectionDM_   = ps.getParameter<std::string>("HFRecHitCollectionDM");
     ZDCRecHitCollectionDM_  = ps.getParameter<std::string>("ZDCRecHitCollectionDM");
 
+    HBHERecHitToken_ = iC.consumes<HBHERecHitCollection>(HBHErechitCollectionSig_);
+    HORecHitToken_ = iC.consumes<HORecHitCollection>(HOrechitCollectionSig_);
+    HFRecHitToken_ = iC.consumes<HFRecHitCollection>(HFrechitCollectionSig_);
+
+    HBHERecHitPToken_ = iC.consumes<HBHERecHitCollection>(HBHEPileRecHitInputTag_);
+    HORecHitPToken_ = iC.consumes<HORecHitCollection>(HOPileRecHitInputTag_);
+    HFRecHitPToken_ = iC.consumes<HFRecHitCollection>(HFPileRecHitInputTag_);
+
+
+    ZDCRecHitToken_ = iC.consumes<ZDCRecHitCollection>(ZDCrechitCollectionSig_);
+    ZDCRecHitPToken_ = iC.consumes<ZDCRecHitCollection>(ZDCPileRecHitInputTag_);
 
   }
 	       
@@ -72,7 +83,7 @@ namespace edm
 
    const HBHERecHitCollection*  HBHERecHits = 0;
 
-   if( e.getByLabel( HBHErechitCollectionSig_, pHBHERecHits) ) {
+   if( e.getByToken( HBHERecHitToken_, pHBHERecHits) ) {
      HBHERecHits = pHBHERecHits.product(); // get a ptr to the product
      LogDebug("DataMixingHcalWorker") << "total # HBHE rechits: " << HBHERecHits->size();
    } 
@@ -101,7 +112,7 @@ namespace edm
 
    const HORecHitCollection*  HORecHits = 0;
 
-   if( e.getByLabel( HOrechitCollectionSig_, pHORecHits) ){
+   if( e.getByToken( HORecHitToken_, pHORecHits) ){
      HORecHits = pHORecHits.product(); // get a ptr to the product
 #ifdef DEBUG
      LogDebug("DataMixingHcalWorker") << "total # HO rechits: " << HORecHits->size();
@@ -132,7 +143,7 @@ namespace edm
 
    const HFRecHitCollection*  HFRecHits = 0;
 
-   if( e.getByLabel( HFrechitCollectionSig_, pHFRecHits) ) {
+   if( e.getByToken( HFRecHitToken_, pHFRecHits) ) {
      HFRecHits = pHFRecHits.product(); // get a ptr to the product
 #ifdef DEBUG
      LogDebug("DataMixingHcalWorker") << "total # HF rechits: " << HFRecHits->size();
@@ -163,7 +174,7 @@ namespace edm
 
    const ZDCRecHitCollection*  ZDCRecHits = 0;
 
-   if( e.getByLabel( ZDCrechitCollectionSig_, pZDCRecHits) ) {
+   if( e.getByToken( ZDCRecHitToken_, pZDCRecHits) ) {
      ZDCRecHits = pZDCRecHits.product(); // get a ptr to the product
 #ifdef DEBUG
      LogDebug("DataMixingHcalWorker") << "total # ZDC rechits: " << ZDCRecHits->size();
@@ -190,7 +201,8 @@ namespace edm
     
   } // end of addEMSignals
 
-  void DataMixingHcalWorker::addHcalPileups(const int bcr, const EventPrincipal *ep, unsigned int eventNr) {
+  void DataMixingHcalWorker::addHcalPileups(const int bcr, const EventPrincipal *ep, unsigned int eventNr,
+                                            ModuleCallingContext const* mcc) {
   
     LogDebug("DataMixingHcalWorker") <<"\n===============> adding pileups from event  "<<ep->id()<<" for bunchcrossing "<<bcr;
 
@@ -199,7 +211,7 @@ namespace edm
     // HBHE first
 
     boost::shared_ptr<Wrapper<HBHERecHitCollection>  const> HBHERecHitsPTR =
-      getProductByTag<HBHERecHitCollection>(*ep, HBHEPileRecHitInputTag_ );
+      getProductByTag<HBHERecHitCollection>(*ep, HBHEPileRecHitInputTag_, mcc);
 
     if(HBHERecHitsPTR ) {
 
@@ -207,7 +219,7 @@ namespace edm
 
       LogDebug("DataMixingEMWorker") << "total # HBHE rechits: " << HBHERecHits->size();
 
-      // loop over digis, adding these to the existing maps                                                     
+      // loop over rechits, adding these to the existing maps                                                     
       for(HBHERecHitCollection::const_iterator it  = HBHERecHits->begin();
           it != HBHERecHits->end(); ++it) {
 
@@ -224,7 +236,7 @@ namespace edm
     // HO Next
 
     boost::shared_ptr<Wrapper<HORecHitCollection>  const> HORecHitsPTR =
-      getProductByTag<HORecHitCollection>(*ep, HOPileRecHitInputTag_ );
+      getProductByTag<HORecHitCollection>(*ep, HOPileRecHitInputTag_, mcc);
 
     if(HORecHitsPTR ) {
 
@@ -232,7 +244,7 @@ namespace edm
 
       LogDebug("DataMixingEMWorker") << "total # HO rechits: " << HORecHits->size();
 
-      // loop over digis, adding these to the existing maps                                                     
+      // loop over rechits, adding these to the existing maps                                                     
       for(HORecHitCollection::const_iterator it  = HORecHits->begin();
           it != HORecHits->end(); ++it) {
 
@@ -249,7 +261,7 @@ namespace edm
     // HF Next
 
     boost::shared_ptr<Wrapper<HFRecHitCollection>  const> HFRecHitsPTR =
-      getProductByTag<HFRecHitCollection>(*ep, HFPileRecHitInputTag_ );
+      getProductByTag<HFRecHitCollection>(*ep, HFPileRecHitInputTag_, mcc);
 
     if(HFRecHitsPTR ) {
 
@@ -257,7 +269,7 @@ namespace edm
 
       LogDebug("DataMixingEMWorker") << "total # HF rechits: " << HFRecHits->size();
 
-      // loop over digis, adding these to the existing maps                                                     
+      // loop over rechits, adding these to the existing maps                                                     
       for(HFRecHitCollection::const_iterator it  = HFRecHits->begin();
           it != HFRecHits->end(); ++it) {
 
@@ -274,7 +286,7 @@ namespace edm
     // ZDC Next
 
     boost::shared_ptr<Wrapper<ZDCRecHitCollection>  const> ZDCRecHitsPTR =
-      getProductByTag<ZDCRecHitCollection>(*ep, ZDCPileRecHitInputTag_ );
+      getProductByTag<ZDCRecHitCollection>(*ep, ZDCPileRecHitInputTag_, mcc);
 
     if(ZDCRecHitsPTR ) {
 
@@ -282,7 +294,7 @@ namespace edm
 
       LogDebug("DataMixingEMWorker") << "total # ZDC rechits: " << ZDCRecHits->size();
 
-      // loop over digis, adding these to the existing maps                                                     
+      // loop over rechits, adding these to the existing maps                                                     
       for(ZDCRecHitCollection::const_iterator it  = ZDCRecHits->begin();
           it != ZDCRecHits->end(); ++it) {
 
@@ -307,7 +319,7 @@ namespace edm
     std::auto_ptr< HFRecHitCollection > HFrechits( new HFRecHitCollection );
     std::auto_ptr< ZDCRecHitCollection > ZDCrechits( new ZDCRecHitCollection );
 
-    // loop over the maps we have, re-making individual hits or digis if necessary.
+    // loop over the maps we have, re-making individual hits or rechits if necessary.
     DetId formerID = 0;
     DetId currentID;
     float ESum = 0.;
@@ -348,7 +360,7 @@ namespace edm
 
     // HO next...
 
-    // loop over the maps we have, re-making individual hits or digis if necessary.
+    // loop over the maps we have, re-making individual hits or rechits if necessary.
     formerID = 0;
     ESum = 0.;
     float HOTime = 0.;
@@ -387,7 +399,7 @@ namespace edm
 
     // HF next...
 
-    // loop over the maps we have, re-making individual hits or digis if necessary.
+    // loop over the maps we have, re-making individual hits or rechits if necessary.
     formerID = 0;
     ESum = 0.;
     float HFTime = 0.;
@@ -426,7 +438,7 @@ namespace edm
 
     // ZDC next...
 
-    // loop over the maps we have, re-making individual hits or digis if necessary.
+    // loop over the maps we have, re-making individual hits or rechits if necessary.
     formerID = 0;
     ESum = 0.;
     float ZDCTime = 0.;

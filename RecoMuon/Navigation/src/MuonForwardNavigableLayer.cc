@@ -2,8 +2,6 @@
  *
  *  Navigable layer for Forward Muon
  *
- * $Date: 2007/01/29 16:24:52 $
- * $Revision: 1.10 $
  *
  * \author : Stefano Lacaprara - INFN Padova <stefano.lacaprara@pd.infn.it>
  *
@@ -166,14 +164,14 @@ void MuonForwardNavigableLayer::pushCompatibleResult(vector<const DetLayer*>& re
 }
 
 
-DetLayer* MuonForwardNavigableLayer::detLayer() const {
+const DetLayer* MuonForwardNavigableLayer::detLayer() const {
 
   return theDetLayer;
 
 }
 
 
-void MuonForwardNavigableLayer::setDetLayer(DetLayer* dl) {
+void MuonForwardNavigableLayer::setDetLayer(const DetLayer* dl) {
 
   edm::LogError ("MuonForwardNavigablaLayer") << "MuonForwardNavigableLayer::setDetLayer called!! " << endl;
 

@@ -4,7 +4,7 @@
 //  Full 2-D templates for cluster splitting, simulated cluster reweighting, and improved cluster probability
 //
 // Created by Morris Swartz on 12/01/09.
-// Copyright 2009 __TheJohnsHopkinsUniversity__. All rights reserved.
+// 2009 __TheJohnsHopkinsUniversity__. 
 //
 // V1.01 - fix qavg_ filling
 // V1.02 - Add locBz to test if FPix use is out of range
@@ -49,7 +49,7 @@ using namespace edm;
 //! digits of filenum.                                           
 //! \param filenum - an integer NNNN used in the filename template_summary_zpNNNN
 //**************************************************************** 
-bool SiPixelTemplate2D::pushfile(int filenum)
+bool SiPixelTemplate2D::pushfile(int filenum, std::vector< SiPixelTemplateStore2D > & thePixelTemp_)
 {
     // Add template stored in external file numbered filenum to theTemplateStore
     
@@ -222,7 +222,7 @@ bool SiPixelTemplate2D::pushfile(int filenum)
 //! external file template_summary_zpNNNN where NNNN are four digits 
 //! \param dbobject - db storing multiple template calibrations
 //**************************************************************** 
-bool SiPixelTemplate2D::pushfile(const SiPixelTemplateDBObject& dbobject)
+bool SiPixelTemplate2D::pushfile(const SiPixelTemplateDBObject& dbobject, std::vector< SiPixelTemplateStore2D > & thePixelTemp_)
 {
 	// Add template stored in external dbobject to theTemplateStore
     

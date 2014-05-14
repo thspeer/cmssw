@@ -6,10 +6,12 @@
 \author Fedor Ratnikov (UMd)
 POOL object to store QIE coder parameters for one channel
 $Author: ratnikov
-$Date: 2009/03/26 18:03:15 $
-$Revision: 1.2 $
+$Date: 2008/03/05 10:38:03 $
+$Revision: 1.9 $
 Modified for CASTOR by L. Mundim
 */
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <boost/cstdint.hpp>
 
 #include <vector>
@@ -75,6 +77,8 @@ class CastorQIECoder {
   float mSlope31;
   float mSlope32;
   float mSlope33;
+
+ COND_SERIALIZABLE;
 };
 
 #endif

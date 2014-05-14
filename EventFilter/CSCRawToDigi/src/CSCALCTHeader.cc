@@ -4,9 +4,10 @@
 #include "EventFilter/CSCRawToDigi/src/bitset_append.h"
 #include "EventFilter/CSCRawToDigi/src/cscPackerCompare.h"
 #include <iomanip>
+#include <atomic>
 
-bool CSCALCTHeader::debug=false;
-short unsigned int CSCALCTHeader::firmwareVersion=2007; 
+std::atomic<bool> CSCALCTHeader::debug{false};
+std::atomic<short unsigned int> CSCALCTHeader::firmwareVersion{2007}; 
 
 CSCALCTHeader::CSCALCTHeader(int chamberType)
 : header2006(chamberType),
@@ -53,7 +54,7 @@ CSCALCTHeader::CSCALCTHeader(const unsigned short * buf) {
   LogTrace("CSCALCTHeader|CSCRawToDigi") << "firmware version - " << firmwareVersion;
 
   ///Now fill data 
-  switch (firmwareVersion) {
+  switch (firmwareVersion.load()) {
   case 2006:
     memcpy(&header2006, buf, header2006.sizeInWords()*2);///the header part
     buf +=header2006.sizeInWords();
@@ -139,7 +140,7 @@ std::vector<CSCALCTDigi> CSCALCTHeader::ALCTDigis() const
 { 
   std::vector<CSCALCTDigi> result;
 
-  switch (firmwareVersion) {
+  switch (firmwareVersion.load()) {
   case 2006:
     {
       result = alcts2006.ALCTDigis();

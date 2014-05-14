@@ -13,13 +13,13 @@
 #include <iostream>
 #include <string>
 #include <cmath>
-#include "math.h"
+#include <cmath>
 #include <vector>
 #include <iomanip>
 #include <set>
 #include <stdio.h>
 
-#include <Geometry/CommonDetUnit/interface/GeomDet.h>//
+#include <Geometry/CommonDetUnit/interface/GeomDet.h>
 #include <FWCore/ServiceRegistry/interface/Service.h>
 #include <FWCore/MessageLogger/interface/MessageLogger.h>
 #include <DataFormats/RPCRecHit/interface/RPCRecHit.h>
@@ -105,7 +105,7 @@ void RPCRecHitReader::beginRun(const edm::Run&, const edm::EventSetup& iSetup)
   _rollEff = roll;
 
   fOutputFile  = new TFile( fOutputFileName.c_str(), "RECREATE" );
-  fout = new fstream("RecHitOut.dat", std::ios::out);
+  fout = new std::fstream("RecHitOut.dat", std::ios::out);
 
   _mapLayer[0] = -413.675;
   _mapLayer[1] = -448.675;
@@ -126,7 +126,7 @@ void RPCRecHitReader::beginRun(const edm::Run&, const edm::EventSetup& iSetup)
     GlobalPoint cntr10, cntr11;
     for (RPCGeometry::DetContainer::const_iterator it=rpcGeo->dets().begin();
 	 it<rpcGeo->dets().end();it++){
-      RPCRoll* ir = dynamic_cast<RPCRoll*>(*it);
+      RPCRoll const* ir = dynamic_cast<const RPCRoll*>(*it);
       RPCDetId id = ir->id();
       
       const Surface& bSurface = ir->surface();

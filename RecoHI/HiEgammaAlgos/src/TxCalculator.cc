@@ -15,13 +15,15 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/Utilities/interface/RandomNumberGenerator.h"
 
+#include "CLHEP/Random/RandomEngine.h"
+
 using namespace edm;
 using namespace reco;
 using namespace std;
 using namespace ROOT::Math::VectorUtil; 
 
 
-TxCalculator::TxCalculator (const edm::Event &iEvent, const edm::EventSetup &iSetup, edm::InputTag trackLabel)
+TxCalculator::TxCalculator (const edm::Event &iEvent, const edm::EventSetup &iSetup,const edm::InputTag& trackLabel)
 {
    iEvent.getByLabel(trackLabel, recCollection); 
    edm::Service<edm::RandomNumberGenerator> rng;
@@ -31,9 +33,7 @@ TxCalculator::TxCalculator (const edm::Event &iEvent, const edm::EventSetup &iSe
          "which is not present in the configuration file.  You must add the service\n"
          "in the configuration file or remove the modules that require it.";
    }
-   CLHEP::HepRandomEngine& engine = rng->getEngine();
-   theDice = new CLHEP::RandFlat(engine, 0, 1);
-   
+   theDice = &rng->getEngine(iEvent.streamID());
 } 
 
 
@@ -83,7 +83,7 @@ double TxCalculator::getMPT( double ptCut     ,   double etaCut  )
 }
 
 
-double TxCalculator::getTx(const reco::Photon cluster, double x, double threshold, double innerDR, double effRatio)
+double TxCalculator::getTx(const reco::Photon& cluster, double x, double threshold, double innerDR, double effRatio)
 {
 
    using namespace edm;
@@ -98,7 +98,7 @@ double TxCalculator::getTx(const reco::Photon cluster, double x, double threshol
    for(reco::TrackCollection::const_iterator
    	  recTrack = recCollection->begin(); recTrack!= recCollection->end(); recTrack++)
       {
-	 double diceNum = theDice->fire();
+	 double diceNum = theDice->flat();
 	 if ( (effRatio < 1 ) &&  ( diceNum > effRatio))
 	    continue;
 	 
@@ -121,7 +121,7 @@ double TxCalculator::getTx(const reco::Photon cluster, double x, double threshol
 
 
 
-double TxCalculator::getCTx(const reco::Photon cluster, double x, double threshold, double innerDR,double effRatio)
+double TxCalculator::getCTx(const reco::Photon& cluster, double x, double threshold, double innerDR,double effRatio)
 {
    using namespace edm;
    using namespace reco;
@@ -135,7 +135,7 @@ double TxCalculator::getCTx(const reco::Photon cluster, double x, double thresho
    for(reco::TrackCollection::const_iterator
    	  recTrack = recCollection->begin(); recTrack!= recCollection->end(); recTrack++)
       {
-	 double diceNum = theDice->fire();
+	 double diceNum = theDice->flat();
          if ( (effRatio < 1 ) &&  ( diceNum > effRatio))
             continue;
 	 
@@ -162,7 +162,7 @@ double TxCalculator::getCTx(const reco::Photon cluster, double x, double thresho
 
 
 
-double TxCalculator::getJt(const reco::Photon cluster, double r1, double r2, double jWidth, double threshold)
+double TxCalculator::getJt(const reco::Photon& cluster, double r1, double r2, double jWidth, double threshold)
 {
 
    using namespace edm;
@@ -200,7 +200,7 @@ double TxCalculator::getJt(const reco::Photon cluster, double r1, double r2, dou
 }
 
 
-double TxCalculator::getJct(const reco::Photon cluster, double r1, double r2, double jWidth, double threshold)
+double TxCalculator::getJct(const reco::Photon& cluster, double r1, double r2, double jWidth, double threshold)
 {
 
    using namespace edm;

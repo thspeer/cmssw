@@ -3,7 +3,7 @@
    and vice versa   
 
    \author Seth Cooper, University of Minnesota
-   \version $Id: EcalTimeOffsetXMLTranslator.h,v 1.1 2011/03/22 16:13:04 argiro Exp $
+   \version $Id: $
    \date 21 Mar 2011
 */
 
@@ -14,10 +14,6 @@
 #include "CondTools/Ecal/interface/XercesString.h"
 #include "CondTools/Ecal/interface/EcalCondHeader.h"
 #include <string>
-
-
-static const char CVSId__EcalTimeOffsetXMLTranslator[] = 
-"$Id: EcalTimeOffsetXMLTranslator.h,v 1.1 2011/03/22 16:13:04 argiro Exp $";
 
 
 class EcalTimeOffsetConstant;

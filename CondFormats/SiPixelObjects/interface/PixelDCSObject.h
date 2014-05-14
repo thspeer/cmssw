@@ -8,10 +8,12 @@
  *  Value type is specified by the template parameter Type.
  *  Define a new struct for non-POD value type.
  *
- *  $Date: 2009/12/03 13:30:07 $
- *  $Revision: 1.5 $
+ *  $Date: 2008/11/30 19:41:08 $
+ *  $Revision: 1.2 $
  *  \author Chung Khim Lae
  */
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <string>
 #include <vector>
@@ -26,9 +28,13 @@ struct PixelDCSObject
     std::string name; // name of detector element
 
     Type value;
+
+    COND_SERIALIZABLE;
   };
 
   std::vector<Item> items;
+
+  COND_SERIALIZABLE;
 };
 
 struct CaenChannel
@@ -36,6 +42,8 @@ struct CaenChannel
   bool isOn;  // true if channel is on
   float iMon; // current value
   float vMon; // voltage value
+
+  COND_SERIALIZABLE;
 };
 
 #endif

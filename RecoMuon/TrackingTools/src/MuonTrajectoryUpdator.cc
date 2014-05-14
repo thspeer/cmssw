@@ -7,8 +7,6 @@
  *  the granularity of the updating (i.e.: segment position or 1D rechit position), which can be set via
  *  parameter set, and the propagation direction which is embeded in the propagator set in the c'tor.
  *
- *  $Date: 2010/11/18 12:02:16 $
- *  $Revision: 1.38 $
  *  \author R. Bellan - INFN Torino <riccardo.bellan@cern.ch>
  *  \author S. Lacaprara - INFN Legnaro
  */
@@ -175,11 +173,11 @@ MuonTrajectoryUpdator::update(const TrajectoryMeasurement* measurement,
 	  
 	  LogTrace(metname) << "\n\n     Kalman End" << "\n" << "\n";	      
 	  
-	  TrajectoryMeasurement updatedMeasurement = updateMeasurement( propagatedTSOS, lastUpdatedTSOS, 
+	  TrajectoryMeasurement && updatedMeasurement = updateMeasurement( propagatedTSOS, lastUpdatedTSOS, 
 									*recHit, thisChi2.second, detLayer, 
 									measurement);
 	  // FIXME: check!
-	  trajectory.push(updatedMeasurement, thisChi2.second);	
+	  trajectory.push(std::move(updatedMeasurement), thisChi2.second);	
 	  }
 	  else {
 	    LogTrace(metname) << "  Compatible RecHit with good chi2 but made with RPC when it was decided to not include it in the fit"
@@ -187,8 +185,8 @@ MuonTrajectoryUpdator::update(const TrajectoryMeasurement* measurement,
 	      
 	    MuonTransientTrackingRecHit::MuonRecHitPointer invalidRhPtr = MuonTransientTrackingRecHit::specificBuild( (*recHit)->det(), (*recHit)->hit() );
 	    invalidRhPtr->invalidateHit();
-	    TrajectoryMeasurement invalidRhMeasurement(propagatedTSOS, propagatedTSOS, invalidRhPtr.get(), thisChi2.second, detLayer);
-	    trajectory.push(invalidRhMeasurement, thisChi2.second);	  	    
+	    TrajectoryMeasurement invalidRhMeasurement(propagatedTSOS, propagatedTSOS, invalidRhPtr,  thisChi2.second, detLayer);
+	    trajectory.push(std::move(invalidRhMeasurement), thisChi2.second);	  	    
 	  }
 	}
 	else {
@@ -198,8 +196,8 @@ MuonTrajectoryUpdator::update(const TrajectoryMeasurement* measurement,
 
 	    MuonTransientTrackingRecHit::MuonRecHitPointer invalidRhPtr = MuonTransientTrackingRecHit::specificBuild( (*recHit)->det(), (*recHit)->hit() );
 	    invalidRhPtr->invalidateHit();
-	    TrajectoryMeasurement invalidRhMeasurement(propagatedTSOS, propagatedTSOS, invalidRhPtr.get(), thisChi2.second, detLayer);
-	    trajectory.push(invalidRhMeasurement, thisChi2.second);	  
+	    TrajectoryMeasurement invalidRhMeasurement(propagatedTSOS, propagatedTSOS, invalidRhPtr, thisChi2.second, detLayer);
+	    trajectory.push(std::move(invalidRhMeasurement), thisChi2.second);	  
           }
 	}
       }

@@ -26,7 +26,7 @@ postValidation = cms.Sequence(
     + hcaldigisPostProcessor
     + hcalrechitsPostProcessor
     + electronPostValidationSequence + photonPostProcessor
-    + pfJetClient + pfMETClient
+    + pfJetClient + pfMETClient + pfJetResClient + pfElectronClient
     + rpcRecHitPostValidation_step
     + runTauEff + makeBetterPlots
     + bTagCollectorSequenceMCbcl
@@ -51,4 +51,3 @@ postValidation_fastsim = cms.Sequence(
 postValidation_gen = cms.Sequence(
     EventGeneratorPostProcessor
 )
-

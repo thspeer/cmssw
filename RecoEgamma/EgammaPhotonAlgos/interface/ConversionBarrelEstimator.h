@@ -4,8 +4,6 @@
  * \class ConversionBarrelEstimator
  *  Defines the search area in the barrel 
  *
- *   $Date: 2012/12/26 11:08:57 $
- *   $Revision: 1.7 $
  *   \author Nancy Marinelli, U. of Notre Dame, US
  */
 
@@ -31,7 +29,7 @@ public:
 
   // zero value indicates incompatible ts - hit pair
   virtual std::pair<bool,double> estimate( const TrajectoryStateOnSurface& ts, 
-                               const TransientTrackingRecHit& hit	) const;
+                               const TrackingRecHit& hit	) const;
   virtual bool  estimate( const TrajectoryStateOnSurface& ts, 
 				       const Plane& plane) const;
   virtual ConversionBarrelEstimator* clone() const {

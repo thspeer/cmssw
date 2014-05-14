@@ -22,7 +22,7 @@
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
-#include "DataFormats/MuonReco/interface/MuonFwd.h" 
+#include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/MuonReco/interface/MuonEnergy.h"
 #include "DataFormats/MuonReco/interface/MuonIsolation.h"
 #include "DataFormats/EgammaCandidates/interface/Electron.h"
@@ -32,6 +32,9 @@
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
+
+using namespace std;
+using namespace edm;
 
 class TH1F;
 class TH2F;
@@ -53,13 +56,13 @@ class TopDiLeptonDQM : public edm::EDAnalyzer {
     virtual void beginJob();
     virtual void analyze(const edm::Event&, const edm::EventSetup&);
     virtual void endJob();
-       
+
     DQMStore * dbe_;
     bool fileOutput_;
 
     std::string moduleName_;
     std::string outputFile_;
-    edm::InputTag triggerResults_;
+    edm::EDGetTokenT<TriggerResults> triggerResults_;
     std::vector<std::string> hltPaths_;
     std::vector<std::string> hltPaths_sig_;
     std::vector<std::string> hltPaths_trig_;
@@ -74,17 +77,17 @@ class TopDiLeptonDQM : public edm::EDAnalyzer {
     int N_muel;
     int N_elel;
 
-    edm::InputTag vertex_;
+    edm::EDGetTokenT<reco::VertexCollection> vertex_;
     double vertex_X_cut_;
     double vertex_Y_cut_;
     double vertex_Z_cut_;
 
-    edm::InputTag muons_;
+    edm::EDGetTokenT<reco::MuonCollection> muons_;
     double muon_pT_cut_;
     double muon_eta_cut_;
     double muon_iso_cut_;
 
-    edm::InputTag elecs_;
+    edm::EDGetTokenT<reco::GsfElectronCollection> elecs_;
     double elec_pT_cut_;
     double elec_eta_cut_;
     double elec_iso_cut_;
@@ -144,3 +147,8 @@ class TopDiLeptonDQM : public edm::EDAnalyzer {
 };
 
 #endif
+
+/* Local Variables: */
+/* show-trailing-whitespace: t */
+/* truncate-lines: t */
+/* End: */

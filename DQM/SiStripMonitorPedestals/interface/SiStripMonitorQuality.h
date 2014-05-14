@@ -16,7 +16,6 @@
 //
 // Original Author:  dutta
 //         Created:  Fri Dec  7 20:49:51 CET 2007
-// $Id: SiStripMonitorQuality.h,v 1.5 2013/01/03 18:59:36 wmtan Exp $
 //
 
 // system include files
@@ -32,6 +31,8 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
+
 #include "boost/cstdint.hpp"
 #include <iostream>
 #include <string>
@@ -42,20 +43,20 @@ class DQMStore;
 class SiStripDetCabling;
 class SiStripQuality;
 
-class SiStripMonitorQuality : public edm::EDAnalyzer {
+class SiStripMonitorQuality : public thread_unsafe::DQMEDAnalyzer {
  public:
   explicit SiStripMonitorQuality(const edm::ParameterSet&);
   ~SiStripMonitorQuality();
   
   virtual void beginJob() ;
-  virtual void beginRun(edm::Run const& run, edm::EventSetup const& eSetup);
+  void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   virtual void endRun(edm::Run const& run, edm::EventSetup const& eSetup);
   virtual void endJob() ;
   
   
  private:
-
+  
   MonitorElement* getQualityME(uint32_t idet, const TrackerTopology* tTopo);
   
   

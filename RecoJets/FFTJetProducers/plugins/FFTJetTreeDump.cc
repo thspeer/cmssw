@@ -13,7 +13,6 @@
 //
 // Original Author:  Igor Volobouev
 //         Created:  Sun Jun 20 14:32:36 CDT 2010
-// $Id: FFTJetTreeDump.cc,v 1.2 2010/12/07 00:19:43 igv Exp $
 //
 //
 
@@ -59,14 +58,15 @@ private:
     typedef fftjet::OpenDXPeakTree<long,fftjet::AbsClusteringTree> DXFormatter;
     typedef fftjet::OpenDXPeakTree<long,fftjet::SparseClusteringTree> SparseFormatter;
     typedef fftjet::Functor1<double,fftjet::Peak> PeakProperty;
+    typedef reco::PattRecoTree<Real,reco::PattRecoPeak<Real> > StoredTree;
 
     FFTJetTreeDump();
     FFTJetTreeDump(const FFTJetTreeDump&);
     FFTJetTreeDump& operator=(const FFTJetTreeDump&);
 
-    virtual void beginJob() ;
-    virtual void analyze(const edm::Event&, const edm::EventSetup&);
-    virtual void endJob() ;
+    virtual void beginJob() override ;
+    virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+    virtual void endJob() override ;
 
     template<class Real>
     void processTreeData(const edm::Event&, std::ofstream&);
@@ -83,6 +83,8 @@ private:
     ClusteringTree* clusteringTree;
 
     const edm::InputTag treeLabel;
+    edm::EDGetTokenT<StoredTree> treeToken;
+
     const std::string outputPrefix;
     const double etaMax;
     const bool storeInSinglePrecision;
@@ -158,6 +160,8 @@ FFTJetTreeDump::FFTJetTreeDump(const edm::ParameterSet& ps)
 
     // Build the clustering tree
     clusteringTree = new ClusteringTree(distanceCalc.get());
+
+    treeToken = consumes<StoredTree>(treeLabel);
 }
 
 
@@ -174,15 +178,13 @@ template<class Real>
 void FFTJetTreeDump::processTreeData(const edm::Event& iEvent,
                                      std::ofstream& file)
 {
-    typedef reco::PattRecoTree<Real,reco::PattRecoPeak<Real> > StoredTree;
-
     // Get the event number
     const unsigned long runNum = iEvent.id().run();
     const unsigned long evNum = iEvent.id().event();
 
     // Get the input
     edm::Handle<StoredTree> input;
-    iEvent.getByLabel(treeLabel, input);
+    iEvent.getByToken(treeToken, input);
 
     const double eventScale = insertCompleteEvent ? completeEventScale : 0.0;
     if (input->isSparse())

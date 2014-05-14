@@ -21,7 +21,6 @@
 //
 // Original Author:  Igor Volobouev
 //         Created:  Sun Jun 20 14:32:36 CDT 2010
-// $Id: FFTJetProducer.h,v 1.12 2012/11/21 03:13:26 igv Exp $
 //
 //
 
@@ -35,10 +34,31 @@
 #include "fftjet/AbsVectorRecombinationAlg.hh"
 #include "fftjet/SparseClusteringTree.hh"
 
+// Additional FFTJet headers
+#include "fftjet/VectorRecombinationAlgFactory.hh"
+#include "fftjet/RecombinationAlgFactory.hh"
+
+#include "DataFormats/JetReco/interface/FFTCaloJetCollection.h"
+#include "DataFormats/JetReco/interface/FFTGenJetCollection.h"
+#include "DataFormats/JetReco/interface/FFTPFJetCollection.h"
+#include "DataFormats/JetReco/interface/FFTJPTJetCollection.h"
+#include "DataFormats/JetReco/interface/FFTBasicJetCollection.h"
+#include "DataFormats/JetReco/interface/FFTTrackJetCollection.h"
+#include "DataFormats/JetReco/interface/FFTJetProducerSummary.h"
+#include "RecoJets/FFTJetProducers/interface/FFTJetParameterParser.h"
+
+#include "RecoJets/FFTJetAlgorithms/interface/clusteringTreeConverters.h"
+#include "RecoJets/FFTJetAlgorithms/interface/jetConverters.h"
+#include "RecoJets/FFTJetAlgorithms/interface/matchOneToOne.h"
+#include "RecoJets/FFTJetAlgorithms/interface/JetToPeakDistance.h"
+#include "RecoJets/FFTJetAlgorithms/interface/adjustForPileup.h"
+
+#include "DataFormats/JetReco/interface/DiscretizedEnergyFlow.h"
+
+
 // framework include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
@@ -55,8 +75,7 @@ namespace fftjetcms {
 //
 // class declaration
 //
-class FFTJetProducer : public edm::EDProducer, 
-                       public fftjetcms::FFTJetInterface
+class FFTJetProducer : public fftjetcms::FFTJetInterface
 {
 public:
     typedef fftjet::RecombinedJet<fftjetcms::VectorLike> RecoFFTJet;
@@ -91,9 +110,9 @@ public:
 
 protected:
     // Functions which should be overriden from the base
-    virtual void beginJob();
-    virtual void produce(edm::Event&, const edm::EventSetup&);
-    virtual void endJob();
+    virtual void beginJob() override;
+    virtual void produce(edm::Event&, const edm::EventSetup&) override;
+    virtual void endJob() override;
 
     // The following functions can be overriden by derived classes 
     // in order to adjust jet reconstruction algorithm behavior.
@@ -187,8 +206,8 @@ private:
 
     // The following methods do most of the work.
     // The following function tells us if the grid was rebuilt.
-    static bool loadEnergyFlow(
-        const edm::Event& iEvent, const edm::InputTag& label,
+    bool loadEnergyFlow(
+        const edm::Event& iEvent,
         std::auto_ptr<fftjet::Grid2d<fftjetcms::Real> >& flow);
     void buildGridAlg();
     void prepareRecombinationScales();
@@ -209,13 +228,12 @@ private:
     // and fills the pile-up grid. Can be overriden if
     // necessary.
     virtual void determinePileupDensityFromConfig(
-        const edm::Event& iEvent, const edm::InputTag& label,
+        const edm::Event& iEvent,
         std::auto_ptr<fftjet::Grid2d<fftjetcms::Real> >& density);
 
     // Similar function for getting pile-up shape from the database
     virtual void determinePileupDensityFromDB(
         const edm::Event& iEvent, const edm::EventSetup& iSetup,
-        const edm::InputTag& label,
         std::auto_ptr<fftjet::Grid2d<fftjetcms::Real> >& density);
 
     // The following function builds the pile-up estimate
@@ -403,6 +421,12 @@ private:
     std::vector<fftjet::AbsKernel2d*> memFcns2dVec;
     std::vector<double> doubleBuf;
     std::vector<unsigned> cellCountsVec;
+
+    // Tokens for data access
+    edm::EDGetTokenT<reco::PattRecoTree<fftjetcms::Real,reco::PattRecoPeak<fftjetcms::Real> > > input_recotree_token_;
+    edm::EDGetTokenT<std::vector<reco::FFTAnyJet<reco::GenJet> > > input_genjet_token_;
+    edm::EDGetTokenT<reco::DiscretizedEnergyFlow> input_energyflow_token_;
+    edm::EDGetTokenT<reco::FFTJetPileupSummary> input_pusummary_token_;
 };
 
 #endif // RecoJets_FFTJetProducers_FFTJetProducer_h

@@ -58,8 +58,8 @@ DeDxEstimatorProducerPixelTripplet::DeDxEstimatorProducerPixelTripplet(const edm
    MaxNrStrips         = iConfig.getUntrackedParameter<unsigned>("maxNrStrips"        ,  255);
    MinTrackHits        = iConfig.getUntrackedParameter<unsigned>("MinTrackHits"       ,  4);
 
-   m_tracksTag = iConfig.getParameter<edm::InputTag>("tracks");
-   m_trajTrackAssociationTag   = iConfig.getParameter<edm::InputTag>("trajectoryTrackAssociation");
+   m_tracksTag = consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("tracks"));
+   m_trajTrackAssociationTag   = consumes<TrajTrackAssociationCollection>(iConfig.getParameter<edm::InputTag>("trajectoryTrackAssociation"));
 
    usePixel = iConfig.getParameter<bool>("UsePixel"); 
    useStrip = iConfig.getParameter<bool>("UseStrip");
@@ -91,12 +91,12 @@ void  DeDxEstimatorProducerPixelTripplet::beginRun(edm::Run const& run, const ed
    edm::ESHandle<TrackerGeometry> tkGeom;
    iSetup.get<TrackerDigiGeometryRecord>().get( tkGeom );
 
-   vector<GeomDet*> Det = tkGeom->dets();
+   auto const & Det = tkGeom->dets();
    for(unsigned int i=0;i<Det.size();i++){
       DetId  Detid  = Det[i]->geographicalId();
 
-       StripGeomDetUnit* StripDetUnit = dynamic_cast<StripGeomDetUnit*> (Det[i]);
-       PixelGeomDetUnit* PixelDetUnit = dynamic_cast<PixelGeomDetUnit*> (Det[i]);
+       auto StripDetUnit = dynamic_cast<StripGeomDetUnit const*> (Det[i]);
+       auto PixelDetUnit = dynamic_cast<PixelGeomDetUnit const*> (Det[i]);
 
        stModInfo* MOD       = new stModInfo;
        double Thick=-1, Dist=-1, Norma=-1;
@@ -137,7 +137,7 @@ void DeDxEstimatorProducerPixelTripplet::produce(edm::Event& iEvent, const edm::
   ValueMap<DeDxData>::Filler filler(*trackDeDxEstimateAssociation);
 
   Handle<TrackCollection> trackCollHandle;
-  iEvent.getByLabel(m_trajTrackAssociationTag, trackCollHandle);
+  iEvent.getByToken(m_trajTrackAssociationTag, trackCollHandle);
   const TrackCollection trackColl = *trackCollHandle.product();
 
   size_t n =  trackColl.size();

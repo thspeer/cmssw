@@ -24,32 +24,50 @@ the worker is reset().
 #include "DataFormats/Provenance/interface/ModuleDescription.h"
 #include "FWCore/MessageLogger/interface/ExceptionMessages.h"
 #include "FWCore/Framework/src/WorkerParams.h"
-#include "FWCore/Framework/interface/Actions.h"
-#include "FWCore/Framework/interface/CurrentProcessingContext.h"
+#include "FWCore/Framework/interface/ExceptionActions.h"
+#include "FWCore/Framework/interface/ModuleContextSentry.h"
+#include "FWCore/Framework/interface/OccurrenceTraits.h"
+#include "FWCore/Framework/interface/ProductHolderIndexAndSkipBit.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/ServiceRegistry/interface/ActivityRegistry.h"
+#include "FWCore/ServiceRegistry/interface/InternalContext.h"
+#include "FWCore/ServiceRegistry/interface/ModuleCallingContext.h"
+#include "FWCore/ServiceRegistry/interface/ParentContext.h"
+#include "FWCore/ServiceRegistry/interface/PathContext.h"
+#include "FWCore/ServiceRegistry/interface/PlaceInPathContext.h"
 #include "FWCore/Utilities/interface/Exception.h"
 #include "FWCore/Utilities/interface/ConvertException.h"
 #include "FWCore/Utilities/interface/BranchType.h"
+#include "FWCore/Utilities/interface/ProductHolderIndex.h"
+#include "FWCore/Utilities/interface/StreamID.h"
 
 #include "boost/shared_ptr.hpp"
 
 #include "FWCore/Framework/src/RunStopwatch.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 
+#include <memory>
 #include <sstream>
+#include <vector>
 
 namespace edm {
   class EventPrincipal;
   class EarlyDeleteHelper;
   class ProductHolderIndexHelper;
+  class ProductHolderIndexAndSkipBit;
+  class StreamID;
+  class StreamContext;
+  
+  namespace workerhelper {
+    template< typename O> class CallImpl;
+  }
 
   class Worker {
   public:
     enum State { Ready, Pass, Fail, Exception };
     enum Types { kAnalyzer, kFilter, kProducer, kOutputModule};
 
-    Worker(ModuleDescription const& iMD, WorkerParams const& iWP);
+    Worker(ModuleDescription const& iMD, ExceptionToActionTable const* iActions);
     virtual ~Worker();
 
     Worker(Worker const&) = delete; // Disallow copying and moving
@@ -57,14 +75,16 @@ namespace edm {
 
     template <typename T>
     bool doWork(typename T::MyPrincipal&, EventSetup const& c,
-		CurrentProcessingContext const* cpc,
-                CPUTimer *const timer);
+                CPUTimer *const timer,
+                StreamID stream,
+                ParentContext const& parentContext,
+                typename T::Context const* context);
     void beginJob() ;
     void endJob();
+    void beginStream(StreamID id, StreamContext& streamContext);
+    void endStream(StreamID id, StreamContext& streamContext);
     void respondToOpenInputFile(FileBlock const& fb) {implRespondToOpenInputFile(fb);}
     void respondToCloseInputFile(FileBlock const& fb) {implRespondToCloseInputFile(fb);}
-    void respondToOpenOutputFiles(FileBlock const& fb) {implRespondToOpenOutputFiles(fb);}
-    void respondToCloseOutputFiles(FileBlock const& fb) {implRespondToCloseOutputFiles(fb);}
 
     void preForkReleaseResources() {implPreForkReleaseResources();}
     void postForkReacquireResources(unsigned int iChildIndex, unsigned int iNumberOfChildren) {implPostForkReacquireResources(iChildIndex, iNumberOfChildren);}
@@ -73,9 +93,9 @@ namespace edm {
 
     void pathFinished(EventPrincipal&);
     void postDoEvent(EventPrincipal&);
-    
-    ModuleDescription const& description() const {return md_;}
-    ModuleDescription const* descPtr() const {return &md_; }
+
+    ModuleDescription const& description() const {return *(moduleCallingContext_.moduleDescription());}
+    ModuleDescription const* descPtr() const {return moduleCallingContext_.moduleDescription(); }
     ///The signals are required to live longer than the last call to 'doWork'
     /// this was done to improve performance based on profiling
     void setActivityRegistry(boost::shared_ptr<ActivityRegistry> areg);
@@ -86,6 +106,7 @@ namespace edm {
     virtual void updateLookup(BranchType iBranchType,
                       ProductHolderIndexHelper const&) = 0;
 
+    virtual void modulesDependentUpon(std::vector<const char*>& oModuleLabels) const = 0;
     
     virtual Types moduleType() const =0;
 
@@ -109,27 +130,44 @@ namespace edm {
     int timesPass() const { return timesPassed(); } // for backward compatibility only - to be removed soon
 
   protected:
+    template<typename O> friend class workerhelper::CallImpl;
     virtual std::string workerType() const = 0;
-    virtual bool implDoBegin(EventPrincipal&, EventSetup const& c,
-			    CurrentProcessingContext const* cpc) = 0;
-    virtual bool implDoEnd(EventPrincipal&, EventSetup const& c,
-			    CurrentProcessingContext const* cpc) = 0;
+    virtual bool implDo(EventPrincipal&, EventSetup const& c,
+                        ModuleCallingContext const* mcc) = 0;
     virtual bool implDoBegin(RunPrincipal& rp, EventSetup const& c,
-			    CurrentProcessingContext const* cpc) = 0;
+                             ModuleCallingContext const* mcc) = 0;
+    virtual bool implDoStreamBegin(StreamID id, RunPrincipal& rp, EventSetup const& c,
+                                   ModuleCallingContext const* mcc) = 0;
+    virtual bool implDoStreamEnd(StreamID id, RunPrincipal& rp, EventSetup const& c,
+                                 ModuleCallingContext const* mcc) = 0;
     virtual bool implDoEnd(RunPrincipal& rp, EventSetup const& c,
-			    CurrentProcessingContext const* cpc) = 0;
+                           ModuleCallingContext const* mcc) = 0;
     virtual bool implDoBegin(LuminosityBlockPrincipal& lbp, EventSetup const& c,
-			    CurrentProcessingContext const* cpc) = 0;
+                             ModuleCallingContext const* mcc) = 0;
+    virtual bool implDoStreamBegin(StreamID id, LuminosityBlockPrincipal& lbp, EventSetup const& c,
+                                   ModuleCallingContext const* mcc) = 0;
+    virtual bool implDoStreamEnd(StreamID id, LuminosityBlockPrincipal& lbp, EventSetup const& c,
+                                 ModuleCallingContext const* mcc) = 0;
     virtual bool implDoEnd(LuminosityBlockPrincipal& lbp, EventSetup const& c,
-			    CurrentProcessingContext const* cpc) = 0;
+                           ModuleCallingContext const* mcc) = 0;
     virtual void implBeginJob() = 0;
     virtual void implEndJob() = 0;
+    virtual void implBeginStream(StreamID) = 0;
+    virtual void implEndStream(StreamID) = 0;
+    
+    void resetModuleDescription(ModuleDescription const*);
+    
+    ActivityRegistry* activityRegistry() { return actReg_.get(); }
 
   private:
+
+    virtual void itemsToGet(BranchType, std::vector<ProductHolderIndexAndSkipBit>&) const = 0;
+    virtual void itemsMayGet(BranchType, std::vector<ProductHolderIndexAndSkipBit>&) const = 0;
+
+    virtual std::vector<ProductHolderIndexAndSkipBit> const& itemsToGetFromEvent() const = 0;
+
     virtual void implRespondToOpenInputFile(FileBlock const& fb) = 0;
     virtual void implRespondToCloseInputFile(FileBlock const& fb) = 0;
-    virtual void implRespondToOpenOutputFiles(FileBlock const& fb) = 0;
-    virtual void implRespondToCloseOutputFiles(FileBlock const& fb) = 0;
 
     virtual void implPreForkReleaseResources() = 0;
     virtual void implPostForkReacquireResources(unsigned int iChildIndex,
@@ -143,8 +181,9 @@ namespace edm {
     int timesExcept_;
     State state_;
 
-    ModuleDescription md_;
-    ActionTable const* actions_; // memory assumed to be managed elsewhere
+    ModuleCallingContext moduleCallingContext_;
+
+    ExceptionToActionTable const* actions_; // memory assumed to be managed elsewhere
     boost::shared_ptr<cms::Exception> cached_exception_; // if state is 'exception'
 
     boost::shared_ptr<ActivityRegistry> actReg_;
@@ -156,54 +195,74 @@ namespace edm {
     template <typename T>
     class ModuleSignalSentry {
     public:
-      ModuleSignalSentry(ActivityRegistry *a, ModuleDescription& md) : a_(a), md_(&md) {
-	if(a_) T::preModuleSignal(a_, md_);
+      ModuleSignalSentry(ActivityRegistry *a,
+                         typename T::Context const* context,
+                         ModuleCallingContext const* moduleCallingContext) :
+        a_(a), context_(context), moduleCallingContext_(moduleCallingContext) {
+
+	if(a_) T::preModuleSignal(a_, context, moduleCallingContext_);
       }
+
       ~ModuleSignalSentry() {
-	if(a_) T::postModuleSignal(a_, md_);
+	if(a_) T::postModuleSignal(a_, context_, moduleCallingContext_);
       }
+
     private:
       ActivityRegistry* a_;
-      ModuleDescription* md_;
+      typename T::Context const* context_;
+      ModuleCallingContext const* moduleCallingContext_;
     };
 
     template <typename T>
     void exceptionContext(typename T::MyPrincipal const& principal,
                           cms::Exception& ex,
-                          CurrentProcessingContext const* cpc) {
+                          ModuleCallingContext const* mcc) {
+
+      ModuleCallingContext const* imcc = mcc;
+      while(imcc->type() == ParentContext::Type::kModule) {
+	std::ostringstream iost;
+        iost << "Calling method for unscheduled module " 
+             << imcc->moduleDescription()->moduleName() << "/'"
+             << imcc->moduleDescription()->moduleLabel() << "'";
+        ex.addContext(iost.str());
+        imcc = imcc->moduleCallingContext();
+      }
+      if(imcc->type() == ParentContext::Type::kInternal) {
+        std::ostringstream iost;
+        iost << "Calling method for unscheduled module " 
+             << imcc->moduleDescription()->moduleName() << "/'"
+             << imcc->moduleDescription()->moduleLabel() << "' (probably inside some kind of mixing module)";
+        ex.addContext(iost.str());
+        imcc = imcc->internalContext()->moduleCallingContext();
+      }
+      while(imcc->type() == ParentContext::Type::kModule) {
+        std::ostringstream iost;
+        iost << "Calling method for unscheduled module " 
+             << imcc->moduleDescription()->moduleName() << "/'"
+             << imcc->moduleDescription()->moduleLabel() << "'";
+        ex.addContext(iost.str());
+        imcc = imcc->moduleCallingContext();
+      }
       std::ostringstream ost;
       if (T::isEvent_) {
         ost << "Calling event method";
       }
-      else if (T::begin_ && T::branchType_ == InRun) {
-        ost << "Calling beginRun";
-      }
-      else if (T::begin_ && T::branchType_ == InLumi) {
-        ost << "Calling beginLuminosityBlock";
-      }
-      else if (!T::begin_ && T::branchType_ == InLumi) {
-        ost << "Calling endLuminosityBlock";
-      }
-      else if (!T::begin_ && T::branchType_ == InRun) {
-        ost << "Calling endRun";
-      }
       else {
-        // It should be impossible to get here ...
+        // It should be impossible to get here, because
+        // this function only gets called when the IgnoreCompletely
+        // exception behavior is active, which can only be true
+        // for events.
         ost << "Calling unknown function";
       }
-      if (cpc && cpc->moduleDescription()) {
-        ost << " for module " << cpc->moduleDescription()->moduleName() << "/'" << cpc->moduleDescription()->moduleLabel() << "'";
-      }
+      ost << " for module " << imcc->moduleDescription()->moduleName() << "/'" << imcc->moduleDescription()->moduleLabel() << "'";
       ex.addContext(ost.str());
-      ost.str("");
-      ost << "Running path '";
-      if (cpc && cpc->pathName()) {
-        ost << *cpc->pathName() << "'";
+
+      if (imcc->type() == ParentContext::Type::kPlaceInPath) {
+        ost.str("");
+        ost << "Running path '";
+        ost << imcc->placeInPathContext()->pathContext()->pathName() << "'";
+        ex.addContext(ost.str());
       }
-      else {
-        ost << "unknown'";
-      }
-      ex.addContext(ost.str());
       ost.str("");
       ost << "Processing ";
       ost << principal.id();
@@ -211,11 +270,136 @@ namespace edm {
     }
   }
 
+  namespace workerhelper {
+    template<>
+    class CallImpl<OccurrenceTraits<EventPrincipal, BranchActionStreamBegin>> {
+    public:
+      typedef OccurrenceTraits<EventPrincipal, BranchActionStreamBegin> Arg;
+      static bool call(Worker* iWorker, StreamID,
+                       EventPrincipal& ep, EventSetup const& es,
+                       ActivityRegistry* actReg,
+                       ModuleCallingContext const* mcc,
+                       Arg::Context const* context) {
+        //Signal sentry is handled by the module
+        return iWorker->implDo(ep,es, mcc);
+      }
+    };
+    
+    template<>
+    class CallImpl<OccurrenceTraits<RunPrincipal, BranchActionGlobalBegin>>{
+    public:
+      typedef OccurrenceTraits<RunPrincipal, BranchActionGlobalBegin> Arg;
+      static bool call(Worker* iWorker,StreamID,
+                       RunPrincipal& ep, EventSetup const& es,
+                       ActivityRegistry* actReg,
+                       ModuleCallingContext const* mcc,
+                       Arg::Context const* context) {
+        ModuleSignalSentry<Arg> cpp(actReg, context, mcc);
+        return iWorker->implDoBegin(ep,es, mcc);
+      }
+    };
+    template<>
+    class CallImpl<OccurrenceTraits<RunPrincipal, BranchActionStreamBegin>>{
+    public:
+      typedef OccurrenceTraits<RunPrincipal, BranchActionStreamBegin> Arg;
+      static bool call(Worker* iWorker,StreamID id,
+                       RunPrincipal& ep, EventSetup const& es,
+                       ActivityRegistry* actReg,
+                       ModuleCallingContext const* mcc,
+                       Arg::Context const* context) {
+        ModuleSignalSentry<Arg> cpp(actReg, context, mcc);
+        return iWorker->implDoStreamBegin(id,ep,es, mcc);
+      }
+    };
+    template<>
+    class CallImpl<OccurrenceTraits<RunPrincipal, BranchActionGlobalEnd>>{
+    public:
+      typedef OccurrenceTraits<RunPrincipal, BranchActionGlobalEnd> Arg;
+      static bool call(Worker* iWorker,StreamID,
+                       RunPrincipal& ep, EventSetup const& es,
+                       ActivityRegistry* actReg,
+                       ModuleCallingContext const* mcc,
+                       Arg::Context const* context) {
+        ModuleSignalSentry<Arg> cpp(actReg, context, mcc);
+        return iWorker->implDoEnd(ep,es, mcc);
+      }
+    };
+    template<>
+    class CallImpl<OccurrenceTraits<RunPrincipal, BranchActionStreamEnd>>{
+    public:
+      typedef OccurrenceTraits<RunPrincipal, BranchActionStreamEnd> Arg;
+      static bool call(Worker* iWorker,StreamID id,
+                       RunPrincipal& ep, EventSetup const& es,
+                       ActivityRegistry* actReg,
+                       ModuleCallingContext const* mcc,
+                       Arg::Context const* context) {
+        ModuleSignalSentry<Arg> cpp(actReg, context, mcc);
+        return iWorker->implDoStreamEnd(id,ep,es, mcc);
+      }
+    };
+    
+    template<>
+    class CallImpl<OccurrenceTraits<LuminosityBlockPrincipal, BranchActionGlobalBegin>>{
+    public:
+      typedef OccurrenceTraits<LuminosityBlockPrincipal, BranchActionGlobalBegin> Arg;
+      static bool call(Worker* iWorker,StreamID,
+                       LuminosityBlockPrincipal& ep, EventSetup const& es,
+                       ActivityRegistry* actReg,
+                       ModuleCallingContext const* mcc,
+                       Arg::Context const* context) {
+        ModuleSignalSentry<Arg> cpp(actReg, context, mcc);
+        return iWorker->implDoBegin(ep,es, mcc);
+      }
+    };
+    template<>
+    class CallImpl<OccurrenceTraits<LuminosityBlockPrincipal, BranchActionStreamBegin>>{
+    public:
+      typedef OccurrenceTraits<LuminosityBlockPrincipal, BranchActionStreamBegin> Arg;
+      static bool call(Worker* iWorker,StreamID id,
+                       LuminosityBlockPrincipal& ep, EventSetup const& es,
+                       ActivityRegistry* actReg,
+                       ModuleCallingContext const* mcc,
+                       Arg::Context const* context) {
+        ModuleSignalSentry<Arg> cpp(actReg, context, mcc);
+        return iWorker->implDoStreamBegin(id,ep,es, mcc);
+      }
+    };
+    
+    template<>
+    class CallImpl<OccurrenceTraits<LuminosityBlockPrincipal, BranchActionGlobalEnd>>{
+    public:
+      typedef OccurrenceTraits<LuminosityBlockPrincipal, BranchActionGlobalEnd> Arg;
+      static bool call(Worker* iWorker,StreamID,
+                       LuminosityBlockPrincipal& ep, EventSetup const& es,
+                       ActivityRegistry* actReg,
+                       ModuleCallingContext const* mcc,
+                       Arg::Context const* context) {
+        ModuleSignalSentry<Arg> cpp(actReg, context, mcc);
+        return iWorker->implDoEnd(ep,es, mcc);
+      }
+    };
+    template<>
+    class CallImpl<OccurrenceTraits<LuminosityBlockPrincipal, BranchActionStreamEnd>>{
+    public:
+      typedef OccurrenceTraits<LuminosityBlockPrincipal, BranchActionStreamEnd> Arg;
+      static bool call(Worker* iWorker,StreamID id,
+                       LuminosityBlockPrincipal& ep, EventSetup const& es,
+                       ActivityRegistry* actReg,
+                       ModuleCallingContext const* mcc,
+                       Arg::Context const* context) {
+        ModuleSignalSentry<Arg> cpp(actReg, context, mcc);
+        return iWorker->implDoStreamEnd(id,ep,es, mcc);
+      }
+    };
+  }
+  
   template <typename T>
   bool Worker::doWork(typename T::MyPrincipal& ep, 
-                       EventSetup const& es,
-                       CurrentProcessingContext const* cpc,
-                       CPUTimer* const iTimer) {
+                      EventSetup const& es,
+                      CPUTimer* const iTimer,
+                      StreamID streamID,
+                      ParentContext const& parentContext,
+                      typename T::Context const* context) {
 
     // A RunStopwatch, but only if we are processing an event.
     RunDualStopwatches stopwatch(T::isEvent_ ? stopwatch_ : RunStopwatch::StopwatchPointer(),
@@ -235,32 +419,36 @@ namespace edm {
       }
     }
 
-    if (T::isEvent_) ++timesRun_;
+    ModuleContextSentry moduleContextSentry(&moduleCallingContext_, parentContext);
 
     try {
-      try {
+      convertException::wrap([&]() {
 
-	ModuleSignalSentry<T> cpp(actReg_.get(), md_);
-	if (T::begin_) {
-	  rc = implDoBegin(ep, es, cpc);
-	} else {
-	  rc = implDoEnd(ep, es, cpc);
+        if (T::isEvent_) {
+          ++timesRun_;
+
+          // Prefetch products the module declares it consumes (not including the products it maybe consumes)
+          std::vector<ProductHolderIndexAndSkipBit> const& items = itemsToGetFromEvent();
+          for(auto const& item : items) {
+            ProductHolderIndex productHolderIndex = item.productHolderIndex();
+            bool skipCurrentProcess = item.skipCurrentProcess();
+            if(productHolderIndex != ProductHolderIndexAmbiguous) {
+              ep.prefetch(productHolderIndex, skipCurrentProcess, &moduleCallingContext_);
+            }
+          }
         }
 
-	if (rc) {
-	  state_ = Pass;
-	  if (T::isEvent_) ++timesPassed_;
-	} else {
-	  state_ = Fail;
-	  if (T::isEvent_) ++timesFailed_;
-	}
-      }
-      catch (cms::Exception& e) { throw; }
-      catch(std::bad_alloc& bda) { convertException::badAllocToEDM(); }
-      catch (std::exception& e) { convertException::stdToEDM(e); }
-      catch(std::string& s) { convertException::stringToEDM(s); }
-      catch(char const* c) { convertException::charPtrToEDM(c); }
-      catch (...) { convertException::unknownToEDM(); }
+        moduleCallingContext_.setState(ModuleCallingContext::State::kRunning);
+        rc = workerhelper::CallImpl<T>::call(this,streamID,ep,es, actReg_.get(), &moduleCallingContext_, context);
+
+        if (rc) {
+          state_ = Pass;
+          if (T::isEvent_) ++timesPassed_;
+        } else {
+          state_ = Fail;
+          if (T::isEvent_) ++timesFailed_;
+        }
+      });
     }
     catch(cms::Exception& ex) {
 
@@ -270,21 +458,24 @@ namespace edm {
 
       // Get the action corresponding to this exception.  However, if processing
       // something other than an event (e.g. run, lumi) always rethrow.
-      actions::ActionCodes action = (T::isEvent_ ? actions_->find(ex.category()) : actions::Rethrow);
+      exception_actions::ActionCodes action = (T::isEvent_ ? actions_->find(ex.category()) : exception_actions::Rethrow);
 
       // If we are processing an endpath and the module was scheduled, treat SkipEvent or FailPath
       // as IgnoreCompletely, so any subsequent OutputModules are still run.
       // For unscheduled modules only treat FailPath as IgnoreCompletely but still allow SkipEvent to throw
-      if (cpc && cpc->isEndPath()) {
-        if ((action == actions::SkipEvent && !cpc->isUnscheduled()) ||
-             action == actions::FailPath) action = actions::IgnoreCompletely;
+      ModuleCallingContext const* top_mcc = moduleCallingContext_.getTopModuleCallingContext();
+      if(top_mcc->type() == ParentContext::Type::kPlaceInPath &&
+         top_mcc->placeInPathContext()->pathContext()->isEndPath()) {
+
+          if ((action == exception_actions::SkipEvent && moduleCallingContext_.type() == ParentContext::Type::kPlaceInPath) ||
+               action == exception_actions::FailPath) action = exception_actions::IgnoreCompletely;
       }
       switch(action) {
-        case actions::IgnoreCompletely:
+        case exception_actions::IgnoreCompletely:
           rc = true;
           ++timesPassed_;
 	  state_ = Pass;
-          exceptionContext<T>(ep, ex, cpc);
+          exceptionContext<T>(ep, ex, &moduleCallingContext_);
           edm::printCmsExceptionWarning("IgnoreCompletely", ex);
 	  break;
         default:

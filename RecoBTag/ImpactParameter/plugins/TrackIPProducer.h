@@ -6,12 +6,12 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
 class HistogramProbabilityEstimator;
 
-class TrackIPProducer : public edm::EDProducer {
+class TrackIPProducer : public edm::stream::EDProducer<> {
    public:
       explicit TrackIPProducer(const edm::ParameterSet&);
       ~TrackIPProducer();
@@ -22,8 +22,9 @@ class TrackIPProducer : public edm::EDProducer {
     void  checkEventSetup(const edm::EventSetup & iSetup);
 
     const edm::ParameterSet& m_config;
-    edm::InputTag m_associator;
-    edm::InputTag m_primaryVertexProducer;
+    edm::EDGetTokenT<reco::VertexCollection> token_primaryVertex;
+    edm::EDGetTokenT<reco::JetTracksAssociationCollection> token_associator;
+
     bool m_computeProbabilities;
     bool m_computeGhostTrack;
     double m_ghostTrackPriorDeltaR;

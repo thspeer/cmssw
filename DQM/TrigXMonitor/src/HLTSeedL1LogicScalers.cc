@@ -1,5 +1,4 @@
 
-// $Id: HLTSeedL1LogicScalers.cc,v 1.9 2010/10/13 13:47:23 eulisse Exp $
 
 #include "DQM/TrigXMonitor/interface/HLTSeedL1LogicScalers.h"
 
@@ -306,27 +305,5 @@ bool HLTSeedL1LogicScalers::analyzeL1GtUtils(const edm::Event& iEvent, const edm
 bool HLTSeedL1LogicScalers::analyzeL1GtRecord(const edm::Event& iEvent, const edm::EventSetup& evSetup, string l1AlgoName)
 {
   LogTrace("HLTSeedL1LogicScalers") << "analyzeL1GtRecord.. " << endl;
-/*
-  edm::Handle<L1GtTriggerMenu> menuRcd;
-  evSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
-  const L1GtTriggerMenu* menu = menuRcd.product();
-
-  edm::Handle< L1GlobalTriggerReadoutRecord > gtReadoutRecord;
-  iEvent.getByLabel( edm::InputTag("gtDigis"), gtReadoutRecord);
-  const  DecisionWord& gtDecisionWordBeforeMask = = gtReadoutRecord->decisionWord();
-
-  // test if the algorithm name is in the menu
-  
-  const AlgorithmMap& algorithmMap = menu->gtAlgorithmMap();
-  CItAlgo itAlgo = algorithmMap.find(l1AlgoName);
-  if (itAlgo != algorithmAliasMap.end()) {
-      bool l1Result = menu->gtAlgorithmResult( l1AlgoName, gtDecisionWordBeforeMask);
-      return l1Result;
-  } else {
-      // algorithm not in the L1 menu - do whatever needed
-      return false;
-  }
-*/
- return false;
-
+  return false;
 }

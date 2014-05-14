@@ -7,9 +7,11 @@
  *
  * \author Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
  *
- * \version $Id: BeamSpotObjects.h,v 1.10 2009/03/26 19:43:30 yumiceva Exp $
+ * \version $Id: BeamSpotObjects.h,v 1.9 2009/03/26 18:39:42 yumiceva Exp $
  *
  */
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <math.h>
 #include <sstream>
@@ -129,6 +131,8 @@ class BeamSpotObjects {
 	double emittanceY_;
 	double betaStar_;
 	
+
+  COND_SERIALIZABLE;
 };
 
 std::ostream& operator<< ( std::ostream&, BeamSpotObjects beam );

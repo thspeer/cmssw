@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------
 ----------------------------------------------------------------------*/
 
-#include <errno.h>
+#include <cerrno>
 
 #include "DataFormats/Provenance/interface/LuminosityBlockAuxiliary.h"
 #include "DataFormats/Provenance/interface/RunAuxiliary.h"
@@ -56,17 +56,15 @@ namespace edm {
     return boost::shared_ptr<LuminosityBlockAuxiliary>(new LuminosityBlockAuxiliary(eventID_.run(), eventID_.luminosityBlock(), ts, Timestamp::invalidTimestamp()));
   }
 
-  EventPrincipal *
+  void
   ProducerSourceBase::readEvent_(EventPrincipal& eventPrincipal) {
     assert(eventCached() || processingMode() != RunsLumisAndEvents);
-    EventSourceSentry sentry(*this);
     EventAuxiliary aux(eventID_, processGUID(), Timestamp(presentTime_), isRealData_, eType_);
-    eventPrincipal.fillEventPrincipal(aux);
-    Event e(eventPrincipal, moduleDescription());
+    eventPrincipal.fillEventPrincipal(aux, processHistoryRegistry());
+    Event e(eventPrincipal, moduleDescription(), nullptr);
     produce(e);
     e.commit_();
     resetEventCached();
-    return &eventPrincipal;
   }
 
   void
@@ -150,7 +148,7 @@ namespace edm {
     }
     bool newFile = (fileIndex() > index);
     setEventCached();
-    if(eventID_.run() != oldEventID.run()) {
+    if(newRun() || eventID_.run() != oldEventID.run()) {
       // New Run
       setNewRun();
       setNewLumi();
@@ -163,7 +161,7 @@ namespace edm {
       return newFile ? IsFile : IsLumi;
     }
     // Same Run
-    if (eventID_.luminosityBlock() != oldEventID.luminosityBlock()) {
+    if (newLumi() || eventID_.luminosityBlock() != oldEventID.luminosityBlock()) {
       // New Lumi
       setNewLumi();
       return newFile ? IsFile : IsLumi;

@@ -1,7 +1,6 @@
 /*
  * \file EcalTBMCInfoProducer.cc
  *
- * $Id: EcalTBMCInfoProducer.cc,v 1.12 2009/04/03 09:38:15 fabiocos Exp $
  *
 */
 
@@ -16,8 +15,8 @@
 using namespace std;
 using namespace cms;
 
-EcalTBMCInfoProducer::EcalTBMCInfoProducer(const edm::ParameterSet& ps) : flatDistribution_(0) {
-  
+EcalTBMCInfoProducer::EcalTBMCInfoProducer(const edm::ParameterSet& ps) {
+
   produces<PEcalTBInfo>();
 
   edm::FileInPath CrystalMapFile = ps.getParameter<edm::FileInPath>("CrystalMapFile");
@@ -89,26 +88,23 @@ EcalTBMCInfoProducer::EcalTBMCInfoProducer(const edm::ParameterSet& ps) : flatDi
 
   // random number
   edm::Service<edm::RandomNumberGenerator> rng;
-   if ( ! rng.isAvailable()) {
+  if ( ! rng.isAvailable()) {
      throw cms::Exception("Configuration")
        << "EcalTBMCInfoProducer requires the RandomNumberGeneratorService\n"
           "which is not present in the configuration file.  You must add the service\n"
           "in the configuration file or remove the modules that require it.";
    }
-   CLHEP::HepRandomEngine& engine = rng->getEngine();
-   flatDistribution_ = new CLHEP::RandFlat(engine);
-
 }
  
 EcalTBMCInfoProducer::~EcalTBMCInfoProducer() {
-
-  delete flatDistribution_;
   delete theTestMap;
-  
 }
 
  void EcalTBMCInfoProducer::produce(edm::Event & event, const edm::EventSetup& eventSetup)
 {
+  edm::Service<edm::RandomNumberGenerator> rng;
+  CLHEP::HepRandomEngine* engine = &rng->getEngine(event.streamID());
+
   auto_ptr<PEcalTBInfo> product(new PEcalTBInfo());
 
   // Fill the run information
@@ -151,7 +147,7 @@ EcalTBMCInfoProducer::~EcalTBMCInfoProducer() {
   product->setBeamPosition(partXhodo, partYhodo);
 
   // Asynchronous phase shift
-  double thisPhaseShift = flatDistribution_->fire();
+  double thisPhaseShift = CLHEP::RandFlat::shoot(engine);
 
   product->setPhaseShift(thisPhaseShift);
   LogDebug("EcalTBInfo") << "Asynchronous Phaseshift = " << thisPhaseShift;
@@ -160,5 +156,3 @@ EcalTBMCInfoProducer::~EcalTBMCInfoProducer() {
 
   event.put(product);
 }
-
-

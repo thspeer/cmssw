@@ -14,7 +14,7 @@
 // Original class TrackerGeometryIntoNtuples.cc 
 // Original Author:  Nhan Tran
 //         Created:  Mon Jul 16m 16:56:34 CDT 2007
-// $Id: TrackerGeometryIntoNtuples.cc,v 1.15 2013/01/07 20:46:23 wmtan Exp $
+// $Id: TrackerGeometryIntoNtuples.cc,v 1.14 2012/12/02 22:13:12 devdatta Exp $
 //
 // 26 May 2012 
 // ***********
@@ -76,7 +76,7 @@ public:
 	
 	
 private:
-	virtual void analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup);
+	virtual void analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup) override;
 	
 	void addBranches();
 	
@@ -244,10 +244,10 @@ void TrackerGeometryIntoNtuples::analyze(const edm::Event& iEvent, const edm::Ev
 	}
 
 	// Get GeomDetUnits for the current tracker 
-	std::vector<GeomDetUnit*>detUnits =  theCurTracker->detUnits() ; 
+	auto const & detUnits =  theCurTracker->detUnits() ; 
 	int detUnit(0) ;
 	//\\for (unsigned int iDet = 0; iDet < detUnits.size(); ++iDet) {
-	for (std::vector<GeomDetUnit*>::const_iterator iunit = detUnits.begin(); iunit != detUnits.end(); ++iunit) { 
+	for (auto iunit = detUnits.begin(); iunit != detUnits.end(); ++iunit) { 
 
 	  DetId detid = (*iunit)->geographicalId(); 
 	  m_rawid = detid.rawId() ; 
@@ -255,7 +255,7 @@ void TrackerGeometryIntoNtuples::analyze(const edm::Event& iEvent, const edm::Ev
 
           ++detUnit ; 		 
           //\\GeomDetUnit* geomDetUnit = detUnits.at(iDet) ; 
-          GeomDetUnit* geomDetUnit = *iunit ; 
+          auto geomDetUnit = *iunit ; 
 
 	  // Get SurfaceDeformation for this GeomDetUnit 
 	  if ( geomDetUnit->surfaceDeformation() ) {

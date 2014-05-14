@@ -1,5 +1,4 @@
 //
-// $Id: Electron.h,v 1.46 2013/04/11 22:42:32 beaudett Exp $
 //
 
 #ifndef DataFormats_PatCandidates_Electron_h
@@ -16,7 +15,6 @@
    https://hypernews.cern.ch/HyperNews/CMS/get/physTools.html
 
   \author   Steven Lowette, Giovanni Petrucciani, Frederic Ronga
-  \version  $Id: Electron.h,v 1.46 2013/04/11 22:42:32 beaudett Exp $
 */
 
 
@@ -31,6 +29,8 @@
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "DataFormats/Common/interface/AtomicPtrCache.h"
 
 // Define typedefs for convenience
 namespace pat {
@@ -47,7 +47,7 @@ namespace reco {
 
 // Class definition
 namespace pat {
-
+  class PATElectronSlimmer;
 
   class Electron : public Lepton<reco::GsfElectron> {
 
@@ -77,7 +77,7 @@ namespace pat {
       /// override the reco::GsfElectron::superCluster method, to access the internal storage of the supercluster
       reco::SuperClusterRef superCluster() const;
       /// override the reco::GsfElectron::pflowSuperCluster method, to access the internal storage of the pflowSuperCluster
-      reco::SuperClusterRef pflowSuperCluster() const;
+      reco::SuperClusterRef parentSuperCluster() const;
       /// returns nothing. Use either gsfTrack or closestCtfTrack
       reco::TrackRef track() const;
       /// override the reco::GsfElectron::closestCtfTrackRef method, to access the internal storage of the track
@@ -169,7 +169,7 @@ namespace pat {
       void embedPFCandidate();
       /// get the number of non-null PFCandidates
       size_t numberOfSourceCandidatePtrs() const {
-        return pfCandidateRef_.isNonnull() ? 1 : 0;
+        return (pfCandidateRef_.isNonnull() ? 1 : 0) + associatedPackedFCandidateIndices_.size();
       }
       /// get the source candidate pointer with index i
       reco::CandidatePtr sourceCandidatePtr( size_type i ) const;
@@ -235,6 +235,15 @@ namespace pat {
       bool passConversionVeto() const { return passConversionVeto_; }
       void setPassConversionVeto( bool flag ) { passConversionVeto_ = flag; }
 
+      /// References to PFCandidates (e.g. to recompute isolation)
+      void setPackedPFCandidateCollection(const edm::RefProd<pat::PackedCandidateCollection> & refprod) ; 
+      /// References to PFCandidates linked to this object (e.g. for isolation vetos or masking before jet reclustering)
+      edm::RefVector<pat::PackedCandidateCollection> associatedPackedPFCandidates() const ;
+      /// References to PFCandidates linked to this object (e.g. for isolation vetos or masking before jet reclustering)
+      void setAssociatedPackedPFCandidates(const edm::RefVector<pat::PackedCandidateCollection> &refvector) ;
+
+      friend class PATElectronSlimmer;
+
     protected:
       /// init impact parameter defaults (for use in a constructor)
       void initImpactParameters();
@@ -254,6 +263,8 @@ namespace pat {
       bool embeddedPflowSuperCluster_;
       /// Place to store electron's supercluster internally
       std::vector<reco::SuperCluster> superCluster_;
+      /// Place to temporarily store the electron's supercluster after relinking the seed to it
+      edm::AtomicPtrCache<std::vector<reco::SuperCluster> > superClusterRelinked_;
       /// Place to store electron's basic clusters internally 
       std::vector<reco::CaloCluster> basicClusters_;
       /// Place to store electron's preshower clusters internally      
@@ -335,6 +346,10 @@ namespace pat {
       std::vector<double>  ip_;
       /// Impact parameter uncertainty as recommended by the tracking group
       std::vector<double>  eip_;
+
+      // ---- link to PackedPFCandidates
+      edm::RefProd<pat::PackedCandidateCollection> packedPFCandidates_;
+      std::vector<uint16_t> associatedPackedFCandidateIndices_;
   };
 }
 

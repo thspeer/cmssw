@@ -12,7 +12,6 @@
 
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/IdealGeometryRecord.h"
-#include "RecoCaloTools/MetaCollections/interface/CaloRecHitMetaCollections.h"
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -26,8 +25,8 @@
 class dRxyCalculator
 {
 public:  
-   dRxyCalculator(const edm::Event &iEvent, const edm::EventSetup &iSetup, edm::InputTag trackLabel);
-   double getDRxy(const reco::Photon cluster, double x, double y);
+   dRxyCalculator(const edm::Event &iEvent, const edm::EventSetup &iSetup, const edm::InputTag& trackLabel);
+   double getDRxy(const reco::Photon& cluster, double x, double y);
 
 private:
    double dRDistance(double eta1,double phi1,double eta2,double phi2)

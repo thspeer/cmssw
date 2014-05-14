@@ -3,27 +3,26 @@
 /** \class  TrackProducerWithSCAssociation
  **  
  **
- **  $Id: TrackProducerWithSCAssociation.h,v 1.5 2010/09/29 12:20:16 mangano Exp $ 
- **  $Date: 2010/09/29 12:20:16 $ 
- **  $Revision: 1.5 $
  **  \author Nancy Marinelli, U. of Notre Dame, US
  **   Modified version of TrackProducer by Giuseppe Cerati
  **   to have super cluster - conversion track association
  ** 
  ***/
 
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "RecoTracker/TrackProducer/interface/TrackProducerBase.h"
 #include "RecoTracker/TrackProducer/interface/TrackProducerAlgorithm.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "DataFormats/EgammaTrackReco/interface/TrackCandidateCaloClusterAssociation.h"
 
-class TrackProducerWithSCAssociation : public TrackProducerBase<reco::Track>, public edm::EDProducer {
+class TrackProducerWithSCAssociation : public TrackProducerBase<reco::Track>, public edm::stream::EDProducer<> {
 public:
 
   explicit TrackProducerWithSCAssociation(const edm::ParameterSet& iConfig);
 
 
-  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void produce(edm::Event&, const edm::EventSetup&) override;
 
   std::vector<reco::TransientTrack> getTransient(edm::Event&, const edm::EventSetup&);
 
@@ -33,7 +32,9 @@ private:
   std::string conversionTrackCandidateProducer_;
   std::string trackCSuperClusterAssociationCollection_;
   std::string trackSuperClusterAssociationCollection_;
-  edm::OrphanHandle<reco::TrackCollection> rTracks_;
+  edm::EDGetTokenT<reco::TrackCandidateCaloClusterPtrAssociation> assoc_token;
+  edm::OrphanHandle<reco::TrackCollection> rTracks_; 
+  edm::EDGetTokenT<MeasurementTrackerEvent> measurementTrkToken_;
   bool myTrajectoryInEvent_;
   bool validTrackCandidateSCAssociationInput_;
 
@@ -47,7 +48,7 @@ private:
 		std::auto_ptr<reco::TrackCollection>& selTracks,
 		std::auto_ptr<reco::TrackExtraCollection>& selTrackExtras,
 		std::auto_ptr<std::vector<Trajectory> >&   selTrajectories,
-		AlgoProductCollection& algoResults);
+		AlgoProductCollection& algoResults, TransientTrackingRecHitBuilder const * hitBuilder);
 };
 
 #endif

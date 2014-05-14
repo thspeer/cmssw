@@ -4,8 +4,6 @@
  *  Description:
  *
  *
- *  $Date: 2007/02/26 14:18:59 $
- *  $Revision: 1.6 $
  *
  *  Authors :
  *  A. Everett               Purdue University
@@ -25,10 +23,10 @@ MuonTransientTrackingRecHitBuilder::build (const TrackingRecHit* p,
 					   edm::ESHandle<GlobalTrackingGeometry> trackingGeometry) const {
   
   if ( p->geographicalId().det() == DetId::Muon ) {
-    return (MuonTransientTrackingRecHit::specificBuild(trackingGeometry->idToDet(p->geographicalId()),p).get());
+    return MuonTransientTrackingRecHit::specificBuild(trackingGeometry->idToDet(p->geographicalId()),p);
   }
   
-  return 0;
+  return RecHitPointer();
 
 }
 
@@ -41,7 +39,7 @@ MuonTransientTrackingRecHitBuilder::build(const TrackingRecHit * p) const {
 }
 
 MuonTransientTrackingRecHitBuilder::ConstRecHitContainer 
-MuonTransientTrackingRecHitBuilder::build(const trackingRecHit_iterator start, const trackingRecHit_iterator stop) const {
+MuonTransientTrackingRecHitBuilder::build(const trackingRecHit_iterator& start, const trackingRecHit_iterator& stop) const {
  
   ConstRecHitContainer result;
   for(trackingRecHit_iterator hit = start; hit != stop; ++hit )

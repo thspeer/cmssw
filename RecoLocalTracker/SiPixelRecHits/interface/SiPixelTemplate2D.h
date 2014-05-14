@@ -4,7 +4,6 @@
 //  Full 2-D templates for cluster splitting, simulated cluster reweighting, and improved cluster probability
 //
 // Created by Morris Swartz on 12/01/09.
-// Copyright 2009 __TheJohnsHopkinsUniversity__. All rights reserved.
 // V1.01 - fix qavg_ filling
 // V1.02 - Add locBz to test if FPix use is out of range
 // V1.03 - Fix edge checking on final template to increase template size and to properly truncate cluster
@@ -105,12 +104,12 @@ struct SiPixelTemplateStore2D { //!< template storage structure
 // ******************************************************************************************
 class SiPixelTemplate2D {
  public:
-  SiPixelTemplate2D() {id_current_ = -1; index_id_ = -1; cota_current_ = 0.; cotb_current_ = 0.;} //!< Default constructor
-  bool pushfile(int filenum);     // load the private store with info from the 
+  SiPixelTemplate2D(const std::vector< SiPixelTemplateStore2D > & thePixelTemp) : thePixelTemp_(thePixelTemp) {id_current_ = -1; index_id_ = -1; cota_current_ = 0.; cotb_current_ = 0.;} //!< Default constructor
+  static bool pushfile(int filenum, std::vector< SiPixelTemplateStore2D > & thePixelTemp_);     // load the private store with info from the 
                                   // file with the index (int) filenum
 								  
 #ifndef SI_PIXEL_TEMPLATE_STANDALONE
-  bool pushfile(const SiPixelTemplateDBObject& dbobject);     // load the private store with info from db
+  static bool pushfile(const SiPixelTemplateDBObject& dbobject, std::vector< SiPixelTemplateStore2D > & thePixelTemp_);     // load the private store with info from db
 #endif
   
 	
@@ -215,7 +214,7 @@ class SiPixelTemplate2D {
   
   // The actual template store is a std::vector container
 
-  std::vector< SiPixelTemplateStore2D > thePixelTemp_;
+  const std::vector< SiPixelTemplateStore2D > & thePixelTemp_;
 } ;
 
 

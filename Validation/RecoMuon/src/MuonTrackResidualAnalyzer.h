@@ -4,8 +4,6 @@
 /** \class MuonTrackResidualAnalyzer
  *  No description available.
  *
- *  $Date: 2010/02/20 21:02:36 $
- *  $Revision: 1.7 $
  *  \author R. Bellan - INFN Torino <riccardo.bellan@cern.ch>
  */ 
 
@@ -15,7 +13,7 @@
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/Common/interface/Handle.h"
 
-#include "DQMServices/Core/interface/DQMStore.h"
+
 #include "DQMServices/Core/interface/MonitorElement.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
@@ -24,15 +22,20 @@
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+
 #include "DataFormats/DetId/interface/DetId.h"
 #include "TrackingTools/PatternTools/interface/Trajectory.h"
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
+
 
 namespace edm {
   class ParameterSet;
   class Event;
   class EventSetup;
 }
-
+class DQMStore;
 class HTracks;
 class HResolution;
 
@@ -41,14 +44,14 @@ class KFUpdator;
 class MeasurementEstimator;
 class HResolution1DRecHit;
 
-class MuonTrackResidualAnalyzer: public edm::EDAnalyzer {
+class MuonTrackResidualAnalyzer: public thread_unsafe::DQMEDAnalyzer {
   
  public:
   enum EtaRange{all,barrel,endcap};
 
 public:
   /// Constructor
-  MuonTrackResidualAnalyzer(const edm::ParameterSet& pset);
+  MuonTrackResidualAnalyzer(const edm::ParameterSet& ps);
   
   /// Destructor
   virtual ~MuonTrackResidualAnalyzer();
@@ -58,7 +61,8 @@ public:
   void analyze(const edm::Event & event, const edm::EventSetup& eventSetup);
 
   virtual void beginJob() ;
-  virtual void endJob() ;
+  void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
+  virtual void endRun() ;
 
 protected:
 
@@ -80,18 +84,24 @@ private:
   
   DQMStore* dbe_;
   std::string dirName_;
-  
+  std::string subsystemname_;
+  edm::ParameterSet pset;
   std::string out;
   
   edm::InputTag theDataType;
+  edm::EDGetTokenT<edm::SimTrackContainer> theDataTypeToken;
   EtaRange theEtaRange;
   
   edm::InputTag theMuonTrackLabel;
-  edm::InputTag theSeedCollectionLabel;
   edm::InputTag cscSimHitLabel;
   edm::InputTag dtSimHitLabel;
   edm::InputTag rpcSimHitLabel;
-  
+
+  edm::EDGetTokenT<reco::TrackCollection> theMuonTrackToken;
+  edm::EDGetTokenT<std::vector<PSimHit> > theCSCSimHitToken;
+  edm::EDGetTokenT<std::vector<PSimHit> > theDTSimHitToken;
+  edm::EDGetTokenT<std::vector<PSimHit> > theRPCSimHitToken;
+
   MuonServiceProxy *theService;
   KFUpdator *theUpdator;
   MeasurementEstimator *theEstimator;

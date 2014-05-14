@@ -14,14 +14,13 @@
 //
 // Original Author:  Dave Evans
 //         Created:  Thu Apr 13 15:50:17 CEST 2006
-// $Id: EgammaSCCorrectionMaker.h,v 1.14 2012/04/19 13:13:11 argiro Exp $
 //
 //
 
 #include <memory>
 #include <string>
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -32,7 +31,11 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterFunctionBaseClass.h" 
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterFunctionFactory.h" 
 
-class EgammaSCCorrectionMaker : public edm::EDProducer {
+#include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+
+
+class EgammaSCCorrectionMaker : public edm::stream::EDProducer<> {
 	
    public:
      explicit EgammaSCCorrectionMaker(const edm::ParameterSet&);
@@ -68,8 +71,9 @@ class EgammaSCCorrectionMaker : public edm::EDProducer {
      double etThresh_;
      
      // vars to get products
-     edm::InputTag rHInputProducer_;
-     edm::InputTag sCInputProducer_;
+     edm::EDGetTokenT<EcalRecHitCollection>          rHInputProducer_;
+     edm::EDGetTokenT<reco::SuperClusterCollection>  sCInputProducer_;
+	 edm::InputTag rHTag_;
 
      reco::CaloCluster::AlgoId sCAlgo_;
      std::string outputCollection_;

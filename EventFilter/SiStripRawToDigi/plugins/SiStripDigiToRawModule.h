@@ -1,10 +1,12 @@
-// Last commit: $Id: SiStripDigiToRawModule.h,v 1.7 2010/01/13 22:42:01 wmtan Exp $
 
 #ifndef EventFilter_SiStripRawToDigi_SiStripDigiToRawModule_H
 #define EventFilter_SiStripRawToDigi_SiStripDigiToRawModule_H
 
 #include "EventFilter/SiStripRawToDigi/interface/SiStripFEDBufferComponents.h"
 #include "FWCore/Framework/interface/EDProducer.h"
+#include "DataFormats/Common/interface/DetSetVector.h"
+#include "DataFormats/SiStripDigi/interface/SiStripDigi.h"
+#include "DataFormats/SiStripDigi/interface/SiStripRawDigi.h"
 #include "boost/cstdint.hpp"
 #include <string>
 
@@ -39,6 +41,8 @@ namespace sistrip {
     bool rawdigi_;
     DigiToRaw* digiToRaw_;
     uint32_t eventCounter_;
+    edm::EDGetTokenT< edm::DetSetVector<SiStripRawDigi> > tokenRawDigi;
+    edm::EDGetTokenT< edm::DetSetVector<SiStripDigi> > tokenDigi;
 
   };
 

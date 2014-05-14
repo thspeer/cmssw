@@ -2,8 +2,6 @@
  *  
  *  Class to monitor duplication of events
  *
- *  $Date: 2012/10/16 14:49:03 $
- *  $Revision: 1.4 $
  *
  */
  
@@ -12,17 +10,18 @@
 using namespace edm;
 
 DuplicationChecker::DuplicationChecker(const edm::ParameterSet& iPSet):
-  _wmanager(iPSet),
+  wmanager_(iPSet,consumesCollector()),
   generatedCollection_(iPSet.getParameter<edm::InputTag>("hepmcCollection")),
   searchForLHE_(iPSet.getParameter<bool>("searchForLHE"))
 { 
   if (searchForLHE_) {
     lheEventProduct_ = iPSet.getParameter<edm::InputTag>("lheEventProduct");
   }
-  dbe = 0;
-  dbe = edm::Service<DQMStore>().operator->();
-
   xBjorkenHistory.clear();
+
+  if (searchForLHE_) lheEventProductToken_=consumes<LHEEventProduct>(lheEventProduct_);
+  else generatedCollectionToken_=consumes<HepMCProduct>(generatedCollection_);
+
 }
 
 DuplicationChecker::~DuplicationChecker() 
@@ -30,15 +29,12 @@ DuplicationChecker::~DuplicationChecker()
   xBjorkenHistory.clear();
 }
 
-void DuplicationChecker::beginJob()
-{
-  if(dbe){
-	///Setting the DQM top directories
-	dbe->setCurrentFolder("Generator/DuplicationCheck");
-	
-	///Booking the ME's
-	xBjorkenME = dbe->book1D("xBjorkenME", "x Bjorken ratio", 1000000, 0., 1.);
-  }
+void DuplicationChecker::bookHistograms(DQMStore::IBooker &i, edm::Run const &, edm::EventSetup const &){
+  ///Setting the DQM top directories
+  i.setCurrentFolder("Generator/DuplicationCheck");
+  
+  ///Booking the ME's
+  xBjorkenME = i.book1D("xBjorkenME", "x Bjorken ratio", 1000000, 0., 1.);
 }
 
 void DuplicationChecker::analyze(const edm::Event& iEvent,const edm::EventSetup& iSetup)
@@ -51,7 +47,7 @@ void DuplicationChecker::analyze(const edm::Event& iEvent,const edm::EventSetup&
   if (searchForLHE_) {
 
     Handle<LHEEventProduct> evt;
-    iEvent.getByLabel(lheEventProduct_, evt);
+    iEvent.getByToken(lheEventProductToken_, evt);
 
     const lhef::HEPEUP hepeup_ = evt->hepeup();
 
@@ -63,10 +59,10 @@ void DuplicationChecker::analyze(const edm::Event& iEvent,const edm::EventSetup&
   }
   else {
     //change teh weight in this case
-    weight = _wmanager.weight(iEvent);
+    weight = wmanager_.weight(iEvent);
 
     edm::Handle<HepMCProduct> evt;
-    iEvent.getByLabel(generatedCollection_, evt);
+    iEvent.getByToken(generatedCollectionToken_, evt);
 
     const HepMC::PdfInfo *pdf = evt->GetEvent()->pdf_info();    
     if(pdf){
@@ -101,6 +97,7 @@ void DuplicationChecker::findValuesAssociatedWithKey(associationMap &mMap, doubl
     theObjects.push_back(itr);
 }  
 
+/* no corresponding function available  in MultiThreaded version
 void DuplicationChecker::endJob()
 {
 
@@ -124,3 +121,4 @@ void DuplicationChecker::endJob()
   }
 
 }
+*/

@@ -1,7 +1,15 @@
 #ifndef TrackReco_Vector_h
 #define TrackReco_Vector_h
-// $Id: Vector.h,v 1.6 2006/11/20 09:06:52 llista Exp $
 #include "Rtypes.h"
+
+#include "FWCore/Utilities/interface/GCC11Compatibility.h"
+
+#ifdef CMS_NOCXX11
+#define SMATRIX_USE_COMPUTATION
+#else
+#define SMATRIX_USE_CONSTEXPR
+#endif
+
 #include "Math/SVector.h"
 
 namespace math {

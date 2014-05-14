@@ -2,7 +2,6 @@
 #include <Math/GenVector/PxPyPzE4D.h>                                                                                                   
 #include <Math/GenVector/PxPyPzM4D.h>       
 
-// $Id: Vertex.cc,v 1.20 2011/03/03 05:25:19 dlange Exp $
 using namespace reco;
 using namespace std;
 
@@ -69,6 +68,7 @@ void Vertex::removeTracks()
   refittedTracks_.clear();
 }
 
+#ifdef CMS_NOCXX11
 float Vertex::trackWeight ( const TrackBaseRef & track ) const
 {
   trackRef_iterator it = find(tracks_begin(), tracks_end(), track);
@@ -81,7 +81,7 @@ float Vertex::trackWeight ( const TrackRef & track ) const
 {
   return trackWeight(TrackBaseRef(track));
 }
-
+#endif
 
 TrackBaseRef Vertex::originalTrack(const Track & refTrack) const
 {

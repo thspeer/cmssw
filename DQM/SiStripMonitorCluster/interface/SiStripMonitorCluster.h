@@ -8,8 +8,8 @@
 */
 // Original Author:  dkcira
 //         Created:  Wed Feb  1 16:47:14 CET 2006
-// $Id: SiStripMonitorCluster.h,v 1.43 2012/11/21 08:37:11 eulisse Exp $
 #include <memory>
+#include "FWCore/Utilities/interface/EDGetToken.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -22,21 +22,30 @@
 
 #include <vector>
 
+#include "DataFormats/Common/interface/DetSetVector.h"
+#include "DataFormats/Common/interface/DetSetVectorNew.h"
+
+#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
+
 class DQMStore;
 class SiStripDetCabling;
 class SiStripCluster;
+class SiPixelCluster;
+class EventWithHistory;
+class APVCyclePhaseCollection;
 class SiStripDCSStatus;
 class GenericTriggerEventFlag;
 
-class SiStripMonitorCluster : public edm::EDAnalyzer {
+class SiStripMonitorCluster : public thread_unsafe::DQMEDAnalyzer {
  public:
   explicit SiStripMonitorCluster(const edm::ParameterSet&);
   ~SiStripMonitorCluster();
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   //virtual void beginJob() ;
   virtual void endJob() ;
-  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
-
+  void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
+  void dqmBeginRun(const edm::Run&, const edm::EventSetup&) ;
+  
   struct ModMEs{ // MEs for one single detector module
 
     MonitorElement* NumberOfClusters = 0;
@@ -98,10 +107,10 @@ class SiStripMonitorCluster : public edm::EDAnalyzer {
 
  private:
 
-  void createMEs(const edm::EventSetup& es);
-  void createLayerMEs(std::string label, int ndets);
-  void createModuleMEs(ModMEs& mod_single, uint32_t detid);
-  void createSubDetMEs(std::string label);
+  void createMEs(const edm::EventSetup& es , DQMStore::IBooker & ibooker);
+  void createLayerMEs(std::string label, int ndets , DQMStore::IBooker & ibooker );
+  void createModuleMEs(ModMEs& mod_single, uint32_t detid , DQMStore::IBooker & ibooker);
+  void createSubDetMEs(std::string label , DQMStore::IBooker & ibooker);
   int FindRegion(int nstrip,int npixel);
   void fillModuleMEs(ModMEs& mod_mes, ClusterProperties& cluster);
   void fillLayerMEs(LayerMEs&, ClusterProperties& cluster, float timeinorbit);
@@ -112,8 +121,8 @@ class SiStripMonitorCluster : public edm::EDAnalyzer {
   inline void fillME(MonitorElement* ME,float value1,float value2){if (ME!=0)ME->Fill(value1,value2);}
   inline void fillME(MonitorElement* ME,float value1,float value2,float value3){if (ME!=0)ME->Fill(value1,value2,value3);}
   inline void fillME(MonitorElement* ME,float value1,float value2,float value3,float value4){if (ME!=0)ME->Fill(value1,value2,value3,value4);}
-  MonitorElement * bookMETrend(const char*, const char*);
-  MonitorElement* bookME1D(const char* ParameterSetLabel, const char* HistoName);
+  MonitorElement * bookMETrend(const char*, const char* , DQMStore::IBooker & ibooker);
+  MonitorElement* bookME1D(const char* ParameterSetLabel, const char* HistoName , DQMStore::IBooker & ibooker);
 
  private:
   DQMStore* dqmStore_;
@@ -184,10 +193,17 @@ class SiStripMonitorCluster : public edm::EDAnalyzer {
   std::string topFolderName_;
   std::string qualityLabel_;
 
+  /*
   edm::InputTag clusterProducerStrip_;
   edm::InputTag clusterProducerPix_;
   edm::InputTag historyProducer_;  
   edm::InputTag apvPhaseProducer_;
+  */
+
+  edm::EDGetTokenT<edmNew::DetSetVector<SiStripCluster> >         clusterProducerStripToken_;
+  edm::EDGetTokenT<edmNew::DetSetVector<SiPixelCluster> >         clusterProducerPixToken_;
+  edm::EDGetTokenT<EventWithHistory>        historyProducerToken_;
+  edm::EDGetTokenT<APVCyclePhaseCollection> apvPhaseProducerToken_;
 
   bool   applyClusterQuality_;
   double sToNLowerLimit_;  

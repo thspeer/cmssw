@@ -4,17 +4,16 @@
 /** \class TrackProducer
  *  Produce Tracks from TrackCandidates
  *
- *  $Date: 2013/02/27 13:28:55 $
- *  $Revision: 1.2 $
  *  \author cerati
  */
 
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "RecoTracker/TrackProducer/interface/KfTrackProducerBase.h"
 #include "RecoTracker/TrackProducer/interface/TrackProducerAlgorithm.h"
 
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 
-class TrackProducer : public KfTrackProducerBase, public edm::EDProducer {
+class TrackProducer : public KfTrackProducerBase, public edm::stream::EDProducer<> {
 public:
 
   /// Constructor

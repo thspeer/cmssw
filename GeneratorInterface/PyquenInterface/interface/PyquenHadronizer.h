@@ -4,7 +4,6 @@
 /** \class PyquenHadronizer
  *
  * Generates PYTHIA+PYQUEN ==> HepMC events
- * $Id: PyquenHadronizer.h,v 1.14 2013/05/23 14:45:21 gartung Exp $
  *
  * Camelia Mironov                                  
  *   for the Generator Interface. March 2007
@@ -14,9 +13,16 @@
 #include "GeneratorInterface/HiGenCommon/interface/BaseHiGenEvtSelector.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+
 #include <map>
 #include <string>
+#include <vector>
+
 #include "HepMC/GenEvent.h"
+
+namespace CLHEP {
+  class HepRandomEngine;
+}
 
 namespace gen
 {
@@ -43,6 +49,12 @@ namespace gen
     const char* classname() const;
 
   private:
+
+    virtual void doSetRandomEngine(CLHEP::HepRandomEngine* v) override;
+    virtual std::vector<std::string> const& doSharedResources() const override { return theSharedResources; }
+
+    static const std::vector<std::string> theSharedResources;
+
     void	     add_heavy_ion_rec(HepMC::GenEvent *evt);
 
     bool	     pyqpythia_init(const edm::ParameterSet &pset);

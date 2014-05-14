@@ -380,6 +380,9 @@ process = customizeHLTforMC(process)
       self._fix_parameter(name = 'src',                  type = 'InputTag', value = 'hltHcalTowerNoiseCleaner', replace = 'hltTowerMakerForAll')
       self._fix_parameter(name = 'src',                  type = 'InputTag', value = 'hltIter4Tau3MuMerged', replace = 'hltIter4Merged')
 
+      # MeasurementTrackerEvent
+      self._fix_parameter(                               type = 'InputTag', value = 'hltSiStripClusters', replace = 'MeasurementTrackerEvent')
+
       # fix the definition of sequences and paths
       self.data = re.sub( r'hltMuonCSCDigis', r'cms.SequencePlaceholder( "simMuonCSCDigis" )',  self.data )
       self.data = re.sub( r'hltMuonDTDigis',  r'cms.SequencePlaceholder( "simMuonDTDigis" )',   self.data )
@@ -482,6 +485,10 @@ if 'GlobalTag' in %(dict)s:
     %(process)sGlobalTag.pfnPrefix = cms.untracked.string('%(connect)s/')
     for pset in process.GlobalTag.toGet.value():
         pset.connect = pset.connect.value().replace('frontier://FrontierProd/', '%(connect)s/')
+#   Fix for multi-run processing:
+    %(process)sGlobalTag.RefreshEachRun = cms.untracked.bool( False )
+    %(process)sGlobalTag.ReconnectEachRun = cms.untracked.bool( False )
+#
 """
     self.data += text
 
@@ -624,25 +631,25 @@ if 'hltTrigReport' in %%(dict)s:
     %%(process)shltTrigReport.HLTriggerResults                    = cms.InputTag( 'TriggerResults', '', '%(name)s' )
 
 if 'hltPreExpressCosmicsOutputSmart' in %%(dict)s:
-    %%(process)shltPreExpressCosmicsOutputSmart.TriggerResultsTag = cms.InputTag( 'TriggerResults', '', '%(name)s' )
+    %%(process)shltPreExpressCosmicsOutputSmart.hltResults = cms.InputTag( 'TriggerResults', '', '%(name)s' )
 
 if 'hltPreExpressOutputSmart' in %%(dict)s:
-    %%(process)shltPreExpressOutputSmart.TriggerResultsTag        = cms.InputTag( 'TriggerResults', '', '%(name)s' )
+    %%(process)shltPreExpressOutputSmart.hltResults        = cms.InputTag( 'TriggerResults', '', '%(name)s' )
 
 if 'hltPreDQMForHIOutputSmart' in %%(dict)s:
-    %%(process)shltPreDQMForHIOutputSmart.TriggerResultsTag       = cms.InputTag( 'TriggerResults', '', '%(name)s' )
+    %%(process)shltPreDQMForHIOutputSmart.hltResults       = cms.InputTag( 'TriggerResults', '', '%(name)s' )
 
 if 'hltPreDQMForPPOutputSmart' in %%(dict)s:
-    %%(process)shltPreDQMForPPOutputSmart.TriggerResultsTag       = cms.InputTag( 'TriggerResults', '', '%(name)s' )
+    %%(process)shltPreDQMForPPOutputSmart.hltResults       = cms.InputTag( 'TriggerResults', '', '%(name)s' )
 
 if 'hltPreHLTDQMResultsOutputSmart' in %%(dict)s:
-    %%(process)shltPreHLTDQMResultsOutputSmart.TriggerResultsTag  = cms.InputTag( 'TriggerResults', '', '%(name)s' )
+    %%(process)shltPreHLTDQMResultsOutputSmart.hltResults  = cms.InputTag( 'TriggerResults', '', '%(name)s' )
 
 if 'hltPreHLTDQMOutputSmart' in %%(dict)s:
-    %%(process)shltPreHLTDQMOutputSmart.TriggerResultsTag         = cms.InputTag( 'TriggerResults', '', '%(name)s' )
+    %%(process)shltPreHLTDQMOutputSmart.hltResults         = cms.InputTag( 'TriggerResults', '', '%(name)s' )
 
 if 'hltPreHLTMONOutputSmart' in %%(dict)s:
-    %%(process)shltPreHLTMONOutputSmart.TriggerResultsTag         = cms.InputTag( 'TriggerResults', '', '%(name)s' )
+    %%(process)shltPreHLTMONOutputSmart.hltResults         = cms.InputTag( 'TriggerResults', '', '%(name)s' )
 
 if 'hltDQMHLTScalers' in %%(dict)s:
     %%(process)shltDQMHLTScalers.triggerResults                   = cms.InputTag( 'TriggerResults', '', '%(name)s' )
@@ -959,8 +966,6 @@ if 'GlobalTag' in %%(dict)s:
       self.options['esmodules'].append( "-CaloTowerConstituentsMapBuilder" )
       self.options['esmodules'].append( "-CaloTopologyBuilder" )
 
-      self.options['services'].append( "-UpdaterService" )
-
       self.options['modules'].append( "hltL3MuonIsolations" )
       self.options['modules'].append( "hltPixelVertices" )
       self.options['modules'].append( "-hltCkfL1SeededTrackCandidates" )
@@ -1063,6 +1068,13 @@ if 'GlobalTag' in %%(dict)s:
       self.options['modules'].append( "-hltFastPixelHitsVertex" )
       self.options['modules'].append( "-hltFastPixelTracks")
       self.options['modules'].append( "-hltFastPixelTracksRecover")
+
+      self.options['modules'].append( "-hltPixelLayerPairs" )
+      self.options['modules'].append( "-hltPixelLayerTriplets" )
+      self.options['modules'].append( "-hltPixelLayerTripletsReg" )
+      self.options['modules'].append( "-hltPixelLayerTripletsHITHB" )
+      self.options['modules'].append( "-hltPixelLayerTripletsHITHE" )
+      self.options['modules'].append( "-hltMixedLayerPairs" )
       
       self.options['modules'].append( "-hltFastPrimaryVertexbbPhi")
       self.options['modules'].append( "-hltPixelTracksFastPVbbPhi")

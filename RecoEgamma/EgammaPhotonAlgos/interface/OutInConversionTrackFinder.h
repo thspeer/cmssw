@@ -3,9 +3,6 @@
 /** \class OutInConversionTrackFinder
  **  
  **
- **  $Id: OutInConversionTrackFinder.h,v 1.10 2013/05/23 17:57:02 gartung Exp $ 
- **  $Date: 2013/05/23 17:57:02 $ 
- **  $Revision: 1.10 $
  **  \author Nancy Marinelli, U. of Notre Dame, US
  **
  ***/
@@ -36,8 +33,7 @@ class OutInConversionTrackFinder : public ConversionTrackFinder {
 
   public :
     
-    OutInConversionTrackFinder( const edm::EventSetup& es,  
-				const edm::ParameterSet& config );
+    OutInConversionTrackFinder( const edm::ParameterSet& config, const BaseCkfTrajectoryBuilder *trajectoryBuilder  );
   
   
   virtual ~OutInConversionTrackFinder();

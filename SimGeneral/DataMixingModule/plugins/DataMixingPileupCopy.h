@@ -17,6 +17,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventPrincipal.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "DataFormats/Provenance/interface/ProductID.h"
 #include "DataFormats/Common/interface/Handle.h"
@@ -31,6 +32,8 @@
 
 namespace edm
 {
+  class ModuleCallingContext;
+
   class DataMixingPileupCopy
     {
     public:
@@ -38,13 +41,14 @@ namespace edm
       DataMixingPileupCopy();
 
      /** standard constructor*/
-      explicit DataMixingPileupCopy(const edm::ParameterSet& ps);
+      explicit DataMixingPileupCopy(const edm::ParameterSet& ps, edm::ConsumesCollector && iC);
 
       /**Default destructor*/
       virtual ~DataMixingPileupCopy();
 
       void putPileupInfo(edm::Event &e) ;
-      void addPileupInfo(const edm::EventPrincipal*,unsigned int EventId);
+      void addPileupInfo(const edm::EventPrincipal*,unsigned int EventId,
+                         ModuleCallingContext const* mcc);
 
 
     private:
@@ -64,6 +68,8 @@ namespace edm
       //      unsigned int eventId_; //=0 for signal, from 1-n for pileup events
 
       std::string label_;
+
+      bool FoundPlayback_;
 
     };
 }//edm

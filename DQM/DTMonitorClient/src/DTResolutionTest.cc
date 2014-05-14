@@ -3,8 +3,6 @@
 /*
  *  See header file for a description of this class.
  *
- *  $Date: 2010/01/05 10:15:46 $
- *  $Revision: 1.36 $
  *  \author G. Mila - INFN Torino
  */
 
@@ -79,8 +77,8 @@ void DTResolutionTest::beginRun(const edm::Run& run, const edm::EventSetup& cont
   for(int wheel=-2; wheel<3; wheel++){
     bookHistos(wheel);
   }
-  vector<DTChamber*> chambers = muonGeom->chambers();
-  for(vector<DTChamber*>::const_iterator chamber = chambers.begin();
+  vector<const DTChamber*> chambers = muonGeom->chambers();
+  for(vector<const DTChamber*>::const_iterator chamber = chambers.begin();
       chamber != chambers.end(); ++chamber) {
     bookHistos((*chamber)->id());
   }
@@ -196,8 +194,8 @@ void DTResolutionTest::endLuminosityBlock(LuminosityBlock const& lumiSeg, EventS
 
   edm::LogVerbatim ("resolution") <<"[DTResolutionTest]: "<<nLumiSegs<<" updates";
 
-  vector<DTChamber*>::const_iterator ch_it = muonGeom->chambers().begin();
-  vector<DTChamber*>::const_iterator ch_end = muonGeom->chambers().end();
+  vector<const DTChamber*>::const_iterator ch_it = muonGeom->chambers().begin();
+  vector<const DTChamber*>::const_iterator ch_end = muonGeom->chambers().end();
 
   edm::LogVerbatim ("resolution") << "[DTResolutionTest]: Residual Distribution tests results";
   
@@ -260,7 +258,7 @@ void DTResolutionTest::endLuminosityBlock(LuminosityBlock const& lumiSeg, EventS
 	  //prof->Fit("pol1","Q0");
 	  try {
 	    prof->Fit("pol1","Q0");
-	  } catch (...) {
+	  } catch (cms::Exception& iException) {
 	    edm::LogError ("resolution") << "[DTResolutionTest]: Exception when fitting..."
 					 << "SuperLayer : " << slID << "\n"
 					 << "                    STEP : " << parameters.getUntrackedParameter<string>("STEP", "STEP3") << "\n"		

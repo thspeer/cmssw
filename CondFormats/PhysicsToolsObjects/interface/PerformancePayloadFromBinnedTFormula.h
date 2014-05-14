@@ -1,12 +1,15 @@
 #ifndef PerformancePayloadFromBinnedTFormula_h
 #define PerformancePayloadFromBinnedTFormula_h
 
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include "CondFormats/PhysicsToolsObjects/interface/PhysicsTFormulaPayload.h"
 #include "CondFormats/PhysicsToolsObjects/interface/PerformancePayload.h"
 
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <boost/shared_ptr.hpp>
 #include "TFormula.h"
 
 #include "CondFormats/PhysicsToolsObjects/interface/BinningPointByMap.h"
@@ -15,26 +18,32 @@ class PerformancePayloadFromBinnedTFormula : public PerformancePayload {
 //  class PerformancePayloadFromBinnedTFormula : public PerformancePayload, public PhysicsPerformancePayload {
  public:
 
-  static int InvalidPos;
+  static const int InvalidPos;
 
-  PerformancePayloadFromBinnedTFormula(std::vector<PerformanceResult::ResultType> r, std::vector<BinningVariables::BinningVariablesType> b  ,  std::vector<PhysicsTFormulaPayload> in) : pls(in), results_(r), variables_(b) {}
+  PerformancePayloadFromBinnedTFormula(const std::vector<PerformanceResult::ResultType>& r, 
+				       const std::vector<BinningVariables::BinningVariablesType>& b  , 
+				       const std::vector<PhysicsTFormulaPayload>& in) : pls(in), results_(r), variables_(b) {
+    initialize();    
+  }
+
+  void initialize();
 
   PerformancePayloadFromBinnedTFormula(){}
   virtual ~PerformancePayloadFromBinnedTFormula(){
     compiledFormulas_.clear();
   }
 
-  float getResult(PerformanceResult::ResultType,BinningPointByMap) const ; // gets from the full payload
+  float getResult(PerformanceResult::ResultType,const BinningPointByMap&) const ; // gets from the full payload
   
   virtual bool isParametrizedInVariable(const BinningVariables::BinningVariablesType p)  const {
     return (limitPos(p) != PerformancePayloadFromBinnedTFormula::InvalidPos);
   }
   
-  virtual bool isInPayload(PerformanceResult::ResultType,BinningPointByMap) const ;
+  virtual bool isInPayload(PerformanceResult::ResultType,const BinningPointByMap&) const ;
   
   const std::vector<PhysicsTFormulaPayload> & formulaPayloads() const {return pls;}
   
-  void printFormula(PerformanceResult::ResultType res, BinningPointByMap) const;
+  void printFormula(PerformanceResult::ResultType res, const BinningPointByMap&) const;
   
 
  protected:
@@ -57,11 +66,10 @@ class PerformancePayloadFromBinnedTFormula : public PerformancePayload {
   }
 
 
-  bool isOk(BinningPointByMap p, unsigned int & ) const; 
+  bool isOk(const BinningPointByMap& p, unsigned int & ) const; 
 
-  TFormula * getFormula(PerformanceResult::ResultType,BinningPointByMap) const;
+  const boost::shared_ptr<TFormula>& getFormula(PerformanceResult::ResultType,const BinningPointByMap&) const;
 
-  void check() const;
   //
   // now this is a vector, since we can have different rectangular regions in the same object
   //
@@ -75,7 +83,11 @@ class PerformancePayloadFromBinnedTFormula : public PerformancePayload {
   //
   // the transient part; now a vector of vector; CHANGE CHECK!!!!!
   //
-  mutable   std::vector<std::vector<TFormula *> > compiledFormulas_;
+
+  // the compiled functions
+  std::vector<std::vector<boost::shared_ptr<TFormula> > > compiledFormulas_ COND_TRANSIENT;;
+
+ COND_SERIALIZABLE;
 };
 
 #endif

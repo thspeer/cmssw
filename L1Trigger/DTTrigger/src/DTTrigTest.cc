@@ -7,8 +7,6 @@
  *   studies
  *
  *
- *   $Date: 2009/12/22 09:36:34 $
- *   $Revision: 1.13 $
  *
  *   \author C. Battilana
  */
@@ -60,7 +58,6 @@ DTTrigTest::DTTrigTest(const ParameterSet& pset): my_trig(0) {
   my_tree = new TTree("h1","GMT",0);
   my_params = pset;
   if (my_debug) cout << "[DTTrigTest] Constructor executed!!!" << endl;
-
 
 }
 
@@ -203,7 +200,7 @@ void DTTrigTest::beginJob(){
 void DTTrigTest::beginRun(const edm::Run& iRun, const edm::EventSetup& iEventSetup) {
 
   if (!my_trig) {
-    my_trig = new DTTrig(my_params);
+    my_trig = new DTTrig(my_params, consumesCollector());
     my_trig->createTUs(iEventSetup);
     if (my_debug)
       cout << "[DTTrigTest] TU's Created" << endl;

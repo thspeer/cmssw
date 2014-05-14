@@ -6,9 +6,9 @@
  *
  *  \author Gero Flucke
  *  \date August 2012
- *  $Revision: 1.3 $
- *  $Date: 2013/05/31 12:13:40 $
- *  (last update by $Author: flucke $)
+ *  $Revision: 1.2.2.1 $
+ *  $Date: 2013/04/23 08:13:27 $
+ *  (last update by $Author: jbehr $)
  *
  *  Base class for the calibrations that are integrated
  *  into the alignment algorithms.
@@ -31,7 +31,7 @@ class AlignableMuon;
 class AlignableExtras;
 
 class TrajectoryStateOnSurface;
-class TransientTrackingRecHit;
+class TrackingRecHit;
 
 namespace edm { class EventSetup; class ParameterSet; } 
 
@@ -55,7 +55,7 @@ public:
   /// Return all derivatives for x- (Values.first) and y-measurement (Values.second),
   /// default implementation uses other derivatives(..) method,
   /// but can be overwritten in derived class for efficiency.
-  virtual std::vector<Values> derivatives(const TransientTrackingRecHit &hit,
+  virtual std::vector<Values> derivatives(const TrackingRecHit &hit,
 					  const TrajectoryStateOnSurface &tsos,
 					  const edm::EventSetup &setup,
 					  const EventInfo &eventInfo) const;
@@ -65,7 +65,7 @@ public:
   /// indices (ValuesIndexPair.second) by reference.
   /// Return value is their number.
   virtual unsigned int derivatives(std::vector<ValuesIndexPair> &outDerivInds,
-				   const TransientTrackingRecHit &hit,
+				   const TrackingRecHit &hit,
 				   const TrajectoryStateOnSurface &tsos,
 				   const edm::EventSetup &setup,
 				   const EventInfo &eventInfo) const = 0;

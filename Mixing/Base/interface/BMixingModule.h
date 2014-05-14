@@ -19,7 +19,7 @@
 
 #include "boost/shared_ptr.hpp"
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/one/EDProducer.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "Mixing/Base/interface/PileUp.h"
 #include "FWCore/Framework/interface/ESWatcher.h"
@@ -27,7 +27,7 @@
 
 
 namespace edm {
-  class BMixingModule : public edm::EDProducer {
+  class BMixingModule : public edm::one::EDProducer<edm::one::SharedResources, edm::one::WatchRuns, edm::one::WatchLuminosityBlocks> {
     public:
       /** standard constructor*/
       explicit BMixingModule(const edm::ParameterSet& ps);
@@ -46,8 +46,8 @@ namespace edm {
       virtual void beginRun(const edm::Run& r, const edm::EventSetup& setup) override;
       virtual void beginLuminosityBlock(const edm::LuminosityBlock& l, const edm::EventSetup& setup) override;
 
-      virtual void endRun(const edm::Run& r, const edm::EventSetup& setup) override {}
-      virtual void endLuminosityBlock(const edm::LuminosityBlock& l, const edm::EventSetup& setup) override {}
+      virtual void endRun(const edm::Run& r, const edm::EventSetup& setup) override;
+      virtual void endLuminosityBlock(const edm::LuminosityBlock& l, const edm::EventSetup& setup) override;
 
       // to be overloaded by dependent class
       virtual void reload(const edm::EventSetup & setup){};
@@ -59,23 +59,25 @@ namespace edm {
       // Should 'poisson' return 0 or 1 if there is no mixing? See also averageNumber above.
       bool poisson() const {return inputSources_[0] ? inputSources_[0]->poisson() : 0.0 ;}
 
-      virtual void createnewEDProduct() {std::cout << "BMixingModule::createnewEDProduct must be overwritten!" << std::endl;}
-      virtual void checkSignal(const edm::Event &e) {std::cout << "BMixingModule::checkSignal must be overwritten!" << std::endl;}
+      virtual void createnewEDProduct();
+      virtual void checkSignal(const edm::Event &e);
       virtual void addSignals(const edm::Event &e,const edm::EventSetup& c) {;}
       virtual void addPileups(const int bcr, EventPrincipal *ep, unsigned int eventId,unsigned int worker, const edm::EventSetup& c) {;}
-      virtual void setBcrOffset () {std::cout << "BMixingModule::setBcrOffset must be overwritten!" << std::endl;} //FIXME: LogWarning
-      virtual void setSourceOffset (const unsigned int s) {std::cout << "BMixingModule::setSourceOffset must be overwritten!" << std::endl;}
+      virtual void setBcrOffset ();
+      virtual void setSourceOffset (const unsigned int s);
       virtual void put(edm::Event &e,const edm::EventSetup& c) {;}
-      virtual void doPileUp(edm::Event &e, const edm::EventSetup& c) {std::cout << "BMixingModule::doPileUp must be overwritten!" << std::endl;}
+      virtual void doPileUp(edm::Event &e, const edm::EventSetup& c);
       virtual void setEventStartInfo(const unsigned int s) {;} //to be set in CF
       virtual void getEventStartInfo(edm::Event & e,const unsigned int source) {;} //to be set locally
 
   protected:
+      void setupPileUpEvent(const edm::EventSetup& setup);
       void dropUnwantedBranches(std::vector<std::string> const& wantedBranches);
-      virtual void endJob();
+      virtual void beginJob() override;
+      virtual void endJob() override;
       //      std::string type_;
       int bunchSpace_;
-      static int vertexoffset;
+      int vertexOffset_;
       bool checktof_;
       int minBunch_;
       int maxBunch_;

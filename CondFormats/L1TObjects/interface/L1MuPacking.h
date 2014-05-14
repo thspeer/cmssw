@@ -6,8 +6,8 @@
  *
 */
 //
-//   $Date: 2012/08/14 13:05:11 $
-//   $Revision: 1.5 $
+//   $Date: 2008/04/16 23:25:10 $
+//   $Revision: 1.4 $
 //
 //   Original Author :
 //   H. Sakulin            HEPHY Vienna
@@ -21,6 +21,8 @@
 #ifndef CondFormatsL1TObjects_L1MuPacking_h
 #define CondFormatsL1TObjects_L1MuPacking_h
 
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 /**
@@ -31,12 +33,16 @@
 
 class L1MuPacking {
  public:
+  virtual ~L1MuPacking() {};
+
   /// get the sign from the packed notation (0=positive, 1=negative)
   virtual int signFromPacked(unsigned packed) const = 0;
   /// get the value from the packed notation
   virtual int idxFromPacked(unsigned packed) const = 0;
   /// get the packed notation of a value 
   virtual unsigned packedFromIdx(int idx) const = 0;
+
+ COND_SERIALIZABLE;
 };
 
 /**
@@ -165,6 +171,8 @@ class L1MuPseudoSignedPacking : public L1MuPacking {
 
  private:
   unsigned int m_nbits;
+
+ COND_SERIALIZABLE;
 };
 
 #endif

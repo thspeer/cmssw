@@ -18,7 +18,9 @@ TrackProducer::TrackProducer(const edm::ParameterSet& iConfig):
   theAlgo(iConfig)
 {
   setConf(iConfig);
-  setSrc( iConfig.getParameter<edm::InputTag>( "src" ), iConfig.getParameter<edm::InputTag>( "beamSpot" ));
+  setSrc( consumes<TrackCandidateCollection>(iConfig.getParameter<edm::InputTag>( "src" )), 
+          consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>( "beamSpot" )),
+          consumes<MeasurementTrackerEvent>(iConfig.getParameter<edm::InputTag>( "MeasurementTrackerEvent") ));
   setAlias( iConfig.getParameter<std::string>( "@module_label" ) );
 
   if ( iConfig.exists("clusterRemovalInfo") ) {
@@ -77,7 +79,7 @@ void TrackProducer::produce(edm::Event& theEvent, const edm::EventSetup& setup)
   }
   
   //put everything in the event
-  putInEvt(theEvent, thePropagator.product(),theMeasTk.product(), outputRHColl, outputTColl, outputTEColl, outputTrajectoryColl, algoResults);
+  putInEvt(theEvent, thePropagator.product(),theMeasTk.product(), outputRHColl, outputTColl, outputTEColl, outputTrajectoryColl, algoResults, theBuilder.product());
   LogDebug("TrackProducer") << "end" << "\n";
 }
 

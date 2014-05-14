@@ -1,7 +1,5 @@
 #include "SimMuon/MCTruth/interface/MuonAssociatorByHits.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include "SimDataFormats/Track/interface/SimTrackContainer.h"
-#include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 #include "Geometry/CommonDetUnit/interface/GeomDetUnit.h"
 #include "DataFormats/DetId/interface/DetId.h"
 #include "DataFormats/MuonDetId/interface/MuonSubdetId.h"
@@ -18,6 +16,67 @@
 using namespace reco;
 using namespace std;
 
+MuonAssociatorByHits::MuonAssociatorByHits (const edm::ParameterSet& conf, edm::ConsumesCollector && iC) :  
+  includeZeroHitMuons(conf.getParameter<bool>("includeZeroHitMuons")),
+  acceptOneStubMatchings(conf.getParameter<bool>("acceptOneStubMatchings")),
+  UseTracker(conf.getParameter<bool>("UseTracker")),
+  UseMuon(conf.getParameter<bool>("UseMuon")),
+  AbsoluteNumberOfHits_track(conf.getParameter<bool>("AbsoluteNumberOfHits_track")),
+  NHitCut_track(conf.getParameter<unsigned int>("NHitCut_track")),
+  EfficiencyCut_track(conf.getParameter<double>("EfficiencyCut_track")),
+  PurityCut_track(conf.getParameter<double>("PurityCut_track")),
+  AbsoluteNumberOfHits_muon(conf.getParameter<bool>("AbsoluteNumberOfHits_muon")),
+  NHitCut_muon(conf.getParameter<unsigned int>("NHitCut_muon")),
+  EfficiencyCut_muon(conf.getParameter<double>("EfficiencyCut_muon")),
+  PurityCut_muon(conf.getParameter<double>("PurityCut_muon")),
+  UsePixels(conf.getParameter<bool>("UsePixels")),
+  UseGrouped(conf.getParameter<bool>("UseGrouped")),
+  UseSplitting(conf.getParameter<bool>("UseSplitting")),
+  ThreeHitTracksAreSpecial(conf.getParameter<bool>("ThreeHitTracksAreSpecial")),
+  dumpDT(conf.getParameter<bool>("dumpDT")),
+  dumpInputCollections(conf.getParameter<bool>("dumpInputCollections")),
+  crossingframe(conf.getParameter<bool>("crossingframe")),
+  simtracksTag(conf.getParameter<edm::InputTag>("simtracksTag")),
+  simtracksXFTag(conf.getParameter<edm::InputTag>("simtracksXFTag")),
+  conf_(conf)
+{
+  edm::LogVerbatim("MuonAssociatorByHits") << "constructing  MuonAssociatorByHits" << conf_.dump();
+
+  // up to the user in the other cases - print a message
+  if (UseTracker) edm::LogVerbatim("MuonAssociatorByHits")<<"\n UseTracker = TRUE  : Tracker SimHits and RecHits WILL be counted";
+  else edm::LogVerbatim("MuonAssociatorByHits") <<"\n UseTracker = FALSE : Tracker SimHits and RecHits WILL NOT be counted";
+  
+  // up to the user in the other cases - print a message
+  if (UseMuon) edm::LogVerbatim("MuonAssociatorByHits")<<" UseMuon = TRUE  : Muon SimHits and RecHits WILL be counted";
+  else edm::LogVerbatim("MuonAssociatorByHits") <<" UseMuon = FALSE : Muon SimHits and RecHits WILL NOT be counted"<<endl;
+  
+  // check consistency of the configuration when allowing zero-hit muon matching (counting invalid hits)
+  if (includeZeroHitMuons) {
+    edm::LogVerbatim("MuonAssociatorByHits") 
+      <<"\n includeZeroHitMuons = TRUE"
+      <<"\n ==> (re)set NHitCut_muon = 0, PurityCut_muon = 0, EfficiencyCut_muon = 0"<<endl;
+    NHitCut_muon = 0;
+    PurityCut_muon = 0.;
+    EfficiencyCut_muon = 0.;
+  }
+
+  if (crossingframe) {
+    simtracksXFToken_=iC.consumes<CrossingFrame<SimTrack> >(simtracksXFTag);
+    simvertsXFToken_=iC.consumes<CrossingFrame<SimVertex> >(simtracksXFTag);
+  }
+  else{
+    simtracksToken_=iC.consumes<edm::SimTrackContainer>(edm::InputTag("g4SimHits"));
+    simvertsToken_=iC.consumes<edm::SimVertexContainer>(edm::InputTag("g4SimHits"));
+  }
+
+  //hack for consumes
+  RPCHitAssociator rpctruth(conf_,std::move(iC));
+  TrackerMuonHitExtractor hitExtractor(conf_,std::move(iC)); 
+  DTHitAssociator dttruth(conf_,std::move(iC));
+  MuonTruth muonTruth(conf_,std::move(iC));
+}
+
+//compatibility constructor - argh
 MuonAssociatorByHits::MuonAssociatorByHits (const edm::ParameterSet& conf) :  
   includeZeroHitMuons(conf.getParameter<bool>("includeZeroHitMuons")),
   acceptOneStubMatchings(conf.getParameter<bool>("acceptOneStubMatchings")),
@@ -63,6 +122,8 @@ MuonAssociatorByHits::MuonAssociatorByHits (const edm::ParameterSet& conf) :
   }
 
 }
+
+
 
 MuonAssociatorByHits::~MuonAssociatorByHits()
 {
@@ -205,7 +266,7 @@ MuonAssociatorByHits::associateRecoToSimIndices(const TrackHitsCollection & tC,
 	  <<", pT = "<<ITER->momentum().Pt()<<", eta = "<<ITER->momentum().Eta()<<", phi = "<<ITER->momentum().Phi()
 	  <<"\n * "<<*ITER <<endl;
       }
-      e->getByLabel("g4SimHits",simVertexCollection);
+      e->getByLabel(simtracksTag,simVertexCollection);
       const edm::SimVertexContainer simVC = *(simVertexCollection.product());
       edm::LogVerbatim("MuonAssociatorByHits")<<"\n"<<"SimVertex collection with InputTag = "<<"g4SimHits"
 					      <<" has size = "<<simVC.size()<<endl;
@@ -652,14 +713,11 @@ MuonAssociatorByHits::associateSimToRecoIndices( const TrackHitsCollection & tC,
       int tpindex =0;
       for (TrackingParticleCollection::const_iterator trpart = tPC.begin(); trpart != tPC.end(); ++trpart, ++tpindex) {
 
-#warning "This file has been modified just to get it to compile without any regard as to whether it still functions as intended"
-#ifdef REMOVED_JUST_TO_GET_IT_TO_COMPILE__THIS_CODE_NEEDS_TO_BE_CHECKED
-	int n_tracker_simhits = 0;
-#endif
+	//	int n_tracker_simhits = 0;
 	int n_tracker_recounted_simhits = 0; 
 	int n_muon_simhits = 0; 
 	int n_global_simhits = 0; 
-	std::vector<PSimHit> tphits;
+	//	std::vector<PSimHit> tphits;
 
 	int n_tracker_selected_simhits = 0;
 	int n_muon_selected_simhits = 0; 
@@ -675,8 +733,8 @@ MuonAssociatorByHits::associateSimToRecoIndices( const TrackHitsCollection & tC,
         global_nshared = tracker_nshared + muon_nshared;	
         if (global_nshared == 0) continue; // if this TP shares no hits with the current reco::Track loop over 
 
-#warning "This file has been modified just to get it to compile without any regard as to whether it still functions as intended"
-#ifdef REMOVED_JUST_TO_GET_IT_TO_COMPILE__THIS_CODE_NEEDS_TO_BE_CHECKED
+	// This does not work with the new TP interface 
+	/*
 	for(std::vector<PSimHit>::const_iterator TPhit = trpart->pSimHit_begin(); TPhit != trpart->pSimHit_end(); TPhit++) {
           DetId dId = DetId(TPhit->detUnitId());
 	  DetId::Detector detector = dId.det();
@@ -734,9 +792,15 @@ MuonAssociatorByHits::associateSimToRecoIndices( const TrackHitsCollection & tC,
 	    
 	  }
 	}
-#endif
+	*/
+	//	n_tracker_recounted_simhits = tphits.size();
 
-	n_tracker_recounted_simhits = tphits.size();
+        // adapt to new TP interface: this gives the total number of hits in tracker
+        //   should reproduce the behaviour of UseGrouped=UseSplitting=.true.
+	n_tracker_recounted_simhits = trpart->numberOfTrackerHits();
+        //   numberOfHits() gives the total number of hits (tracker + muons)
+        n_muon_simhits = trpart->numberOfHits() - trpart->numberOfTrackerHits();
+
         // Handle the case of TrackingParticles that don't have PSimHits inside, e.g. because they were made on RECOSIM only.
         if (trpart->numberOfHits()==0) {
             // FIXME this can be made better, counting the digiSimLinks associated to this TP, but perhaps it's not worth it

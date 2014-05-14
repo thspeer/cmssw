@@ -8,7 +8,6 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Thu, 09 May 2013 20:14:06 GMT
-// $Id: producerImplementors.cc,v 1.1 2013/05/17 14:49:46 chrjones Exp $
 //
 
 // system include files
@@ -20,6 +19,7 @@
 namespace edm {
   namespace one {
     namespace impl {
+      template class SharedResourcesUser<edm::one::EDProducerBase>;
       template class RunWatcher<edm::one::EDProducerBase>;
       template class LuminosityBlockWatcher<edm::one::EDProducerBase>;
       template class BeginRunProducer<edm::one::EDProducerBase>;

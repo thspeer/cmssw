@@ -54,9 +54,9 @@ class ByMultiplicityEventFilter : public edm::EDFilter {
 
 
    private:
-      virtual void beginJob() ;
+      virtual void beginJob() override ;
       virtual bool filter(edm::Event&, const edm::EventSetup&) override;
-      virtual void endJob() ;
+      virtual void endJob() override ;
       
       // ----------member data ---------------------------
 
@@ -79,7 +79,7 @@ class ByMultiplicityEventFilter : public edm::EDFilter {
 //
 template <class T>
 ByMultiplicityEventFilter<T>::ByMultiplicityEventFilter(const edm::ParameterSet& iConfig):
-  m_multiplicities(iConfig.getParameter<edm::ParameterSet>("multiplicityConfig")),
+  m_multiplicities(iConfig.getParameter<edm::ParameterSet>("multiplicityConfig"),consumesCollector()),
   m_selector(iConfig.getParameter<std::string>("cut")),
   m_taggedMode(iConfig.getUntrackedParameter<bool>("taggedMode", false)),
   m_forcedValue(iConfig.getUntrackedParameter<bool>("forcedValue", true))

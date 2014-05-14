@@ -5,8 +5,6 @@
  *  Basic analyzer class which accesses 2D DTSegments reconstructed with both SL Phi
  *  and plot resolution comparing reconstructed and simulated quantities
  *
- *  $Date: 2010/09/13 09:49:18 $
- *  $Revision: 1.7 $
  *  \author S. Bolognesi and G. Cerminara - INFN Torino
  */
 
@@ -20,6 +18,9 @@
 #include <map>
 #include <string>
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
+
 
 namespace edm {
   class ParameterSet;
@@ -41,6 +42,9 @@ public:
 
   /// Perform the real analysis
   void analyze(const edm::Event & event, const edm::EventSetup& eventSetup);
+
+  virtual void beginRun(const edm::Run& iRun, const edm::EventSetup &setup);
+
   // Write the histos to file
   void endJob();
   void endLuminosityBlock(edm::LuminosityBlock const& lumiSeg,
@@ -60,6 +64,8 @@ private:
   //Labels to read from event
   edm::InputTag simHitLabel;
   edm::InputTag segment4DLabel;
+  edm::EDGetTokenT<edm::PSimHitContainer> simHitToken_;
+  edm::EDGetTokenT<DTRecSegment4DCollection> segment4DToken_;
   //Sigma resolution on position
   double sigmaResPos;
   //Sigma resolution on angle

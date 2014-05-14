@@ -10,6 +10,7 @@
 #include <string>
 
 // user include files
+#include "FWCore/Utilities/interface/EDGetToken.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -46,22 +47,26 @@
 #include "DQM/SiStripCommon/interface/TkHistoMap.h" 
 //***************************************************
 
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
+
 class SiStripDCSStatus;
 class GenericTriggerEventFlag;
 class TrackerTopology;
+
 //
 // class declaration
 //
 
-class SiStripMonitorTrack : public edm::EDAnalyzer {
+class SiStripMonitorTrack : public thread_unsafe::DQMEDAnalyzer {
 public:
-  typedef TransientTrackingRecHit::ConstRecHitPointer ConstRecHitPointer;
+  typedef TrackingRecHit::ConstRecHitPointer ConstRecHitPointer;
   enum RecHitType { Single=0, Matched=1, Projected=2, Null=3};
   explicit SiStripMonitorTrack(const edm::ParameterSet&);
   ~SiStripMonitorTrack();
-  virtual void beginRun(const edm::Run& run, const edm::EventSetup& c);
+  void dqmBeginRun(const edm::Run& run, const edm::EventSetup& es) ;
   virtual void endJob(void);
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
+  void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
 
 private:
   enum ClusterFlags {
@@ -69,17 +74,20 @@ private:
     OnTrack
   };
   //booking
-  void book(const TrackerTopology* tTopo);
-  void bookModMEs(const uint32_t& );
-  void bookLayerMEs(const uint32_t&, std::string&);
-  void bookSubDetMEs(std::string& name);
-  MonitorElement * bookME1D(const char*, const char*);
-  MonitorElement * bookME2D(const char*, const char*);
-  MonitorElement * bookME3D(const char*, const char*);
-  MonitorElement * bookMEProfile(const char*, const char*);
-  MonitorElement * bookMETrend(const char*, const char*);
+  void book(DQMStore::IBooker &, const TrackerTopology* tTopo);
+  void bookModMEs(DQMStore::IBooker &, const uint32_t& );
+  void bookLayerMEs(DQMStore::IBooker &, const uint32_t&, std::string&);
+  void bookSubDetMEs(DQMStore::IBooker &, std::string& name);
+  MonitorElement * bookME1D(DQMStore::IBooker & , const char*, const char*);
+  MonitorElement * bookME2D(DQMStore::IBooker & , const char*, const char*);
+  MonitorElement * bookME3D(DQMStore::IBooker & , const char*, const char*);
+  MonitorElement * bookMEProfile(DQMStore::IBooker & , const char*, const char*);
+  MonitorElement * bookMETrend(DQMStore::IBooker & , const char*, const char*);
   // internal evaluation of monitorables
   void AllClusters(const edm::Event& ev, const edm::EventSetup& es); 
+  void trackStudyFromTrack(edm::Handle<reco::TrackCollection > trackCollectionHandle, const edm::EventSetup& es);
+  void trackStudyFromTrajectory(edm::Handle<TrajTrackAssociationCollection> TItkAssociatorCollection, const edm::EventSetup& es);
+  void trajectoryStudy(const edm::Ref<std::vector<Trajectory> > traj, reco::TrackRef trackref, const edm::EventSetup& es);
   void trackStudy(const edm::Event& ev, const edm::EventSetup& es);
   //  LocalPoint project(const GeomDet *det,const GeomDet* projdet,LocalPoint position,LocalVector trackdirection)const;
   bool clusterInfos(SiStripClusterInfo* cluster, const uint32_t& detid, const TrackerTopology* tTopo, enum ClusterFlags flags, LocalVector LV);	
@@ -102,6 +110,8 @@ private:
   std::string histname; 
   LocalVector LV;
   float iOrbitSec;
+
+  std::string topFolderName_;
   
   //******* TkHistoMaps
   TkHistoMap *tkhisto_StoNCorrOnTrack, *tkhisto_NumOnTrack, *tkhisto_NumOffTrack;  
@@ -150,6 +160,10 @@ private:
   edm::ParameterSet Parameters;
   edm::InputTag Cluster_src_;
   
+  edm::EDGetTokenT<edmNew::DetSetVector<SiStripCluster> > clusterToken_;
+  edm::EDGetTokenT<reco::TrackCollection> trackToken_;
+  edm::EDGetTokenT<TrajTrackAssociationCollection> trackTrajToken_;
+
   bool Mod_On_;
   bool Trend_On_;
   bool OffHisto_On_;

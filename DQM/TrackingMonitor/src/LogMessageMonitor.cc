@@ -49,7 +49,6 @@
 //
 // Original Author:  Mia Tosi,40 3-B32,+41227671609,
 //         Created:  Thu Mar  8 14:34:13 CET 2012
-// $Id: LogMessageMonitor.cc,v 1.4 2012/10/27 20:40:08 tosi Exp $
 //
 //
 
@@ -86,9 +85,13 @@ LogMessageMonitor::LogMessageMonitor(const edm::ParameterSet& iConfig)
   , doWarningsPlots_   ( iConfig.getParameter<bool>                     ("doWarningsPlots") )
   , doPUmonitoring_    ( iConfig.getParameter<bool>                     ("doPUmonitoring")  ) 
 {
+  
+  errorToken_ = consumes<std::vector<edm::ErrorSummaryEntry> >(edm::InputTag("logErrorHarvester") );
+  
+  edm::ConsumesCollector c{ consumesCollector() };
    //now do what ever initialization is needed
-  lumiDetails_         = new GetLumi( iConfig.getParameter<edm::ParameterSet>("BXlumiSetup") ); 
-  genTriggerEventFlag_ = new GenericTriggerEventFlag(iConfig);
+  lumiDetails_         = new GetLumi( iConfig.getParameter<edm::ParameterSet>("BXlumiSetup"), c );
+  genTriggerEventFlag_ = new GenericTriggerEventFlag(iConfig, consumesCollector());
 }
 
 
@@ -121,7 +124,7 @@ LogMessageMonitor::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   
     // Take the ErrorSummaryEntry container
   edm::Handle<std::vector<edm::ErrorSummaryEntry> >  errors;
-  iEvent.getByLabel("logErrorHarvester",errors);
+  iEvent.getByToken(errorToken_,errors);
   // Check that errors is valid
   if(!errors.isValid()) return; 
   // Compare severity level of error with ELseveritylevel instance el : "-e" should be the lowest error
@@ -194,21 +197,23 @@ LogMessageMonitor::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   }
 }
 
-
-// ------------ method called once each job just before starting event loop  ------------
-void 
-LogMessageMonitor::beginJob()
+void LogMessageMonitor::bookHistograms(DQMStore::IBooker & ibooker,
+				       edm::Run const & iRun,
+				       edm::EventSetup const & iSetup)
 {
+
+  if ( genTriggerEventFlag_->on() ) genTriggerEventFlag_->initRun( iRun, iSetup );
+
    std::string MEFolderName = conf_.getParameter<std::string>("LogFolderName"); 
 
-   dqmStore_->setCurrentFolder(MEFolderName);
+   ibooker.setCurrentFolder(MEFolderName);
 
    categories_vector_.push_back("others");
    size_t nModules    = modules_vector_.size();
    size_t nCategories = categories_vector_.size();
 
    histname = pluginsMonName_+"ErrorsVsModules";
-   CategoriesVsModules = dqmStore_->book2D(histname, histname, nModules, 0., double(nModules), nCategories, 0., double(nCategories) );
+   CategoriesVsModules = ibooker.book2D(histname, histname, nModules, 0., double(nModules), nCategories, 0., double(nCategories) );
    CategoriesVsModules->setAxisTitle("modules",1);
    for (size_t imodule = 0; imodule < nModules; imodule++)
      CategoriesVsModules->setBinLabel(imodule+1,modules_vector_[imodule],1);
@@ -234,18 +239,18 @@ LogMessageMonitor::beginJob()
      for(std::map<std::string,int>::const_iterator it = modulesMap.begin();
 	 it != modulesMap.end(); ++it, i++){ 
        
-       dqmStore_->setCurrentFolder(MEFolderName + "/PUmonitoring/Errors");      
+       ibooker.setCurrentFolder(MEFolderName + "/PUmonitoring/Errors");      
        
        histname = "errorsVsBXlumi_" + it->first;
-       ModulesErrorsVsBXlumi.push_back( dynamic_cast<MonitorElement*>(dqmStore_->bookProfile( histname, histname, BXlumiBin, BXlumiMin, BXlumiMax, 0.,100, "")) );
+       ModulesErrorsVsBXlumi.push_back( dynamic_cast<MonitorElement*>(ibooker.bookProfile( histname, histname, BXlumiBin, BXlumiMin, BXlumiMax, 0.,100, "")) );
        ModulesErrorsVsBXlumi[i] -> setAxisTitle("BXlumi [10^{30} Hz cm^{-2}]", 1);
        ModulesErrorsVsBXlumi[i] -> setAxisTitle("Mean number of errors", 2);
        
        if ( doWarningsPlots_ ) {
-	 dqmStore_->setCurrentFolder(MEFolderName + "/PUmonitoring/Warnings");      
+	 ibooker.setCurrentFolder(MEFolderName + "/PUmonitoring/Warnings");      
 	 
 	 histname = "warningVsBXlumi_" + it->first;
-	 ModulesWarningsVsBXlumi.push_back( dynamic_cast<MonitorElement*>(dqmStore_->bookProfile( histname, histname, BXlumiBin, BXlumiMin, BXlumiMax, 0.,100, "")) );
+	 ModulesWarningsVsBXlumi.push_back( dynamic_cast<MonitorElement*>(ibooker.bookProfile( histname, histname, BXlumiBin, BXlumiMin, BXlumiMax, 0.,100, "")) );
 	 ModulesWarningsVsBXlumi[i] -> setAxisTitle("BXlumi [10^{30} Hz cm^{-2}]", 1);
 	 ModulesWarningsVsBXlumi[i] -> setAxisTitle("Mean number of warnings", 2);
        }
@@ -254,6 +259,14 @@ LogMessageMonitor::beginJob()
 
 }
 
+/*
+// ------------ method called once each job just before starting event loop  ------------
+void 
+LogMessageMonitor::beginJob()
+{
+
+}
+*/
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 LogMessageMonitor::endJob() 
@@ -262,18 +275,19 @@ LogMessageMonitor::endJob()
     std::string outputFileName = conf_.getParameter<std::string>("OutputFileName");
     if(outputMEsInRootFile)
     {
-        dqmStore_->showDirStructure();
-        dqmStore_->save(outputFileName);
+      dqmStore_->showDirStructure();
+      dqmStore_->save(outputFileName);
     }
 }
 
+/*
 // ------------ method called when starting to processes a run  ------------
 void 
 LogMessageMonitor::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
 {
-  if ( genTriggerEventFlag_->on() ) genTriggerEventFlag_->initRun( iRun, iSetup );
-}
 
+}
+*/
 // ------------ method called when ending the processing of a run  ------------
 void 
 LogMessageMonitor::endRun(edm::Run const&, edm::EventSetup const&)

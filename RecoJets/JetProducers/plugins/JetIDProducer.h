@@ -18,7 +18,6 @@
 //
 // Original Author:  "Salvatore Rappoccio"
 //         Created:  Thu Sep 17 12:18:18 CDT 2009
-// $Id: JetIDProducer.h,v 1.3 2010/03/23 21:05:10 srappocc Exp $
 //
 //
 
@@ -28,7 +27,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -43,21 +42,22 @@
 // class decleration
 //
 
-class JetIDProducer : public edm::EDProducer {
+class JetIDProducer : public edm::stream::EDProducer<> {
    public:
 
       explicit JetIDProducer(const edm::ParameterSet&);
       ~JetIDProducer();
 
    private:
-      virtual void beginJob() ;
-      virtual void produce(edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
+      virtual void produce(edm::Event&, const edm::EventSetup&) override;
       
       // ----------member data ---------------------------
-  edm::InputTag                 src_;         // input jet source
-  reco::helper::JetIDHelper     helper_;      // jet id helper algorithm
-  reco::helper::JetMuonHitsIDHelper muHelper_;    // jet id from muon rechits helper algorithm
+      edm::InputTag                 src_;         // input jet source
+      reco::helper::JetIDHelper     helper_;      // jet id helper algorithm
+      reco::helper::JetMuonHitsIDHelper muHelper_;    // jet id from muon rechits helper algorithm
+      
+      edm::EDGetTokenT<edm::View<reco::CaloJet> > input_jet_token_;
+
 };
 
 

@@ -16,10 +16,12 @@
 //
 // Original Author:  Werner Sun
 //         Created:  Mon Oct 23 21:52:29 EDT 2006
-// $Id: L1CaloGeometry.h,v 1.4 2009/09/28 22:59:12 wsun Exp $
+// $Id: L1CaloGeometry.h,v 1.3 2009/07/17 17:37:10 wsun Exp $
 //
 
 // system include files
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <vector>
 #include <ostream>
 
@@ -148,6 +150,8 @@ class L1CaloGeometry
       double m_gctEmJetPhiOffset ;
       double m_gctEtSumPhiOffset ;
       double m_gctHtSumPhiOffset ;
+
+   COND_SERIALIZABLE;
 };
 
 std::ostream& operator << ( std::ostream& os, const L1CaloGeometry& obj ) ;

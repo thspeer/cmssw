@@ -6,14 +6,19 @@
 \author Fedor Ratnikov (UMd)
 POOL object to store map between detector ID, electronics ID and trigger ID
 $Author: ratnikov 
-$Date: 2009/03/26 18:03:15 $
-$Revision: 1.2 $
+$Date: 2007/12/14 13:31:21 $
+$Revision: 1.17 $
 Modified for CASTOR by L. Mundim
 */
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <vector>
 #include <algorithm>
 #include <boost/cstdint.hpp>
+#if !defined(__CINT__) && !defined(__MAKECINT__) && !defined(__REFLEX__)
+#include <atomic>
+#endif
 
 #include "DataFormats/DetId/interface/DetId.h"
 #include "DataFormats/HcalDetId/interface/HcalDetId.h"
@@ -26,6 +31,16 @@ class CastorElectronicsMap {
  public:
   CastorElectronicsMap();
   ~CastorElectronicsMap();
+
+  // swap function
+  void swap(CastorElectronicsMap& other);
+  // copy-ctor
+  CastorElectronicsMap(const CastorElectronicsMap& src);  // copy assignment operator
+  CastorElectronicsMap& operator=(const CastorElectronicsMap& rhs);
+  // move constructor
+#if !defined(__CINT__) && !defined(__MAKECINT__) && !defined(__REFLEX__)
+  CastorElectronicsMap(CastorElectronicsMap&& other);
+#endif
 
   /// lookup the logical detid associated with the given electronics id
   //return Null item if no such mapping
@@ -69,7 +84,9 @@ class CastorElectronicsMap {
       : mId (fId), mElId (fElId) {}
     uint32_t mId;
     uint32_t mElId;
-  };
+  
+  COND_SERIALIZABLE;
+};
   class TriggerItem { 
   public:
     TriggerItem () {mElId = mTrigId = 0;}
@@ -77,7 +94,9 @@ class CastorElectronicsMap {
       : mTrigId (fTrigId), mElId (fElId) { }
     uint32_t mTrigId;
     uint32_t mElId;
-  };
+  
+  COND_SERIALIZABLE;
+};
  protected:
   const PrecisionItem* findById (unsigned long fId) const;
   const PrecisionItem* findPByElId (unsigned long fElId) const;
@@ -86,10 +105,15 @@ class CastorElectronicsMap {
   
   std::vector<PrecisionItem> mPItems;
   std::vector<TriggerItem> mTItems;
-  mutable std::vector<const PrecisionItem*> mPItemsById;
-  mutable bool sortedByPId;
-  mutable std::vector<const TriggerItem*> mTItemsByTrigId;
-  mutable bool sortedByTId;
+#if !defined(__CINT__) && !defined(__MAKECINT__) && !defined(__REFLEX__)
+  mutable std::atomic<std::vector<const PrecisionItem*>*> mPItemsById COND_TRANSIENT;
+  mutable std::atomic<std::vector<const TriggerItem*>*> mTItemsByTrigId COND_TRANSIENT;
+#else
+  mutable std::vector<const PrecisionItem*>* mPItemsById COND_TRANSIENT;
+  mutable std::vector<const TriggerItem*>* mTItemsByTrigId COND_TRANSIENT;
+#endif
+
+ COND_SERIALIZABLE;
 };
 
 #endif

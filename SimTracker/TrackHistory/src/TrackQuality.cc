@@ -2,7 +2,7 @@
  *  TrackQuality.cc
  *
  *  Created by Christophe Saout on 9/25/08.
- *  Copyright 2007 __MyCompanyName__. All rights reserved.
+ *  2007 __MyCompanyName__. 
  *
  */
 
@@ -68,7 +68,7 @@ struct MatchedHit
                simTrackId == other.simTrackId;
     }
 };
-
+  /*
 static bool operator < (const MatchedHit &hit, DetId detId)
 {
     return hit.detId < detId;
@@ -77,6 +77,7 @@ static bool operator < (DetId detId, const MatchedHit &hit)
 {
     return detId < hit.detId;
 }
+  */
 }
 
 typedef std::pair<TrackQuality::Layer::SubDet, short int> DetLayer;
@@ -226,59 +227,6 @@ void TrackQuality::evaluate(SimParticleTrail const &spt,
 
     // sort hits found so far by module id
     std::stable_sort(matchedHits.begin(), matchedHits.end());
-
-    std::vector<MatchedHit>::size_type size = matchedHits.size();
-
-#warning "This file has been modified just to get it to compile without any regard as to whether it still functions as intended"
-#ifdef REMOVED_JUST_TO_GET_IT_TO_COMPILE__THIS_CODE_NEEDS_TO_BE_CHECKED
-    // now iterate over simulated hits and compare (tracks in chain first)
-    for (SimParticleTrail::const_iterator track = spt.begin();
-            track != spt.end(); ++track)
-    {
-        // iterate over all hits in track
-        for (std::vector<PSimHit>::const_iterator hit =
-                    (*track)->pSimHit_begin();
-                hit != (*track)->pSimHit_end(); ++hit)
-        {
-            MatchedHit matchedHit;
-            matchedHit.detId = DetId(hit->detUnitId());
-            matchedHit.simTrackId = hit->trackId();
-            matchedHit.collision = hit->eventId();
-
-            // find range of reconstructed hits belonging to this module
-            std::pair<std::vector<MatchedHit>::iterator,
-            std::vector<MatchedHit>::iterator>
-            range = std::equal_range(
-                        matchedHits.begin(),
-                        matchedHits.begin() + size,
-                        matchedHit.detId);
-
-            // no reconstructed hit found, remember this as a missed module
-            if (range.first == range.second)
-            {
-                matchedHit.state = Layer::Missed;
-                matchedHit.recHitId = -1;
-                matchedHits.push_back(matchedHit);
-                continue;
-            }
-
-            // now find if the hit belongs to the correct simulated track
-            std::vector<MatchedHit>::iterator pos =
-                std::lower_bound(range.first,
-                                 range.second,
-                                 matchedHit);
-
-            // if it does, check for being a shared hit (was Misassoc before)
-            if (pos != range.second)
-            {
-                if (range.second - range.first > 1) // more than one SimHit
-                    pos->state = Layer::Shared;
-                else
-                    pos->state = Layer::Good; // only hit -> good hit
-            }
-        }
-    }
-#endif
 
     // in case we added missed modules, re-sort
     std::stable_sort(matchedHits.begin(), matchedHits.end());

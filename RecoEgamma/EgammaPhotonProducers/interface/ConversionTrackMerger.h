@@ -10,12 +10,9 @@
 // Original Author: Steve Wagner, stevew@pizero.colorado.edu
 // Created:         Sat Jan 14 22:00:00 UTC 2006
 //
-// $Author: wmtan $
-// $Date: 2011/05/20 17:17:28 $
-// $Revision: 1.2 $
 //
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -30,7 +27,7 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-  class ConversionTrackMerger : public edm::EDProducer
+  class ConversionTrackMerger : public edm::stream::EDProducer<>
   {
   public:
 
@@ -42,6 +39,9 @@
 
   private:
     edm::ParameterSet conf_;
+
+    edm::EDGetTokenT<reco::ConversionTrackCollection> trackProducer1;
+    edm::EDGetTokenT<reco::ConversionTrackCollection> trackProducer2;
 
     std::auto_ptr<reco::ConversionTrackCollection> outputTrks;
   };

@@ -9,8 +9,6 @@
  * SimTracker/TrackAssociation.  The association can then be used in
  * Validation packages, such as Validation/RecoMuon/MuonTrackValidator.cc
  *
- *  $Date: 2010/03/22 08:49:54 $
- *  $Revision: 1.3 $
  *
  *  \author Adam Everett        Purdue University
  */
@@ -28,14 +26,18 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "DataFormats/TrajectorySeed/interface/TrajectorySeedCollection.h"
+
 #include "TrackingTools/TrajectoryState/interface/TrajectoryStateOnSurface.h"
+
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 
 namespace reco {class Track;}
 
 class MuonServiceProxy;
 class TrajectorySeed;
 class MuonUpdatorAtVertex;
-
+class DQMStore;
 //
 // class decleration
 //
@@ -89,6 +91,7 @@ class MuonSeedTrack : public edm::EDProducer {
 
   /// the TrajectorySeed label  
   edm::InputTag theSeedsLabel;
+  edm::EDGetTokenT<TrajectorySeedCollection>  theSeedsToken;
   
   ///
   bool theAllowNoVtxFlag;      

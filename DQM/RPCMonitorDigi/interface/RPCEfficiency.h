@@ -1,12 +1,6 @@
 /** \class RPCEfficiency
- *
  * Class for RPC Monitoring using RPCDigi and DT and CSC Segments.
- *
- *  $Date: 2012/02/09 10:26:51 $
- *  $Revision: 1.9 $
- *
- * \author Camilo Carrillo (Uniandes)
- *
+ * \original author Camilo Carrillo (Uniandes)
  */
 
 #include <FWCore/Framework/interface/Frameworkfwd.h>
@@ -15,28 +9,22 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
-#include "DataFormats/Common/interface/Handle.h"
+#include "DataFormats/RPCRecHit/interface/RPCRecHitCollection.h"
+#include <DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h>
+#include <DataFormats/CSCRecHit/interface/CSCSegmentCollection.h>
 
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 #include "DQMServices/Core/interface/DQMStore.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
 
 #include <DataFormats/MuonDetId/interface/RPCDetId.h>
-#include "FWCore/Framework/interface/ESHandle.h"
+
 #include <Geometry/RPCGeometry/interface/RPCGeometry.h>
 #include "Geometry/DTGeometry/interface/DTGeometry.h"
 #include <Geometry/CSCGeometry/interface/CSCGeometry.h>
 
 #include<string>
 #include<map>
-//#include<fstream>
-
-//class RPCDetId;
-/* class TFile; */
-/* class TH1F; */
-/* class TFile; */
-/* class TCanvas; */
-/* class TH2F; */
-/* class TString; */
 
 
 class DTStationIndex{
@@ -104,28 +92,21 @@ private:
 };
 
 
-class RPCEfficiency : public edm::EDAnalyzer {
+class RPCEfficiency : public DQMEDAnalyzer {
    public:
       explicit RPCEfficiency(const edm::ParameterSet&);
       ~RPCEfficiency();
-      virtual void beginJob() ;
-      virtual void beginRun(const edm::Run&, const edm::EventSetup&);
+
+
+ protected:
+
       virtual void analyze(const edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
-      void bookDetUnitSeg(RPCDetId & detId,int nstrips, std::string folder, std::map<std::string, MonitorElement*> & );
-      virtual void endRun(const edm::Run& r, const edm::EventSetup& iSetup);
+      void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
+      void bookDetUnitSeg(DQMStore::IBooker &, RPCDetId & detId,int nstrips, std::string folder, std::map<std::string, MonitorElement*> & );
       std::map<DTStationIndex,std::set<RPCDetId> > rollstoreDT;
       std::map<CSCStationIndex,std::set<RPCDetId> > rollstoreCSC;
    
-      /*       edm::ESHandle<RPCGeometry> rpcGeo; */
-      /*       edm::ESHandle<DTGeometry> dtGeo; */
-      /*       edm::ESHandle<CSCGeometry> cscGeo; */
-      
       MonitorElement * statistics;
-
-      //Distance Strip
-   
-    
       
       //Residuals
       MonitorElement * hGlobalResClu1La[6];
@@ -171,18 +152,15 @@ class RPCEfficiency : public edm::EDAnalyzer {
       double MaxDrb4;
       int dupli;
   
-    //      std::string muonRPCDigis;
-      edm::InputTag cscSegments;
-      edm::InputTag dt4DSegments;
-      edm::InputTag RPCRecHitLabel_;
-
-      std::string folderPath;
-      //   std::string rejected;
+      edm::EDGetTokenT<CSCSegmentCollection> cscSegments;
+      edm::EDGetTokenT<DTRecSegment4DCollection> dt4DSegments;
+      edm::EDGetTokenT<RPCRecHitCollection>    RPCRecHitLabel_;
+      
+       std::string folderPath;
       std::string rollseff;
       
       std::map<int, std::map<std::string, MonitorElement*> >  meCollection;
       
       bool EffSaveRootFile;
       std::string EffRootFileName;
-      DQMStore * dbe;
 };

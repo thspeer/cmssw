@@ -7,6 +7,8 @@
 POOL object to store timeslice reco values, long version (for ZDC)
 */
 
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <boost/cstdint.hpp>
 #include <vector>
 
@@ -14,7 +16,7 @@ class HcalLongRecoParam {
  public:
   HcalLongRecoParam():mId(0) {}
 
-  HcalLongRecoParam(unsigned long fId, std::vector<unsigned int> fSignalTS, std::vector<unsigned int> fNoiseTS):
+  HcalLongRecoParam(unsigned long fId, const std::vector<unsigned int>& fSignalTS, const std::vector<unsigned int>& fNoiseTS):
     mId(fId), mSignalTS(fSignalTS), mNoiseTS(fNoiseTS) {}
 
   uint32_t rawId () const {return mId;}
@@ -26,6 +28,8 @@ class HcalLongRecoParam {
   uint32_t mId;
   std::vector<uint32_t> mSignalTS;
   std::vector<uint32_t> mNoiseTS;
+
+ COND_SERIALIZABLE;
 };
 
 #endif

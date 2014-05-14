@@ -4,8 +4,6 @@
 /** \class KfTrackProducerBase
  *  Produce Tracks from TrackCandidates
  *
- *  $Date: 2010/09/29 12:36:04 $
- *  $Revision: 1.4 $
  *  \author cerati
  */
 
@@ -30,7 +28,7 @@ public:
 			std::auto_ptr<reco::TrackCollection>&,
 			std::auto_ptr<reco::TrackExtraCollection>&,
 			std::auto_ptr<std::vector<Trajectory> >&,
-			AlgoProductCollection&);
+			AlgoProductCollection&, TransientTrackingRecHitBuilder const*);
 
 
   //  void setSecondHitPattern(Trajectory* traj, reco::Track& track);

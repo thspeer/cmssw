@@ -2,7 +2,7 @@
  *
  * Author     : Andreas Mussgiller
  * date       : 2010/08/30
- * last update: $Date: 2011/05/18 10:19:48 $
+ * last update: $Date: 2010/09/10 12:06:43 $
  * by         : $Author: mussgill $
  */
 
@@ -23,13 +23,12 @@ AlgebraicSymMatrix BeamSpotTransientTrackingRecHit::parametersError() const
   return m;
 }
 
-void BeamSpotTransientTrackingRecHit::initialize() const
+
+static AlgebraicMatrix initialize()
 {
-  theProjectionMatrix = AlgebraicMatrix( 1, 5, 0);
-  theProjectionMatrix[0][3] = 1;
-  
-  isInitialized = true;
+  AlgebraicMatrix ret( 1, 5, 0);
+  ret[0][3] = 1;
+  return ret;
 }
 
-bool BeamSpotTransientTrackingRecHit::isInitialized(false);
-AlgebraicMatrix BeamSpotTransientTrackingRecHit::theProjectionMatrix;
+const AlgebraicMatrix BeamSpotTransientTrackingRecHit::theProjectionMatrix=initialize();

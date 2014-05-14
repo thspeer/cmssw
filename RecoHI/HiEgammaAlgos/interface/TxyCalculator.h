@@ -12,7 +12,6 @@
 
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/IdealGeometryRecord.h"
-#include "RecoCaloTools/MetaCollections/interface/CaloRecHitMetaCollections.h"
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -27,11 +26,11 @@
 class TxyCalculator
 {
 public:  
-   TxyCalculator(const edm::Event &iEvent, const edm::EventSetup &iSetup, edm::InputTag trackLabel);
-   double getTxy(const reco::Photon p, double x, double y);
-   double getHollSxy(const reco::Photon p, double thePtCut, double outerR, double innerR);
+   TxyCalculator(const edm::Event &iEvent, const edm::EventSetup &iSetup, const edm::InputTag& trackLabel);
+   double getTxy(const reco::Photon& p, double x, double y);
+   double getHollSxy(const reco::Photon& p, double thePtCut, double outerR, double innerR);
    int getNumAllTracks(double ptCut);
-   int getNumLocalTracks(const reco::Photon p, double detaCut, double ptCut);
+   int getNumLocalTracks(const reco::Photon& p, double detaCut, double ptCut);
 
    
 private:

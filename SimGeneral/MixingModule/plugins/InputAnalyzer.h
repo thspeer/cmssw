@@ -9,7 +9,6 @@
 //
 // Original Author:  Emilia Lubenova Becheva
 //         Created:  Mon Apr 20 13:43:06 CEST 2009
-// $Id: InputAnalyzer.h,v 1.2 2013/03/01 00:13:36 wmtan Exp $
 //
 //
 
@@ -24,6 +23,9 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include "SimDataFormats/Track/interface/SimTrackContainer.h"
+#include "SimDataFormats/CrossingFrame/interface/PCrossingFrame.h"
 
 //
 // class decleration
@@ -44,7 +46,8 @@ class InputAnalyzer : public edm::EDAnalyzer {
       // ----------member data ---------------------------
       
       bool dataStep2_;
-      edm::InputTag label_;
+  edm::EDGetTokenT<PCrossingFrame<SimTrack>> labelPCF_;
+  edm::EDGetTokenT<SimTrackContainer> labelSimTr_;
 
   
 };

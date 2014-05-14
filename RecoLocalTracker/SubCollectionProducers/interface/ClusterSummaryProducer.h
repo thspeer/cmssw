@@ -16,7 +16,6 @@
 //
 // Original Author:  Michael Segala
 //         Created:  Thu Jun 23 09:33:08 CDT 2011
-// $Id: ClusterSummaryProducer.h,v 1.4 2012/12/26 19:56:28 wmtan Exp $
 //
 //
 
@@ -31,7 +30,7 @@
 // user include files
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
 #include "FWCore/Framework/interface/Event.h"
@@ -65,22 +64,23 @@ class ClusterVariables;
 class ClusterSummary;
 
 
-class ClusterSummaryProducer : public edm::EDProducer {
+class ClusterSummaryProducer : public edm::stream::EDProducer<> {
    public:
       explicit ClusterSummaryProducer(const edm::ParameterSet&);
       ~ClusterSummaryProducer(){};
 
    private:
-      virtual void beginJob() ;
-      virtual void produce(edm::Event&, const edm::EventSetup&);
+      virtual void beginStream(edm::StreamID) override;
+      virtual void produce(edm::Event&, const edm::EventSetup&) override;
 
       void decodeInput(std::vector<std::string> &, std::string );
       
       // ----------member data ---------------------------
       
-      edm::InputTag stripClustersLabel;
-      edm::InputTag pixelClustersLabel;
+      edm::EDGetTokenT<edmNew::DetSetVector<SiPixelCluster> > pixelClusters_;
+      edm::EDGetTokenT<edmNew::DetSetVector<SiStripCluster> > stripClusters_;
       std::string stripModules;
+
       std::vector<std::string> v_stripModuleTypes;
       std::string pixelModules;
       std::vector<std::string> v_pixelModuleTypes;

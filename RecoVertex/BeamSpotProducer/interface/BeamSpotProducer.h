@@ -9,18 +9,17 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BeamSpotProducer.h,v 1.1 2007/05/09 20:35:49 yumiceva Exp $
 
 ________________________________________________________________**/
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 
 
-class BeamSpotProducer: public edm::EDProducer {
+class BeamSpotProducer: public edm::stream::EDProducer<> {
 
   public:
 	typedef std::vector<edm::ParameterSet> Parameters;

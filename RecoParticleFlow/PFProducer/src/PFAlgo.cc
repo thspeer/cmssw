@@ -46,6 +46,7 @@
 #include "boost/graph/graph_utility.hpp" 
 
 
+
 using namespace std;
 using namespace reco;
 using namespace boost;
@@ -62,12 +63,14 @@ PFAlgo::PFAlgo()
     debug_(false),
     pfele_(0),
     pfpho_(0),
+    pfegamma_(0),
     useVertices_(false)
 {}
 
 PFAlgo::~PFAlgo() {
   if (usePFElectrons_) delete pfele_;
   if (usePFPhotons_)     delete pfpho_;
+  if (useEGammaFilters_)  delete pfegamma_;
 }
 
 
@@ -204,6 +207,74 @@ PFAlgo::setPFPhotonParameters(bool usePFPhotons,
 			    );
   return;
 }
+
+void PFAlgo::setEGammaParameters(bool use_EGammaFilters,
+				 std::string ele_iso_path_mvaWeightFile,
+				 double ele_iso_pt,
+				 double ele_iso_mva_barrel,
+				 double ele_iso_mva_endcap,
+				 double ele_iso_combIso_barrel,
+				 double ele_iso_combIso_endcap,
+				 double ele_noniso_mva,
+				 unsigned int ele_missinghits,
+				 bool useProtectionsForJetMET,
+				 const edm::ParameterSet& ele_protectionsForJetMET,
+				 double ph_MinEt,
+				 double ph_combIso,
+				 double ph_HoE,
+				 double ph_sietaieta_eb,
+				 double ph_sietaieta_ee,
+				 const edm::ParameterSet& ph_protectionsForJetMET
+				 )
+{
+  
+  useEGammaFilters_ = use_EGammaFilters;
+
+  if(!useEGammaFilters_ ) return;
+  FILE * fileEGamma_ele_iso_ID = fopen(ele_iso_path_mvaWeightFile.c_str(), "r");  
+  if (fileEGamma_ele_iso_ID) {  
+    fclose(fileEGamma_ele_iso_ID);  
+  }  
+  else {  
+    string err = "PFAlgo: cannot open weight file '";  
+    err += ele_iso_path_mvaWeightFile;  
+    err += "'";  
+    throw invalid_argument( err );  
+  }  
+
+  //  ele_iso_mvaID_ = new ElectronMVAEstimator(ele_iso_path_mvaWeightFile_);
+  useProtectionsForJetMET_ = useProtectionsForJetMET;
+
+  pfegamma_ =  new PFEGammaFilters(ph_MinEt,
+				   ph_combIso,
+				   ph_HoE,
+				   ph_sietaieta_eb,
+				   ph_sietaieta_ee,
+				   ph_protectionsForJetMET,
+				   ele_iso_pt,
+				   ele_iso_mva_barrel,
+				   ele_iso_mva_endcap,
+				   ele_iso_combIso_barrel,
+				   ele_iso_combIso_endcap,
+				   ele_noniso_mva,
+				   ele_missinghits,
+				   ele_iso_path_mvaWeightFile,
+				   ele_protectionsForJetMET);
+
+  return;
+}
+void  PFAlgo::setEGammaCollections(const edm::View<reco::PFCandidate> & pfEgammaCandidates,
+				   const edm::ValueMap<reco::GsfElectronRef> & valueMapGedElectrons,
+				   const edm::ValueMap<reco::PhotonRef> & valueMapGedPhotons){
+  if(useEGammaFilters_) {
+    pfEgammaCandidates_ = & pfEgammaCandidates;
+    valueMapGedElectrons_ = & valueMapGedElectrons;
+    valueMapGedPhotons_ = & valueMapGedPhotons;
+  }
+}
+
+
+
 /*
 void PFAlgo::setPFPhotonRegWeights(
 		  const GBRForest *LCorrForest,
@@ -307,9 +378,9 @@ PFAlgo::setPFVertexParameters(bool useVertex,
 
   //Now find the primary vertex!
   bool primaryVertexFound = false;
-  int nVtx=primaryVertices->size();
+  nVtx_ = primaryVertices->size();
   if(usePFPhotons_){
-    pfpho_->setnPU(nVtx);
+    pfpho_->setnPU(nVtx_);
   }
   for (unsigned short i=0 ;i<primaryVertices->size();++i)
     {
@@ -472,7 +543,7 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
   const reco::PFBlock& block = *blockref;
 
   typedef std::multimap<double, unsigned>::iterator IE;
-  typedef std::multimap<double, std::pair<unsigned,math::XYZVector> >::iterator IS;
+  typedef std::multimap<double, std::pair<unsigned,::math::XYZVector> >::iterator IS;
   typedef std::multimap<double, std::pair<unsigned,bool> >::iterator IT;
   typedef std::multimap< unsigned, std::pair<double, unsigned> >::iterator II;
 
@@ -548,6 +619,177 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
     pfPhotonCandidates_->clear();
   } // end of Photon algo
   
+  if (usePFElectrons_) {
+    for ( std::vector<reco::PFCandidate>::const_iterator ec=tempElectronCandidates.begin();   ec != tempElectronCandidates.end(); ++ec ){
+      pfCandidates_->push_back(*ec);  
+    } 
+    tempElectronCandidates.clear();
+  }
+
+
+  // New EGamma Reconstruction 10/10/2013
+  if(useEGammaFilters_) {
+
+    // const edm::ValueMap<reco::GsfElectronRef> & myGedElectronValMap(*valueMapGedElectrons_);
+    bool egmLocalDebug = false;
+    bool egmLocalBlockDebug = false;
+
+    unsigned int negmcandidates = pfEgammaCandidates_->size();
+    for(unsigned int ieg=0 ; ieg <  negmcandidates; ++ieg) {
+      //      const reco::PFCandidate & egmcand((*pfEgammaCandidates_)[ieg]);
+      reco::PFCandidateRef pfEgmRef = pfEgammaCandidates_->refAt(ieg).castTo<reco::PFCandidateRef>(); 
+
+      const PFCandidate::ElementsInBlocks& theElements = (*pfEgmRef).elementsInBlocks();
+      PFCandidate::ElementsInBlocks::const_iterator iegfirst = theElements.begin(); 
+      bool sameBlock = false;
+      bool isGoodElectron = false;
+      bool isGoodPhoton = false;
+      bool isPrimaryElectron = false;
+      if(iegfirst->first == blockref) 
+	sameBlock = true;
+      if(sameBlock) {
+
+	if(egmLocalDebug)
+	  cout << " I am in looping on EGamma Candidates: pt " << (*pfEgmRef).pt() 
+	       << " eta,phi " << (*pfEgmRef).eta() << ", " << (*pfEgmRef).phi() 
+	       << " charge " << (*pfEgmRef).charge() << endl;
+
+	if((*pfEgmRef).gsfTrackRef().isNonnull()) {
+
+	  reco::GsfElectronRef gedEleRef = (*valueMapGedElectrons_)[pfEgmRef];
+	  if(gedEleRef.isNonnull()) {
+	    isGoodElectron = pfegamma_->passElectronSelection(*gedEleRef,*pfEgmRef,nVtx_);
+	    isPrimaryElectron = pfegamma_->isElectron(*gedEleRef);
+	    if(egmLocalDebug){
+	      if(isGoodElectron) 
+		cout << "** Good Electron, pt " << gedEleRef->pt()
+		     << " eta, phi " << gedEleRef->eta() << ", " << gedEleRef->phi() 
+		     << " charge " << gedEleRef->charge() 
+		     << " isPrimary " << isPrimaryElectron  << endl;
+	    }
+
+	   
+	  }
+	}
+	if((*pfEgmRef).superClusterRef().isNonnull()) {
+
+	  reco::PhotonRef gedPhoRef = (*valueMapGedPhotons_)[pfEgmRef];   
+	  if(gedPhoRef.isNonnull()) {
+	    isGoodPhoton =  pfegamma_->passPhotonSelection(*gedPhoRef);
+	    if(egmLocalDebug) {
+	      if(isGoodPhoton) 
+		cout << "** Good Photon, pt " << gedPhoRef->pt()
+		     << " eta, phi " << gedPhoRef->eta() << ", " << gedPhoRef->phi() << endl;
+	    }
+	  }
+	}
+      } // end same block
+      
+      if(isGoodElectron && isGoodPhoton) {
+	if(isPrimaryElectron)
+	  isGoodPhoton = false;
+	else
+	  isGoodElectron = false;
+      }
+
+      // isElectron
+      if(isGoodElectron) {
+	reco::GsfElectronRef gedEleRef = (*valueMapGedElectrons_)[pfEgmRef];
+	reco::PFCandidate myPFElectron = *pfEgmRef;
+	// run protections
+	bool lockTracks = false;
+	bool isSafe = true;
+	if( useProtectionsForJetMET_) {
+	  lockTracks = true;
+	  isSafe = pfegamma_->isElectronSafeForJetMET(*gedEleRef,myPFElectron,primaryVertex_,lockTracks);
+	}
+
+	if(isSafe) {
+	  reco::PFCandidate::ParticleType particleType = reco::PFCandidate::e;
+	  myPFElectron.setParticleType(particleType);
+	  myPFElectron.setCharge(gedEleRef->charge());
+	  myPFElectron.setP4(gedEleRef->p4());
+	  myPFElectron.set_mva_e_pi(gedEleRef->mva());
+
+	  if(egmLocalDebug) {
+	    cout << " PFAlgo: found an electron with NEW EGamma code " << endl;
+	    cout << " myPFElectron: pt " << myPFElectron.pt() 
+		 << " eta,phi " << myPFElectron.eta() << ", " <<myPFElectron.phi()
+		 << " mva " << myPFElectron.mva_e_pi() 
+		 << " charge " << myPFElectron.charge() << endl;
+	  }
+	  
+	  
+	  // Lock all the elements
+	  if(egmLocalBlockDebug)
+	    cout << " THE BLOCK " << *blockref << endl;
+	  for (PFCandidate::ElementsInBlocks::const_iterator ieb = theElements.begin(); 
+	       ieb<theElements.end(); ++ieb) {
+	    active[ieb->second] = false;
+	    if(egmLocalBlockDebug)
+	      cout << " Elements used " <<  ieb->second << endl;
+	  }
+	  
+	  // The electron is considered safe for JetMET and the additional tracks pointing to it are locked
+	  if(lockTracks) {
+	    const PFCandidate::ElementsInBlocks& extraTracks = myPFElectron.egammaExtraRef()->extraNonConvTracks();
+	    for (PFCandidate::ElementsInBlocks::const_iterator itrk = extraTracks.begin(); 
+		 itrk<extraTracks.end(); ++itrk) {
+	      active[itrk->second] = false;
+	    }
+	  }
+
+	  pfCandidates_->push_back(myPFElectron);
+
+	}
+	else {
+	  if(egmLocalDebug)
+	    cout << "PFAlgo: Electron DISCARDED, NOT SAFE FOR JETMET " << endl;
+	} 
+      }
+      if(isGoodPhoton) {
+	reco::PhotonRef gedPhoRef = (*valueMapGedPhotons_)[pfEgmRef];   
+	reco::PFCandidate myPFPhoton = *pfEgmRef;
+	bool isSafe = true;
+	if( useProtectionsForJetMET_) {
+	  isSafe = pfegamma_->isPhotonSafeForJetMET(*gedPhoRef,myPFPhoton);
+	}
+
+
+
+	if(isSafe) {
+	  reco::PFCandidate::ParticleType particleType = reco::PFCandidate::gamma;
+	  myPFPhoton.setParticleType(particleType);
+	  myPFPhoton.setCharge(0);
+	  myPFPhoton.set_mva_nothing_gamma(1.);
+	  ::math::XYZPoint v(primaryVertex_.x(), primaryVertex_.y(), primaryVertex_.z());
+	  myPFPhoton.setVertex( v  );  
+	  myPFPhoton.setP4(gedPhoRef->p4());
+	  if(egmLocalDebug) {
+	    cout << " PFAlgo: found a photon with NEW EGamma code " << endl;
+	    cout << " myPFPhoton: pt " << myPFPhoton.pt() 
+		 << " eta,phi " << myPFPhoton.eta() << ", " <<myPFPhoton.phi() 
+		 << " charge " << myPFPhoton.charge() << endl;
+	  }
+	  
+	  // Lock all the elements
+	  if(egmLocalBlockDebug)
+	    cout << " THE BLOCK " << *blockref << endl;
+	  for (PFCandidate::ElementsInBlocks::const_iterator ieb = theElements.begin(); 
+	       ieb<theElements.end(); ++ieb) {
+	    active[ieb->second] = false;
+	    if(egmLocalBlockDebug)
+	      cout << " Elements used " <<  ieb->second << endl;
+	  }
+	  pfCandidates_->push_back(myPFPhoton);
+
+	} // end isSafe
+      } // end isGoodPhoton
+    } // end loop on EGM candidates
+  } // end if use EGammaFilters
+
+
+
   //Lock extra conversion tracks not used by Photon Algo
   if (usePFConversions_  )
     {
@@ -560,15 +802,14 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
 	    if(elements[iEle].trackRef()->quality(reco::TrackBase::highPurity))continue;
 	    const reco::PFBlockElementTrack * trackRef = dynamic_cast<const reco::PFBlockElementTrack*>((&elements[iEle]));
 	    if(!(trackRef->trackType(reco::PFBlockElement::T_FROM_GAMMACONV)))continue;
-	    if(elements[iEle].convRef().isNonnull())active[iEle]=false;
+	    if(elements[iEle].convRefs().size())active[iEle]=false;
 	  }
       }
     }
-  for ( std::vector<reco::PFCandidate>::const_iterator ec=tempElectronCandidates.begin();   ec != tempElectronCandidates.end(); ++ec ){
-    pfCandidates_->push_back(*ec);  
-  } 
-  tempElectronCandidates.clear();
-  
+
+
+
+
   
   if(debug_) 
     cout<<endl<<"--------------- loop 1 ------------------"<<endl;
@@ -1153,7 +1394,7 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
 	    (*pfCandidates_)[tmpe].addElementInBlock( blockref, assTracks.begin()->second );
 	    
 	    // Assign the position of the track at the ECAL entrance
-	    const math::XYZPointF& chargedPosition = 
+	    const ::math::XYZPointF& chargedPosition = 
 	      dynamic_cast<const reco::PFBlockElementTrack*>(&elements[assTracks.begin()->second])->positionAtECALEntrance();
 	    (*pfCandidates_)[tmpe].setPositionAtECALEntrance(chargedPosition);
 	  }
@@ -1360,48 +1601,41 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
       reco::PFClusterRef c0 = elements[0].clusterRef();
       reco::PFClusterRef c1 = elements[1].clusterRef();
       // 2 HF elements. Must be in each layer.
-      reco::PFClusterRef cem = c1;
-      reco::PFClusterRef chad = c0;
+      reco::PFClusterRef cem =  ( c0->layer() == PFLayer::HF_EM ? c0 : c1 );
+      reco::PFClusterRef chad = ( c1->layer() == PFLayer::HF_HAD ? c1 : c0 );
       
-      if( c0->layer()== PFLayer::HF_EM ) {
-	if ( c1->layer()== PFLayer::HF_HAD ) {
-	  cem = c0; chad = c1;
-	} else { 
-	  assert(0);
-	}
-	// do EM+HAD calibration here
-	double energyHfEm = cem->energy();
-	double energyHfHad = chad->energy();
-	double uncalibratedenergyHFEm = energyHfEm;
-	double uncalibratedenergyHFHad = energyHfHad;
-	if(thepfEnergyCalibrationHF_->getcalibHF_use()==true){
-
-	  energyHfEm = thepfEnergyCalibrationHF_->energyEmHad(uncalibratedenergyHFEm,
-							     0.0,
-							     c0->positionREP().Eta(),
-							     c0->positionREP().Phi()); 
-	  energyHfHad = thepfEnergyCalibrationHF_->energyEmHad(0.0,
-							      uncalibratedenergyHFHad,
-							      c1->positionREP().Eta(),
-							      c1->positionREP().Phi()); 
-	}
-	unsigned tmpi = reconstructCluster( *chad, energyHfEm+energyHfHad );     
-	(*pfCandidates_)[tmpi].setEcalEnergy( uncalibratedenergyHFEm, energyHfEm );
-	(*pfCandidates_)[tmpi].setHcalEnergy( uncalibratedenergyHFHad, energyHfHad);
-	(*pfCandidates_)[tmpi].setHoEnergy( 0., 0.);
-	(*pfCandidates_)[tmpi].setPs1Energy( 0. );
-	(*pfCandidates_)[tmpi].setPs2Energy( 0. );
-	(*pfCandidates_)[tmpi].addElementInBlock( blockref, hfEmIs[0] );
-	(*pfCandidates_)[tmpi].addElementInBlock( blockref, hfHadIs[0] );
-	//std::cout << "HF EM+HAD found ! " << energyHfEm << " " << energyHfHad << std::endl;
-
-      }
-      else {
-	cerr<<"Warning: 2 elements, but not 1 HFEM and 1 HFHAD"<<endl;
+      if( cem->layer() != PFLayer::HF_EM || chad->layer() != PFLayer::HF_HAD ) {
+	cerr<<"Error: 2 elements, but not 1 HFEM and 1 HFHAD"<<endl;
 	cerr<<block<<endl;
+	assert(0);
 // 	assert( c1->layer()== PFLayer::HF_EM &&
 // 		c0->layer()== PFLayer::HF_HAD );
-      }      
+      }    
+      // do EM+HAD calibration here
+      double energyHfEm = cem->energy();
+      double energyHfHad = chad->energy();
+      double uncalibratedenergyHFEm = energyHfEm;
+      double uncalibratedenergyHFHad = energyHfHad;
+      if(thepfEnergyCalibrationHF_->getcalibHF_use()==true){
+	
+	energyHfEm = thepfEnergyCalibrationHF_->energyEmHad(uncalibratedenergyHFEm,
+							    0.0,
+							    c0->positionREP().Eta(),
+							    c0->positionREP().Phi()); 
+	energyHfHad = thepfEnergyCalibrationHF_->energyEmHad(0.0,
+							     uncalibratedenergyHFHad,
+							     c1->positionREP().Eta(),
+							     c1->positionREP().Phi()); 
+      }
+      unsigned tmpi = reconstructCluster( *chad, energyHfEm+energyHfHad );     
+      (*pfCandidates_)[tmpi].setEcalEnergy( uncalibratedenergyHFEm, energyHfEm );
+      (*pfCandidates_)[tmpi].setHcalEnergy( uncalibratedenergyHFHad, energyHfHad);
+      (*pfCandidates_)[tmpi].setHoEnergy( 0., 0.);
+      (*pfCandidates_)[tmpi].setPs1Energy( 0. );
+      (*pfCandidates_)[tmpi].setPs2Energy( 0. );
+      (*pfCandidates_)[tmpi].addElementInBlock( blockref, hfEmIs[0] );
+      (*pfCandidates_)[tmpi].addElementInBlock( blockref, hfHadIs[0] );
+      //std::cout << "HF EM+HAD found ! " << energyHfEm << " " << energyHfHad << std::endl;     
     }
     else {
       // 1 HF element in the block, 
@@ -1452,8 +1686,8 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
     std::multimap<double, std::pair<unsigned,bool> > associatedTracks;
     
     // A temporary maps for ECAL satellite clusters
-    std::multimap<double,std::pair<unsigned,math::XYZVector> > ecalSatellites;
-    std::pair<unsigned,math::XYZVector> fakeSatellite = make_pair(iHcal,math::XYZVector(0.,0.,0.));
+    std::multimap<double,std::pair<unsigned,::math::XYZVector> > ecalSatellites;
+    std::pair<unsigned,::math::XYZVector> fakeSatellite = make_pair(iHcal,::math::XYZVector(0.,0.,0.));
     ecalSatellites.insert( make_pair(-1., fakeSatellite) );
 
     std::multimap< unsigned, std::pair<double, unsigned> > associatedHOs;
@@ -1508,12 +1742,12 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
     unsigned nMuons = 0; 
 
 
-    math::XYZVector photonAtECAL(0.,0.,0.);
-    math::XYZVector hadronDirection(hclusterref->position().X(),
+    ::math::XYZVector photonAtECAL(0.,0.,0.);
+    ::math::XYZVector hadronDirection(hclusterref->position().X(),
 				    hclusterref->position().Y(),
 				    hclusterref->position().Z());
     hadronDirection = hadronDirection.Unit();
-    math::XYZVector hadronAtECAL = totalHcal * hadronDirection;
+    ::math::XYZVector hadronAtECAL = totalHcal * hadronDirection;
 
     // Loop over all tracks associated to this HCAL cluster
     for(IE ie = sortedTracks.begin(); ie != sortedTracks.end(); ++ie ) {
@@ -1530,9 +1764,9 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
       assert( !trackRef.isNull() ); 
 
       // The direction at ECAL entrance
-      const math::XYZPointF& chargedPosition = 
+      const ::math::XYZPointF& chargedPosition = 
 	dynamic_cast<const reco::PFBlockElementTrack*>(&elements[iTrack])->positionAtECALEntrance();
-      math::XYZVector chargedDirection(chargedPosition.X(),chargedPosition.Y(),chargedPosition.Z());
+      ::math::XYZVector chargedDirection(chargedPosition.X(),chargedPosition.Y(),chargedPosition.Z());
       chargedDirection = chargedDirection.Unit();
 
       // look for ECAL elements associated to iTrack (associated to iHcal)
@@ -1786,7 +2020,7 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
 	    // Calibrate the ECAL energy for photons
 	    bool crackCorrection = false;
 	    float ecalEnergyCalibrated = calibration_->energyEm(*eclusterref,ps1Ene,ps2Ene,crackCorrection);
-	    math::XYZVector photonDirection(eclusterref->position().X(),
+	    ::math::XYZVector photonDirection(eclusterref->position().X(),
 					    eclusterref->position().Y(),
 					    eclusterref->position().Z());
 	    photonDirection = photonDirection.Unit();
@@ -1800,13 +2034,13 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
 	      // PJ 1st-April-09 : To be done somewhere !!! (Had to comment it, but it is needed)
 	      // currentChargedHadron.addElementInBlock( blockref, iEcal );
        
-	      std::pair<unsigned,math::XYZVector> satellite = 
+	      std::pair<unsigned,::math::XYZVector> satellite = 
 		make_pair(iEcal,ecalEnergyCalibrated*photonDirection);
 	      ecalSatellites.insert( make_pair(-1., satellite) );
 
 	    } else { // Keep satellite clusters for later
 	      
-	      std::pair<unsigned,math::XYZVector> satellite = 
+	      std::pair<unsigned,::math::XYZVector> satellite = 
 		make_pair(iEcal,ecalEnergyCalibrated*photonDirection);
 	      ecalSatellites.insert( make_pair(dist, satellite) );
 	      
@@ -1886,8 +2120,8 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
     Caloresolution = std::sqrt(Caloresolution*Caloresolution + muonHCALError + muonECALError);
     totalEcal -= std::min(totalEcal,muonECALEnergy);
     totalHcal -= std::min(totalHcal,muonHCALEnergy);
-    if ( totalEcal < 1E-9 ) photonAtECAL = math::XYZVector(0.,0.,0.);
-    if ( totalHcal < 1E-9 ) hadronAtECAL = math::XYZVector(0.,0.,0.);
+    if ( totalEcal < 1E-9 ) photonAtECAL = ::math::XYZVector(0.,0.,0.);
+    if ( totalHcal < 1E-9 ) hadronAtECAL = ::math::XYZVector(0.,0.,0.);
 
     // Loop over all ECAL satellites, starting for the closest to the various tracks
     // and adding other satellites until saturation of the total track momentum
@@ -1900,7 +2134,7 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
       double previousCalibHcal = calibHcal;
       double previousCaloEnergy = caloEnergy;
       double previousSlopeEcal = slopeEcal;
-      math::XYZVector previousHadronAtECAL = hadronAtECAL;
+      ::math::XYZVector previousHadronAtECAL = hadronAtECAL;
       //
       totalEcal += sqrt(is->second.second.Mag2());
       photonAtECAL += is->second.second;
@@ -2017,9 +2251,9 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
 	    (*pfCandidates_)[tmpi].setHoEnergy(hoclusterref->energy(),muonHO);
 	  }
 	  // Remove it from the block
-	  const math::XYZPointF& chargedPosition = 
+	  const ::math::XYZPointF& chargedPosition = 
 	    dynamic_cast<const reco::PFBlockElementTrack*>(&elements[it->second.first])->positionAtECALEntrance();	  
-	  math::XYZVector chargedDirection(chargedPosition.X(), chargedPosition.Y(), chargedPosition.Z());
+	  ::math::XYZVector chargedDirection(chargedPosition.X(), chargedPosition.Y(), chargedPosition.Z());
 	  chargedDirection = chargedDirection.Unit();
 	  totalChargedMomentum -= trackMomentum;
 	  // Update the calo energies
@@ -2407,7 +2641,7 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
       std::vector<reco::PFClusterRef> pivotalClusterRef;
       std::vector<unsigned> iPivotal;
       std::vector<double> particleEnergy, ecalEnergy, hcalEnergy, rawecalEnergy, rawhcalEnergy;
-      std::vector<math::XYZVector> particleDirection;
+      std::vector<::math::XYZVector> particleDirection;
 
       // If the excess is smaller than the ecal energy, assign the whole 
       // excess to a photon
@@ -2495,7 +2729,7 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
 	  unsigned iTrack = chargedHadronsInBlock[ich];
 	  (*pfCandidates_)[tmpi].addElementInBlock( blockref, iTrack );
 	  // Assign the position of the track at the ECAL entrance
-	  const math::XYZPointF& chargedPosition = 
+	  const ::math::XYZPointF& chargedPosition = 
 	    dynamic_cast<const reco::PFBlockElementTrack*>(&elements[iTrack])->positionAtECALEntrance();
 	  (*pfCandidates_)[tmpi].setPositionAtECALEntrance(chargedPosition);
 
@@ -2930,7 +3164,7 @@ unsigned PFAlgo::reconstructTrack( const reco::PFBlockElement& elt, bool allowLo
   double energy = sqrt(track.p()*track.p() + 0.13957*0.13957);
 
   // Create a PF Candidate
-  math::XYZTLorentzVector momentum(px,py,pz,energy);
+  ::math::XYZTLorentzVector momentum(px,py,pz,energy);
   reco::PFCandidate::ParticleType particleType 
     = reco::PFCandidate::h;
 
@@ -2965,7 +3199,7 @@ unsigned PFAlgo::reconstructTrack( const reco::PFBlockElement& elt, bool allowLo
       reco::PFDisplacedVertexRef vRef = eltTrack->displacedVertexRef(reco::PFBlockElement::T_FROM_DISP)->displacedVertexRef();
       reco::Track trackRefit = vRef->refittedTrack(trackRef);
       //change the momentum with the refitted track
-      math::XYZTLorentzVector momentum(trackRefit.px(),
+      ::math::XYZTLorentzVector momentum(trackRefit.px(),
 				       trackRefit.py(),
 				       trackRefit.pz(),
 				       sqrt(trackRefit.p()*trackRefit.p() + 0.13957*0.13957));
@@ -2996,7 +3230,7 @@ PFAlgo::reconstructCluster(const reco::PFCluster& cluster,
   
   reco::PFCandidate::ParticleType particleType = reco::PFCandidate::X;
 
-  // need to convert the math::XYZPoint data member of the PFCluster class=
+  // need to convert the ::math::XYZPoint data member of the PFCluster class=
   // to a displacement vector: 
 
   // Transform particleX,Y,Z to a position at ECAL/HCAL entrance
@@ -3018,22 +3252,22 @@ PFAlgo::reconstructCluster(const reco::PFCluster& cluster,
     }
   }
   //MIKE First of all let's check if we have vertex.
-  math::XYZPoint vertexPos; 
+  ::math::XYZPoint vertexPos; 
   if(useVertices_)
-    vertexPos = math::XYZPoint(primaryVertex_.x(),primaryVertex_.y(),primaryVertex_.z());
+    vertexPos = ::math::XYZPoint(primaryVertex_.x(),primaryVertex_.y(),primaryVertex_.z());
   else
-    vertexPos = math::XYZPoint(0.0,0.0,0.0);
+    vertexPos = ::math::XYZPoint(0.0,0.0,0.0);
 
 
-  math::XYZVector clusterPos( cluster.position().X()-vertexPos.X(), 
+  ::math::XYZVector clusterPos( cluster.position().X()-vertexPos.X(), 
 			      cluster.position().Y()-vertexPos.Y(),
 			      cluster.position().Z()-vertexPos.Z());
-  math::XYZVector particleDirection ( particleX*factor-vertexPos.X(), 
+  ::math::XYZVector particleDirection ( particleX*factor-vertexPos.X(), 
 				      particleY*factor-vertexPos.Y(), 
 				      particleZ*factor-vertexPos.Z() );
 
-  //math::XYZVector clusterPos( cluster.position().X(), cluster.position().Y(),cluster.position().Z() );
-  //math::XYZVector particleDirection ( particleX, particleY, particleZ );
+  //::math::XYZVector clusterPos( cluster.position().X(), cluster.position().Y(),cluster.position().Z() );
+  //::math::XYZVector particleDirection ( particleX, particleY, particleZ );
 
   clusterPos = useDirection ? particleDirection.Unit() : clusterPos.Unit();
   clusterPos *= particleEnergy;
@@ -3045,7 +3279,7 @@ PFAlgo::reconstructCluster(const reco::PFCluster& cluster,
   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzM4D<double> > 
     momentum( clusterPos.X(), clusterPos.Y(), clusterPos.Z(), mass); 
   // mathcore is a piece of #$%
-  math::XYZTLorentzVector  tmp;
+  ::math::XYZTLorentzVector  tmp;
   // implicit constructor not allowed
   tmp = momentum;
 
@@ -3080,7 +3314,7 @@ PFAlgo::reconstructCluster(const reco::PFCluster& cluster,
   // The position at ECAL entrance (well: watch out, it is not true
   // for HCAL clusters... to be fixed)
   pfCandidates_->back().
-    setPositionAtECALEntrance(math::XYZPointF(cluster.position().X(),
+    setPositionAtECALEntrance(::math::XYZPointF(cluster.position().X(),
 					      cluster.position().Y(),
 					      cluster.position().Z()));
 

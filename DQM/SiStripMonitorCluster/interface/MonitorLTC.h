@@ -13,7 +13,7 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
-
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -23,13 +23,17 @@
 
 class DQMStore;
 
-class MonitorLTC : public edm::EDAnalyzer {
+#include "DataFormats/LTCDigi/interface/LTCDigi.h"
+
+
+class MonitorLTC : public DQMEDAnalyzer {
    public:
       explicit MonitorLTC(const edm::ParameterSet&);
       ~MonitorLTC(){};
       virtual void analyze(const edm::Event&, const edm::EventSetup&);
        virtual void beginJob() ;
        virtual void endJob() ;
+       void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
    private:
        DQMStore* dqmStore_;
        edm::ParameterSet conf_;
@@ -37,7 +41,8 @@ class MonitorLTC : public edm::EDAnalyzer {
        MonitorElement * LTCTriggerDecision_all;
        //
        std::string HLTDirectory;
-       edm::InputTag ltcDigiCollectionTag_;
+       //       edm::InputTag ltcDigiCollectionTag_;
+       edm::EDGetTokenT<LTCDigiCollection> ltcDigiCollectionTagToken_;
 };
 
 #endif

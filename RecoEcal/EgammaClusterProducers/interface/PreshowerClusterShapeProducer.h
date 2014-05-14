@@ -1,13 +1,10 @@
 #ifndef RecoEcal_EgammaClusterProducers_PreshowerClusterShapeProducer_h
 #define RecoEcal_EgammaClusterProducers_PreshowerClusterShapeProducer_h
 
-// $Author: argiro $
-// $Id: PreshowerClusterShapeProducer.h,v 1.4 2011/07/18 18:05:40 argiro Exp $
-// $Date: 2011/07/18 18:05:40 $
 
 #include <memory>
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "DataFormats/EcalDetId/interface/ESDetId.h"
@@ -21,7 +18,7 @@
 
 // authors A. Kyriakis, D. Maletic
 
-class PreshowerClusterShapeProducer : public edm::EDProducer {
+class PreshowerClusterShapeProducer : public edm::stream::EDProducer<> {
 
  public:
 
@@ -39,11 +36,10 @@ class PreshowerClusterShapeProducer : public edm::EDProducer {
 
   //clustering parameters:
 
-  edm::InputTag preshHitProducer_;   // name of module/plugin/producer producing hits
-  edm::InputTag endcapSClusterProducer_; // likewise for producer of endcap superclusters
-
-//  std::string photonCorrCollectionProducer_;
-//  std::string correctedPhotonCollection_;
+  edm::EDGetTokenT<EcalRecHitCollection> preshHitToken_; // name of module/plugin/producer 
+                                                         // producing hits
+  edm::EDGetTokenT<reco::SuperClusterCollection> endcapSClusterToken_; // likewise for producer 
+                                                                       // of endcap superclusters
 
   std::string PreshowerClusterShapeCollectionX_;
   std::string PreshowerClusterShapeCollectionY_;

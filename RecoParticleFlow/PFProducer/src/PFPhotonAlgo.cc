@@ -831,16 +831,18 @@ void PFPhotonAlgo::RunPFPhoton(const reco::PFBlockRef&  blockRef,
 	    photonCand.addElementInBlock(blockRef,*it);
 	    if( elements[*it].type() == reco::PFBlockElement::TRACK  )
 	      {
-		if(elements[*it].convRef().isNonnull())
-		  {
-		    //make sure it is not stored already as the partner track
-		    bool matched=false;
-		    for(unsigned int ic = 0; ic < ConversionsRef_.size(); ic++)
-		      {
-			if(ConversionsRef_[ic]==elements[*it].convRef())matched=true;
-		      }
-		    if(!matched)ConversionsRef_.push_back(elements[*it].convRef());
-		  }
+		for( const auto& convref : elements[*it].convRefs() ) {
+		  if(convref.isNonnull())
+		    {
+		      //make sure it is not stored already as the partner track
+		      bool matched=false;
+		      for(unsigned int ic = 0; ic < ConversionsRef_.size(); ic++)
+			{
+			  if(ConversionsRef_[ic]==convref)matched=true;
+			}
+		      if(!matched)ConversionsRef_.push_back(convref);
+		    }
+		}
 	      }
 	  }
 	active[*it] = false;	
@@ -916,7 +918,8 @@ void PFPhotonAlgo::RunPFPhoton(const reco::PFBlockRef&  blockRef,
   return;
 }
 
-float PFPhotonAlgo::EvaluateResMVA(reco::PFCandidate photon, std::vector<reco::CaloCluster>PFClusters){
+float PFPhotonAlgo::EvaluateResMVA(const reco::PFCandidate& photon, const std::vector<reco::CaloCluster>& _PFClusters){
+  std::vector<reco::CaloCluster> PFClusters = _PFClusters;
   float BDTG=1;
   PFPhoEta_=photon.eta();
   PFPhoPhi_=photon.phi();
@@ -1020,7 +1023,8 @@ float PFPhotonAlgo::EvaluateResMVA(reco::PFCandidate photon, std::vector<reco::C
    
 }
 
-float PFPhotonAlgo::EvaluateGCorrMVA(reco::PFCandidate photon, std::vector<CaloCluster>PFClusters){
+float PFPhotonAlgo::EvaluateGCorrMVA(const reco::PFCandidate& photon, const std::vector<CaloCluster>& _PFClusters){
+  std::vector<CaloCluster> PFClusters = _PFClusters;
   float BDTG=1;
   PFPhoEta_=photon.eta();
   PFPhoPhi_=photon.phi();
@@ -1168,7 +1172,7 @@ float PFPhotonAlgo::EvaluateGCorrMVA(reco::PFCandidate photon, std::vector<CaloC
   
 }
 
-double PFPhotonAlgo::ClustersPhiRMS(std::vector<reco::CaloCluster>PFClusters, float PFPhoPhi){
+double PFPhotonAlgo::ClustersPhiRMS(const std::vector<reco::CaloCluster>& PFClusters, float PFPhoPhi){
   double PFClustPhiRMS=0;
   double delPhi2=0;
   double delPhiSum=0;

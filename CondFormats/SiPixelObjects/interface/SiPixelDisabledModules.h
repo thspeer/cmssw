@@ -8,6 +8,8 @@
 #ifndef SiPixelDisabledModules_H
 #define SiPixelDisabledModules_H
 
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <vector>
 #include <utility>
 
@@ -22,7 +24,7 @@ class SiPixelDisabledModules {
   SiPixelDisabledModules() {;}
 
   // constructor from a list of disabled modules
-  SiPixelDisabledModules(disabledModuleListType disabledModules) : theDisabledModules(disabledModules) {;}
+  SiPixelDisabledModules(const disabledModuleListType& disabledModules) : theDisabledModules(disabledModules) {;}
 
   virtual ~SiPixelDisabledModules() {;}
 
@@ -31,7 +33,7 @@ class SiPixelDisabledModules {
     { return theDisabledModules; }
 
   // set the list of disabled modules (current list is lost)
-  void setDisabledModuleList(disabledModuleListType disabledModules)
+  void setDisabledModuleList(const disabledModuleListType& disabledModules)
     { theDisabledModules = disabledModules; }
 
   // add a single module to the vector of disabled modules
@@ -39,7 +41,7 @@ class SiPixelDisabledModules {
   { theDisabledModules.push_back(module); }
 
   // add a vector of modules to the vector of disabled modules
-  void addDisabledModule(disabledModuleListType idVector);
+  void addDisabledModule(const disabledModuleListType& idVector);
 
   // remove disabled module from the list
   // returns false if id not in disable list, true otherwise
@@ -52,14 +54,9 @@ class SiPixelDisabledModules {
  private:
   disabledModuleListType theDisabledModules;
 
+
+ COND_SERIALIZABLE;
 }; // class SiPixelDisabledModules
-
-
-
-
-
-
-
 
 
 

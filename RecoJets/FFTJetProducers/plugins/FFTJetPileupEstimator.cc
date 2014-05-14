@@ -13,7 +13,6 @@
 //
 // Original Author:  Igor Volobouev
 //         Created:  Wed Apr 20 13:52:23 CDT 2011
-// $Id: FFTJetPileupEstimator.cc,v 1.3 2012/11/21 03:13:26 igv Exp $
 //
 //
 
@@ -52,9 +51,9 @@ public:
 
 protected:
     // methods
-    void beginJob();
-    void produce(edm::Event&, const edm::EventSetup&);
-    void endJob();
+    void beginJob() override;
+    void produce(edm::Event&, const edm::EventSetup&) override;
+    void endJob() override;
 
 private:
     FFTJetPileupEstimator();
@@ -75,6 +74,8 @@ private:
     }
 
     edm::InputTag inputLabel;
+    edm::EDGetTokenT<reco::DiscretizedEnergyFlow> inputToken;
+
     std::string outputLabel;
     double cdfvalue;
     double ptToDensityFactor;
@@ -129,6 +130,8 @@ FFTJetPileupEstimator::FFTJetPileupEstimator(const edm::ParameterSet& ps)
         ps.getParameter<edm::ParameterSet>("uncertaintyCurve"));
     checkConfig(uncertaintyCurve, "bad uncertainty curve definition");
 
+    inputToken = consumes<reco::DiscretizedEnergyFlow>(inputLabel);
+
     produces<reco::FFTJetPileupSummary>(outputLabel);
 }
 
@@ -146,7 +149,7 @@ void FFTJetPileupEstimator::produce(edm::Event& iEvent,
                                     const edm::EventSetup& iSetup)
 {
     edm::Handle<reco::DiscretizedEnergyFlow> input;
-    iEvent.getByLabel(inputLabel, input);
+    iEvent.getByToken(inputToken, input);
 
     const reco::DiscretizedEnergyFlow& h(*input);
     const unsigned nScales = h.nEtaBins();

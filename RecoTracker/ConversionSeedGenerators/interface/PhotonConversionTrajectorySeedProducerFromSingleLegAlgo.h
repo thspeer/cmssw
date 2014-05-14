@@ -21,10 +21,11 @@
 
 #include "RecoTracker/ConversionSeedGenerators/interface/CombinedHitPairGeneratorForPhotonConversion.h"
 
-#include "RecoTracker/SpecialSeedGenerators/interface/ClusterChecker.h"
+#include "RecoTracker/TkSeedGenerator/interface/ClusterChecker.h"
 #include "RecoTracker/TkTrackingRegions/plugins/GlobalTrackingRegionProducerFromBeamSpot.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
-#include "sstream"
+#include <sstream>
 #include "boost/foreach.hpp"
 
 inline bool lt_(std::pair<double,short> a, std::pair<double,short> b) { return a.first<b.first; }
@@ -34,11 +35,9 @@ class PhotonConversionTrajectorySeedProducerFromSingleLegAlgo{
  
  public:
   
-  PhotonConversionTrajectorySeedProducerFromSingleLegAlgo(const edm::ParameterSet &);
-  ~PhotonConversionTrajectorySeedProducerFromSingleLegAlgo(){};
-
-  void init();
-  void clear();
+  PhotonConversionTrajectorySeedProducerFromSingleLegAlgo(const edm::ParameterSet &,
+	edm::ConsumesCollector && iC);
+  ~PhotonConversionTrajectorySeedProducerFromSingleLegAlgo();
 
   void analyze(const edm::Event & event, const edm::EventSetup & setup);
   IdealHelixParameters* getIdealHelixParameters(){return &_IdealHelixParameters;}
@@ -60,12 +59,10 @@ class PhotonConversionTrajectorySeedProducerFromSingleLegAlgo{
 
   TrajectorySeedCollection *seedCollection;
   TrajectorySeedCollection *seedCollectionOfSourceTracks;
-  CombinedHitPairGeneratorForPhotonConversion * theHitsGenerator;
-  SeedForPhotonConversion1Leg *theSeedCreator;
-  GlobalTrackingRegionProducerFromBeamSpot* theRegionProducer;
+  std::unique_ptr<CombinedHitPairGeneratorForPhotonConversion> theHitsGenerator;
+  std::unique_ptr<SeedForPhotonConversion1Leg> theSeedCreator;
+  std::unique_ptr<GlobalTrackingRegionProducerFromBeamSpot> theRegionProducer;
 
-
-  edm::ParameterSet hitsfactoryPSet,creatorPSet,regfactoryPSet;
 
   ClusterChecker theClusterCheck;
   bool theSilentOnClusterCheck;
@@ -75,6 +72,9 @@ class PhotonConversionTrajectorySeedProducerFromSingleLegAlgo{
   bool   _applyTkVtxConstraint;
   size_t _countSeedTracks;
   edm::InputTag _primaryVtxInputTag, _beamSpotInputTag;
+  edm::EDGetTokenT<reco::VertexCollection> token_vertex; 
+  edm::EDGetTokenT<reco::BeamSpot> token_bs; 
+  edm::EDGetTokenT<reco::TrackCollection> token_refitter; 
 
   typedef std::vector<TrackingRegion* > Regions;
   typedef Regions::const_iterator IR;

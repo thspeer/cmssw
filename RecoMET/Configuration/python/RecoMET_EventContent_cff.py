@@ -1,5 +1,4 @@
 import FWCore.ParameterSet.Config as cms
-# $Id: RecoMET_EventContent_cff.py,v 1.16 2012/11/06 02:33:52 sakuma Exp $
 
 ##______________________________________________________ Full Event content __||
 RecoMETFEVT = cms.PSet(
@@ -7,11 +6,9 @@ RecoMETFEVT = cms.PSet(
                                            'keep recoCaloMETs_metNoHF_*_*',
                                            'keep recoCaloMETs_metHO_*_*',
                                            'keep recoCaloMETs_corMetGlobalMuons_*_*',
-                                           'keep recoMETs_tcMet_*_*',
-                                           'keep recoMETs_tcMetWithPFclusters_*_*',                                           
                                            'keep recoPFMETs_pfMet_*_*',
+                                           'keep recoPFMETs_pfChMet_*_*',
                                            'keep recoMuonMETCorrectionDataedmValueMap_muonMETValueMapProducer_*_*',
-                                           'keep recoMuonMETCorrectionDataedmValueMap_muonTCMETValueMapProducer_*_*',                                           
                                            'keep recoHcalNoiseRBXs_hcalnoise_*_*',
                                            'keep HcalNoiseSummary_hcalnoise_*_*',
                                            'keep *HaloData_*_*_*',
@@ -35,11 +32,9 @@ RecoMETRECO = cms.PSet(
                                            'keep recoCaloMETs_metNoHF_*_*',
                                            'keep recoCaloMETs_metHO_*_*',
                                            'keep recoCaloMETs_corMetGlobalMuons_*_*',
-                                           'keep recoMETs_tcMet_*_*',    
-                                           'keep recoMETs_tcMetWithPFclusters_*_*',                                                                                  
                                            'keep recoPFMETs_pfMet_*_*',
+                                           'keep recoPFMETs_pfChMet_*_*',
                                            'keep recoMuonMETCorrectionDataedmValueMap_muonMETValueMapProducer_*_*',
-                                           'keep recoMuonMETCorrectionDataedmValueMap_muonTCMETValueMapProducer_*_*',                                           
                                            'keep recoHcalNoiseRBXs_hcalnoise_*_*',
                                            'keep HcalNoiseSummary_hcalnoise_*_*',
                                            'keep *HaloData_*_*_*',
@@ -63,11 +58,9 @@ RecoMETAOD = cms.PSet(
                                            'keep recoCaloMETs_metNoHF_*_*',
                                            'keep recoCaloMETs_metHO_*_*',
                                            'keep recoCaloMETs_corMetGlobalMuons_*_*',
-                                           'keep recoMETs_tcMet_*_*',  
-                                           'keep recoMETs_tcMetWithPFclusters_*_*',                                                                                                                           
                                            'keep recoPFMETs_pfMet_*_*',
+                                           'keep recoPFMETs_pfChMet_*_*',
                                            'keep recoMuonMETCorrectionDataedmValueMap_muonMETValueMapProducer_*_*',
-                                           'keep recoMuonMETCorrectionDataedmValueMap_muonTCMETValueMapProducer_*_*',                                           
                                            'drop recoHcalNoiseRBXs_*_*_*',
                                            'keep HcalNoiseSummary_hcalnoise_*_*',
                                            'keep *GlobalHaloData_*_*_*',

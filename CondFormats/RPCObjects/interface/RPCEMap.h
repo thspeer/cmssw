@@ -1,6 +1,8 @@
 #ifndef RPCEMap_H
 #define RPCEMap_H
 
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include "CondFormats/RPCObjects/interface/RPCReadOutMapping.h"
 #include <map>
 #include <vector>
@@ -22,27 +24,37 @@ public:
   struct dccItem {
     int theId;
     int nTBs;
-  };
+  
+  COND_SERIALIZABLE;
+};
   struct tbItem {
     int theNum;
     int nLinks;
-  };
+  
+  COND_SERIALIZABLE;
+};
   struct linkItem {
     int theTriggerBoardInputNumber;
     int nLBs;
-  };
+  
+  COND_SERIALIZABLE;
+};
   struct lbItem {
     bool theMaster;
     int theLinkBoardNumInLink;
     int theCode;
     int nFebs;
-  };
+  
+  COND_SERIALIZABLE;
+};
   struct febItem {
     int theLinkBoardInputNum;
     int thePartition;
     int theChamber;
     int theAlgo;
-  };
+  
+  COND_SERIALIZABLE;
+};
 
   std::vector<dccItem> theDccs;
   std::vector<tbItem> theTBs;
@@ -50,8 +62,8 @@ public:
   std::vector<lbItem> theLBs;
   std::vector<febItem> theFebs;
 
-  RPCReadOutMapping* convert() const {
-    RPCReadOutMapping* cabling = new RPCReadOutMapping(theVersion);
+  RPCReadOutMapping const* convert() const {
+    RPCReadOutMapping * cabling = new RPCReadOutMapping(theVersion);
     int diskOffset=4;
     int year=atoi(theVersion.substr(6,4).c_str());
     int month=atoi(theVersion.substr(3,2).c_str());
@@ -104,6 +116,8 @@ public:
   
 private:
   
+
+  COND_SERIALIZABLE;
 };
 
 #endif // RPCEMap_H

@@ -13,7 +13,6 @@
 //
 // Original Author:  Igor Volobouev
 //         Created:  Thu Jul 14 17:50:33 CDT 2011
-// $Id: FFTJetPFPileupCleaner.cc,v 1.5 2012/06/22 07:23:21 igv Exp $
 //
 //
 #include <cmath>
@@ -51,9 +50,9 @@ public:
 
 protected:
     // methods
-    void beginJob();
-    void produce(edm::Event&, const edm::EventSetup&);
-    void endJob();
+    void beginJob() override;
+    void produce(edm::Event&, const edm::EventSetup&) override;
+    void endJob() override;
 
 private:
     FFTJetPFPileupCleaner();
@@ -73,6 +72,10 @@ private:
     edm::InputTag PFCandidates;
     edm::InputTag Vertices;
     edm::InputTag FakePrimaryVertices;
+
+    edm::EDGetTokenT<reco::PFCandidateCollection> PFCandidatesToken;
+    edm::EDGetTokenT<reco::VertexCollection> VerticesToken;
+    edm::EDGetTokenT<reco::VertexCollection> FakePrimaryVerticesToken;
 
     // The following, if true, will switch to an algorithm
     // which takes a fake primary vertex into account
@@ -124,6 +127,9 @@ private:
     // Cut for the vertex Z
     double vertexZmaxCut;
 
+    // Cut for the vertex rho
+    double vertexRhoCut;
+
     // Vector for associating tracks with Z positions of the vertices
     mutable std::vector<std::pair<double, unsigned> > zAssoc;
 };
@@ -150,12 +156,19 @@ FFTJetPFPileupCleaner::FFTJetPFPileupCleaner(const edm::ParameterSet& ps)
       init_param(bool, remove_h_HF     ),
       init_param(bool, remove_egamma_HF),
       removalMask(0),
-       init_param(double, etaMin),
+      init_param(double, etaMin),
       init_param(double, etaMax),
       init_param(double, vertexNdofCut),
-      init_param(double, vertexZmaxCut)
+      init_param(double, vertexZmaxCut),
+      init_param(double, vertexRhoCut)
 {
     buildRemovalMask();
+
+    PFCandidatesToken = consumes<reco::PFCandidateCollection>(PFCandidates);
+    VerticesToken = consumes<reco::VertexCollection>(Vertices);
+    if (useFakePrimaryVertex)
+        FakePrimaryVerticesToken = consumes<reco::VertexCollection>(FakePrimaryVertices);
+
     produces<reco::PFCandidateCollection>();
 }
 
@@ -170,7 +183,8 @@ bool FFTJetPFPileupCleaner::isAcceptableVtx(
 {
     return !iv->isFake() &&
             static_cast<double>(iv->ndof()) > vertexNdofCut &&
-            std::abs(iv->z()) < vertexZmaxCut;
+            std::abs(iv->z()) < vertexZmaxCut &&
+            iv->position().rho() < vertexRhoCut;
 }
 
 
@@ -183,16 +197,16 @@ void FFTJetPFPileupCleaner::produce(
         pOutput(new reco::PFCandidateCollection);
 
     edm::Handle<reco::PFCandidateCollection> pfCandidates;
-    iEvent.getByLabel(PFCandidates, pfCandidates);
+    iEvent.getByToken(PFCandidatesToken, pfCandidates);
 
     // get vertices
     edm::Handle<reco::VertexCollection> vertices;
-    iEvent.getByLabel(Vertices, vertices);
+    iEvent.getByToken(VerticesToken, vertices);
 
     edm::Handle<reco::VertexCollection> fakeVertices;
     if (useFakePrimaryVertex)
     {
-        iEvent.getByLabel(FakePrimaryVertices, fakeVertices);
+        iEvent.getByToken(FakePrimaryVerticesToken, fakeVertices);
         if (!fakeVertices.isValid())
             throw cms::Exception("FFTJetBadConfig")
                 << "ERROR in FFTJetPFPileupCleaner:"

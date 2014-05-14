@@ -1,4 +1,3 @@
-
 # import the definition of the steps and input files:
 from  Configuration.PyReleaseValidation.relval_steps import *
 
@@ -13,6 +12,9 @@ workflows = Matrix()
 workflows[1] = ['', ['ProdMinBias','DIGIPROD1','RECOPROD1']]
 workflows[2] = ['', ['ProdTTbar','DIGIPROD1','RECOPROD1']]
 workflows[3] = ['', ['ProdQCD_Pt_3000_3500','DIGIPROD1','RECOPROD1']]
+workflows[1301] = ['', ['ProdMinBias_13','DIGIUP15PROD1','RECOPRODUP15']]
+workflows[1302] = ['', ['ProdTTbar_13','DIGIUP15PROD1','RECOPRODUP15']]
+workflows[1303] = ['', ['ProdQCD_Pt_3000_3500_13','DIGIUP15PROD1','RECOPRODUP15']]
 
 ### data ###
 workflows[4.5]  = ['', ['RunCosmicsA','RECOCOSD','ALCACOSD','HARVESTDC']]
@@ -80,6 +82,7 @@ workflows[4.62] = ['',['RunMu2012C','HLTD','RECODreHLT','HARVESTDreHLT']]
 workflows[4.63] = ['',['RunPhoton2012C','HLTD','RECODreHLT','HARVESTDreHLT']]
 workflows[4.64] = ['',['RunEl2012C','HLTD','RECODreHLT','HARVESTDreHLT']]
 workflows[4.65] = ['',['RunJet2012C','HLTD','RECODreHLT','HARVESTDreHLT']]
+# workflows[4.69] = ['',['RunZBias2012C','RECODSplit','HARVESTD']] # needed but can't be tested because of DBS => das hanging forever
 workflows[4.66] = ['',['ZMuSkim2012C','RECOSKIM','HARVESTD']]
 workflows[4.67] = ['',['ZElSkim2012C','RECOSKIM','HARVESTD']]
 workflows[4.68] = ['',['WElSkim2012C','RECOSKIM','HARVESTD']]
@@ -107,7 +110,19 @@ workflows[5.5] = ['ZTT',['ZTTFS','HARVESTFS']]
 workflows[5.6]  = ['QCD_FlatPt_15_3000', ['QCDFlatPt153000FS','HARVESTFS']]
 workflows[5.7] = ['H130GGgluonfusion', ['H130GGgluonfusionFS','HARVESTFS']]
 
+### fastsim_13 TeV ###
+workflows[135.1] = ['TTbar_13', ['TTbarFS_13','HARVESTUP15FS']]
+workflows[135.2] = ['SingleMuPt10', ['SingleMuPt10FS_UP15','HARVESTUP15FS']]
+workflows[135.3] = ['SingleMuPt100', ['SingleMuPt100FS_UP15','HARVESTUP15FS']]
+workflows[135.4] = ['ZEE_13', ['ZEEFS_13','HARVESTUP15FS']]
+workflows[135.5] = ['ZTT_13',['ZTTFS_13','HARVESTUP15FS']]
+
+workflows[135.6]  = ['QCD_FlatPt_15_3000_13', ['QCDFlatPt153000FS_13','HARVESTUP15FS']]
+workflows[135.7] = ['H130GGgluonfusion_13', ['H130GGgluonfusionFS_13','HARVESTUP15FS']]
+
+
 ### standard set ###
+## particle guns
 workflows[15] = ['', ['SingleElectronPt10','DIGI','RECO','HARVEST']]
 workflows[16] = ['', ['SingleElectronPt1000','DIGI','RECO','HARVEST']]
 workflows[17] = ['', ['SingleElectronPt35','DIGI','RECO','HARVEST']]
@@ -117,11 +132,25 @@ workflows[6]  = ['', ['SingleMuPt1','DIGI','RECO','HARVEST']]
 workflows[20] = ['', ['SingleMuPt10','DIGI','RECO','HARVEST']]
 workflows[21] = ['', ['SingleMuPt100','DIGI','RECO','HARVEST']]
 workflows[22] = ['', ['SingleMuPt1000','DIGI','RECO','HARVEST']]
+## particle guns postLS1
+workflows[1315] = ['', ['SingleElectronPt10_UP15','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1316] = ['', ['SingleElectronPt1000_UP15','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1317] = ['', ['SingleElectronPt35_UP15','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1318] = ['', ['SingleGammaPt10_UP15','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1319] = ['', ['SingleGammaPt35_UP15','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1306]  = ['', ['SingleMuPt1_UP15','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1320] = ['', ['SingleMuPt10_UP15','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1321] = ['', ['SingleMuPt100_UP15','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1322] = ['', ['SingleMuPt1000_UP15','DIGIUP15','RECOUP15','HARVESTUP15']]
+#workflows[140.1] = ['',['HydjetQ_MinBias_2760GeV_UP15','DIGIHIUP15','RECOHIUP15','HARVESTHI']] # need new GEN-SIM for this one
+
+## 8 TeV
 workflows[24] = ['', ['TTbarLepton','DIGI','RECO','HARVEST']]
 workflows[35] = ['', ['Wjet_Pt_80_120','DIGI','RECO','HARVEST']]
 workflows[36] = ['', ['Wjet_Pt_3000_3500','DIGI','RECO','HARVEST']]
 workflows[37] = ['', ['LM1_sfts','DIGI','RECO','HARVEST']]
-workflows[38] = ['', ['QCD_FlatPt_15_3000','DIGI','RECO','HARVEST']]
+# the input for the following worrkflow is high statistics
+workflows[38] = ['', ['QCD_FlatPt_15_3000HS','DIGI','RECO','HARVEST']]
 
 workflows[9]  = ['', ['Higgs200ChargedTaus','DIGI','RECO','HARVEST']]
 workflows[13] = ['', ['QCD_Pt_3000_3500','DIGI','RECO','HARVEST']]
@@ -134,7 +163,9 @@ workflows[31] = ['', ['ZTT','DIGI','RECO','HARVEST']]
 workflows[32] = ['', ['H130GGgluonfusion','DIGI','RECO','HARVEST']]
 workflows[33] = ['', ['PhotonJets_Pt_10','DIGI','RECO','HARVEST']]
 workflows[34] = ['', ['QQH1352T_Tauola','DIGI','RECO','HARVEST']]
+workflows[46] = ['', ['ZmumuJets_Pt_20_300']]
 
+# wip gen-sim being made in 71x_pre7: GF wf uncomment once available 
 workflows[7]  = ['', ['Cosmics','DIGICOS','RECOCOS','ALCACOS','HARVESTCOS']]
 workflows[8]  = ['', ['BeamHalo','DIGICOS','RECOCOS','ALCABH','HARVESTCOS']]
 workflows[11] = ['', ['MinBias','DIGI','RECOMIN','HARVEST','ALCAMIN']]
@@ -150,11 +181,50 @@ workflows[43] = ['', ['ZpMM_2250_8TeV_Tauola','DIGI','RECO','HARVEST']]
 workflows[44] = ['', ['ZpEE_2250_8TeV_Tauola','DIGI','RECO','HARVEST']]
 workflows[45] = ['', ['ZpTT_1500_8TeV_Tauola','DIGI','RECO','HARVEST']]
 
+## 13 TeV and postLS1 geometry
+workflows[1324] = ['', ['TTbarLepton_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1335] = ['', ['Wjet_Pt_80_120_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1336] = ['', ['Wjet_Pt_3000_3500_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1337] = ['', ['LM1_sfts_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1338] = ['', ['QCD_FlatPt_15_3000HS_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+
+workflows[1309]  = ['', ['Higgs200ChargedTaus_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1313] = ['', ['QCD_Pt_3000_3500_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1339] = ['', ['QCD_Pt_600_800_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1323] = ['', ['JpsiMM_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1325] = ['', ['TTbar_13','DIGIUP15','RECOUP15','HARVESTUP15','ALCATT']]
+workflows[1326] = ['', ['WE_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1329] = ['', ['ZEE_13','DIGIUP15','RECOUP15','HARVESTUP15','ALCAELE']]
+workflows[1331] = ['', ['ZTT_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1332] = ['', ['H130GGgluonfusion_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1333] = ['', ['PhotonJets_Pt_10_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1334] = ['', ['QQH1352T_Tauola_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1346] = ['', ['ZmumuJets_Pt_20_300_13']]
+
+workflows[1307]  = ['', ['Cosmics_UP15','DIGIHAL','RECOHAL','ALCAHAL','HARVESTHAL']]
+workflows[1308]  = ['', ['BeamHalo_13','DIGIHAL','RECOHAL','ALCAHAL','HARVESTHAL']]
+workflows[1311] = ['', ['MinBias_13','DIGIUP15','RECOMINUP15','HARVESTUP15','ALCAMIN']]
+workflows[1328] = ['', ['QCD_Pt_80_120_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1327] = ['', ['WM_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1330] = ['', ['ZMM_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+
+workflows[1310] = ['', ['ADDMonoJet_d3MD3_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1312] = ['', ['ZpMM_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1314] = ['', ['WpM_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+
+workflows[1340] = ['', ['Pythia6_BuJpsiK_TuneZ2star_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1341] = ['', ['RSKKGluon_m3000GeV_13','DIGIUP15','RECOUP15','HARVESTUP15']]
+
+workflows[1343] = ['', ['ZpMM_2250_13TeV_Tauola','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1344] = ['', ['ZpEE_2250_13TeV_Tauola','DIGIUP15','RECOUP15','HARVESTUP15']]
+workflows[1345] = ['', ['ZpTT_1500_13TeV_Tauola','DIGIUP15','RECOUP15','HARVESTUP15']]
+
 ### HI test ###
 workflows[140] = ['',['HydjetQ_MinBias_2760GeV','DIGIHI','RECOHI','HARVESTHI']]
 workflows[141] = ['',['HydjetQ_B0_2760GeV','DIGIHI','RECOHI','HARVESTHI']]
 workflows[142] = ['',['HydjetQ_B8_2760GeV','DIGIHI','RECOHI','HARVESTHI']]
+workflows[143] = ['',['HydjetQ_B3_2760GeV','DIGIHI','RECOHI','HARVESTHI']]
+#workflows[144] = ['',['HydjetQ_B5_2760GeV','DIGIHI','RECOHI','HARVESTHI']]
 
 ### pPb test ###
 workflows[280]= ['',['AMPT_PPb_5020GeV_MinimumBias','DIGI','RECO','HARVEST']]
-

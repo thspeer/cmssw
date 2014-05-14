@@ -4,8 +4,6 @@
  *     Steering routine for L1 trigger simulation in a muon barrel station
  *
  *
- *   $Date: 2010/11/11 16:29:29 $
- *   $Revision: 1.14 $
  *
  *   \author C.Grandi
  */
@@ -34,6 +32,7 @@
 #include "DataFormats/GeometryVector/interface/LocalPoint.h"
 #include "DataFormats/GeometryVector/interface/LocalVector.h"
 #include "L1Trigger/DTSectorCollector/interface/DTSCTrigUnit.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "L1Trigger/DTUtilities/interface/DTTrigData.h"
 #include "L1Trigger/DTBti/interface/DTBtiTrigData.h"
 #include "L1Trigger/DTTraco/interface/DTTracoTrigData.h"
@@ -70,7 +69,7 @@ class DTTrig {
   public:
   
     //! Constructors
-    DTTrig(const edm::ParameterSet &params);
+    DTTrig(const edm::ParameterSet &params, edm::ConsumesCollector && ix);
 
     //! Destructor
     ~DTTrig();

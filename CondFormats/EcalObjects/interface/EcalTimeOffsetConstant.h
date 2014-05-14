@@ -3,8 +3,10 @@
 /**
  * Author: Seth Cooper, University of Minnesota
  * Created: 21 Mar 2011
- * $Id: EcalTimeOffsetConstant.h,v 1.1 2011/03/22 16:13:04 argiro Exp $
+ * $Id: $
  **/
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <iostream>
 
@@ -24,6 +26,8 @@ class EcalTimeOffsetConstant {
   private:
     float EBvalue_;
     float EEvalue_;
+
+  COND_SERIALIZABLE;
 };
 
 /**

@@ -1,8 +1,6 @@
 /*
  *  See header file for a description of this class.
  *
- *  $Date: 2012/01/12 15:05:33 $
- *  $Revision: 1.7 $
  *  \author G. Mila - INFN Torino
  */
 
@@ -15,7 +13,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/ESHandle.h"
-#include <FWCore/Framework/interface/MakerMacros.h>
+#include "FWCore/Framework/interface/MakerMacros.h"
 
 // Geometry
 #include "Geometry/DTGeometry/interface/DTLayer.h"
@@ -24,7 +22,7 @@
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
 
 // Digis
-#include <DataFormats/DTDigi/interface/DTDigi.h>
+#include "DataFormats/DTDigi/interface/DTDigi.h"
 #include "DataFormats/DTDigi/interface/DTDigiCollection.h"
 #include "CondFormats/DataRecord/interface/DTStatusFlagRcd.h"
 #include "CondFormats/DTObjects/interface/DTStatusFlag.h"
@@ -91,8 +89,8 @@ void DTNoiseComputation::beginRun(const edm::Run&, const EventSetup& setup)
     TH1F *hsomeHowNoisyC;
   
     // Loop over all the chambers 	 
-    vector<DTChamber*>::const_iterator ch_it = dtGeom->chambers().begin(); 	 
-    vector<DTChamber*>::const_iterator ch_end = dtGeom->chambers().end(); 	 
+    vector<const DTChamber*>::const_iterator ch_it = dtGeom->chambers().begin(); 	 
+    vector<const DTChamber*>::const_iterator ch_end = dtGeom->chambers().end(); 	 
     // Loop over the SLs 	 
     for (; ch_it != ch_end; ++ch_it) { 	 
       DTChamberId ch = (*ch_it)->id(); 	 
@@ -328,8 +326,8 @@ void DTNoiseComputation::endJob(){
   
   //overimpose the average noise histo
   bool histo=false;
-  vector<DTChamber*>::const_iterator chamber_it = dtGeom->chambers().begin();
-  vector<DTChamber*>::const_iterator chamber_end = dtGeom->chambers().end();
+  vector<const DTChamber*>::const_iterator chamber_it = dtGeom->chambers().begin();
+  vector<const DTChamber*>::const_iterator chamber_end = dtGeom->chambers().end();
   // Loop over the chambers
   for (; chamber_it != chamber_end; ++chamber_it) {
     vector<const DTSuperLayer*>::const_iterator sl_it = (*chamber_it)->superLayers().begin(); 

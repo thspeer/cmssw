@@ -5,8 +5,6 @@
  *   Setup the L1 barrel Muon Trigger Track Finder
  *
  *
- *   $Date: 2007/03/30 08:51:21 $
- *   $Revision: 1.2 $
  *
  *   N. Neumeister            CERN EP
  */
@@ -29,6 +27,7 @@
 //------------------------------------
 
 #include <FWCore/ParameterSet/interface/ParameterSet.h>
+#include <FWCore/Framework/interface/ConsumesCollector.h>
 class L1MuDTTrackFinder;
 
 //              ---------------------
@@ -40,7 +39,7 @@ class L1MuDTTFSetup {
   public:
 
     /// constructor
-    L1MuDTTFSetup(const edm::ParameterSet & ps);
+    L1MuDTTFSetup(const edm::ParameterSet & ps,edm::ConsumesCollector && ix);
 
     /// destructor
     virtual ~L1MuDTTFSetup();

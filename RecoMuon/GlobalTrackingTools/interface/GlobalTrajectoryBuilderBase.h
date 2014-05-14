@@ -14,8 +14,6 @@
  *   in the muon system and the tracker.
  *
  *
- *  $Date: 2013/01/06 19:16:51 $
- *  $Revision: 1.24 $
  *
  *  \author N. Neumeister 	 Purdue University
  *  \author C. Liu 		 Purdue University
@@ -26,6 +24,7 @@
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "RecoMuon/TrackingTools/interface/MuonTrajectoryBuilder.h"
 #include "RecoMuon/TransientTrackingRecHit/interface/MuonTransientTrackingRecHit.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 class RectangularEtaPhiTrackingRegion;
 class TrajectoryStateOnSurface;
@@ -67,7 +66,7 @@ class GlobalTrajectoryBuilderBase : public MuonTrajectoryBuilder {
   public:
 
     /// constructor with Parameter Set and MuonServiceProxy
-    GlobalTrajectoryBuilderBase(const edm::ParameterSet&, const MuonServiceProxy*);
+    GlobalTrajectoryBuilderBase(const edm::ParameterSet&, const MuonServiceProxy*, edm::ConsumesCollector&);
           
     /// destructor
     virtual ~GlobalTrajectoryBuilderBase();

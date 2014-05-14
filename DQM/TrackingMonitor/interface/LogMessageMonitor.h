@@ -13,7 +13,6 @@
 //
 // Original Author:  Mia Tosi,40 3-B32,+41227671609,
 //         Created:  Thu Mar  8 14:34:13 CET 2012
-// $Id: LogMessageMonitor.h,v 1.1 2012/10/15 13:24:45 threus Exp $
 //
 //
 
@@ -21,6 +20,8 @@
 #include <memory>
 
 // user include files
+#include "FWCore/Utilities/interface/EDGetToken.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 
@@ -32,6 +33,9 @@
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
+#include "FWCore/MessageLogger/interface/ErrorSummaryEntry.h"
+
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 
 #include <vector>
 #include <string>
@@ -46,7 +50,7 @@ class GetLumi;
 // class declaration
 //
 
-class LogMessageMonitor : public edm::EDAnalyzer {
+class LogMessageMonitor : public DQMEDAnalyzer {
    public:
       explicit LogMessageMonitor(const edm::ParameterSet&);
       ~LogMessageMonitor();
@@ -55,16 +59,20 @@ class LogMessageMonitor : public edm::EDAnalyzer {
 
 
    private:
-      virtual void beginJob() ;
+  //      virtual void beginJob() ;
       virtual void analyze(const edm::Event&, const edm::EventSetup&);
       virtual void endJob() ;
 
-      virtual void beginRun(edm::Run const&, edm::EventSetup const&);
+  //      virtual void beginRun(edm::Run const&, edm::EventSetup const&);
       virtual void endRun(edm::Run const&, edm::EventSetup const&);
       virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
       virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
+  void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
+
       // ----------member data ---------------------------
+  edm::EDGetTokenT<std::vector<edm::ErrorSummaryEntry> > errorToken_;
+
       std::string histname;  //for naming the histograms according to algorithm used
       
       DQMStore * dqmStore_;

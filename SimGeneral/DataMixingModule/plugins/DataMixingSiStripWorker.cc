@@ -26,7 +26,7 @@ namespace edm
   DataMixingSiStripWorker::DataMixingSiStripWorker() { }
 
   // Constructor 
-  DataMixingSiStripWorker::DataMixingSiStripWorker(const edm::ParameterSet& ps) : 
+  DataMixingSiStripWorker::DataMixingSiStripWorker(const edm::ParameterSet& ps, edm::ConsumesCollector && iC) : 
 							    label_(ps.getParameter<std::string>("Label"))
 
   {                                                         
@@ -40,6 +40,11 @@ namespace edm
     SiStripPileInputTag_ = ps.getParameter<edm::InputTag>("SiStripPileInputTag");
 
     SiStripDigiCollectionDM_  = ps.getParameter<std::string>("SiStripDigiCollectionDM");
+
+    SiStripDigiToken_ = iC.consumes<edm::DetSetVector<SiStripDigi> >(SistripLabelSig_);
+    SiStripDigiPToken_ = iC.consumes<edm::DetSetVector<SiStripDigi> >(SiStripPileInputTag_);
+
+
 
     // clear local storage for this event                                                                     
     SiHitStorage_.clear();
@@ -58,7 +63,7 @@ namespace edm
 
     Handle< edm::DetSetVector<SiStripDigi> >  input;
 
-    if( e.getByLabel(SistripLabelSig_,input) ) {
+    if( e.getByToken(SiStripDigiToken_,input) ) {
       OneDetectorMap LocalMap;
 
       //loop on all detsets (detectorIDs) inside the input collection
@@ -81,13 +86,14 @@ namespace edm
 
 
 
-  void DataMixingSiStripWorker::addSiStripPileups(const int bcr, const EventPrincipal *ep, unsigned int eventNr) {
+  void DataMixingSiStripWorker::addSiStripPileups(const int bcr, const EventPrincipal *ep, unsigned int eventNr,
+                                                  ModuleCallingContext const* mcc) {
     LogDebug("DataMixingSiStripWorker") <<"\n===============> adding pileups from event  "<<ep->id()<<" for bunchcrossing "<<bcr;
 
     // fill in maps of hits; same code as addSignals, except now applied to the pileup events
 
     boost::shared_ptr<Wrapper<edm::DetSetVector<SiStripDigi> >  const> inputPTR =
-      getProductByTag<edm::DetSetVector<SiStripDigi> >(*ep, SiStripPileInputTag_ );
+      getProductByTag<edm::DetSetVector<SiStripDigi> >(*ep, SiStripPileInputTag_, mcc);
 
     if(inputPTR ) {
 

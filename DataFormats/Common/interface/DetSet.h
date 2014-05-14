@@ -8,7 +8,6 @@ associated with a common DetId with a DetId instance, holding the
 common DetId value. The collected objects may or may not contain their
 own copy of the common DetId.
 
-$Id: DetSet.h,v 1.17 2012/04/11 09:53:26 innocent Exp $
 
 ----------------------------------------------------------------------*/
 
@@ -52,7 +51,7 @@ namespace edm {
     
     DetSet<T> & operator=(DetSet<T> && rh)  noexcept {
       id = rh.id;
-      data.swap(rh.data);
+      data = std::move(rh.data);
       return * this;
     }
 #endif

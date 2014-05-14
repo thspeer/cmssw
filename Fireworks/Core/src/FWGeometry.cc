@@ -24,40 +24,24 @@ FWGeometry::~FWGeometry( void )
 TFile*
 FWGeometry::findFile( const char* fileName )
 {
-   TString file;
-   if( fileName[0] == '/' || ( fileName[0] == '.' &&  fileName[1] == '/' ))
-   {
-      file = fileName;
-   }
-   else
-   {
-      if( const char* cmspath = gSystem->Getenv( "CMSSW_BASE" ))
-      {
-         file += cmspath;
-         file += "/";
-      }
-      file += fileName;
-   }
-   if( !gSystem->AccessPathName( file.Data()))
-   {
-      return TFile::Open( file );
+   std::string searchPath = ".";
+
+   if (gSystem->Getenv( "CMSSW_SEARCH_PATH" ))
+   {    
+       TString paths = gSystem->Getenv( "CMSSW_SEARCH_PATH" );
+       TObjArray* tokens = paths.Tokenize( ":" );
+       for( int i = 0; i < tokens->GetEntries(); ++i )
+       {
+           TObjString* path = (TObjString*)tokens->At( i );
+           searchPath += ":";
+           searchPath += path->GetString();
+           searchPath += "/Fireworks/Geometry/data/";
+       }
    }
 
-   const char* searchpath = gSystem->Getenv( "CMSSW_SEARCH_PATH" );
-   if( searchpath == 0 )
-     return 0;
-   TString paths( searchpath );
-   TObjArray* tokens = paths.Tokenize( ":" );
-   for( int i = 0; i < tokens->GetEntries(); ++i )
-   {
-      TObjString* path = (TObjString*)tokens->At( i );
-      TString fullFileName( path->GetString());
-      fullFileName += "/Fireworks/Geometry/data/";
-      fullFileName += fileName;
-      if( !gSystem->AccessPathName( fullFileName.Data()))
-         return TFile::Open( fullFileName.Data());
-   }
-   return 0;
+   TString fn = fileName;
+   const char* fp = gSystem->FindFile(searchPath.c_str(), fn, kFileExists);
+   return fp ? TFile::Open( fp) : 0;
 }
 
 void
@@ -322,7 +306,7 @@ FWGeometry::getShapePars( unsigned int id ) const
 }
 
 void
-FWGeometry::localToGlobal( unsigned int id, const float* local, float* global ) const
+FWGeometry::localToGlobal( unsigned int id, const float* local, float* global, bool translatep ) const
 {
    IdToInfoItr it = FWGeometry::find( id );
    if( it == m_idToInfo.end())
@@ -331,12 +315,13 @@ FWGeometry::localToGlobal( unsigned int id, const float* local, float* global ) 
    }
    else
    {
-      localToGlobal( *it, local, global );
+      localToGlobal( *it, local, global, translatep );
    }
 }
 
 void
-FWGeometry::localToGlobal( unsigned int id, const float* local1, float* global1, const float* local2, float* global2 ) const
+FWGeometry::localToGlobal( unsigned int id, const float* local1, float* global1,
+                           const float* local2, float* global2, bool translatep ) const
 {
    IdToInfoItr it = FWGeometry::find( id );
    if( it == m_idToInfo.end())
@@ -345,8 +330,8 @@ FWGeometry::localToGlobal( unsigned int id, const float* local1, float* global1,
    }
    else
    {
-      localToGlobal( *it, local1, global1 );
-      localToGlobal( *it, local2, global2 );
+      localToGlobal( *it, local1, global1, translatep );
+      localToGlobal( *it, local2, global2, translatep );
    }
 }
 
@@ -359,13 +344,13 @@ FWGeometry::find( unsigned int id ) const
 }
 
 void
-FWGeometry::localToGlobal( const GeomDetInfo& info, const float* local, float* global ) const
+FWGeometry::localToGlobal( const GeomDetInfo& info, const float* local, float* global, bool translatep ) const
 {
    for( int i = 0; i < 3; ++i )
    {
-      global[i] = info.translation[i] 
-		  + local[0] * info.matrix[3 * i]
-		  + local[1] * info.matrix[3 * i + 1]
-		  + local[2] * info.matrix[3 * i + 2];
+      global[i]  = translatep ? info.translation[i] : 0;
+      global[i] +=   local[0] * info.matrix[3 * i]
+		   + local[1] * info.matrix[3 * i + 1]
+		   + local[2] * info.matrix[3 * i + 2];
    }
 }

@@ -2,8 +2,6 @@
 /*
  *  See header file for a description of this class.
  *
- *  $Date: 2012/03/02 19:47:32 $
- *  $Revision: 1.11 $
  *  \author S. Maselli - INFN Torino
  *          A. Vilela Pereira
  */
@@ -66,8 +64,8 @@ void DTTTrigCorrection::endJob() {
   // Create the object to be written to DB
   DTTtrig* tTrigNewMap = new DTTtrig();  
 
-  for(vector<DTSuperLayer*>::const_iterator sl = muonGeom_->superLayers().begin();
-                                            sl != muonGeom_->superLayers().end(); ++sl) {
+  for(auto sl = muonGeom_->superLayers().begin();
+          sl != muonGeom_->superLayers().end(); ++sl) {
     // Get old value from DB
     float tTrigMean,tTrigSigma,kFactor;
     int status = tTrigMap_->get((*sl)->id(),tTrigMean,tTrigSigma,kFactor,DTTimeUnits::ns);

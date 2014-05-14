@@ -17,6 +17,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventPrincipal.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "DataFormats/Provenance/interface/ProductID.h"
 #include "DataFormats/Common/interface/Handle.h"
@@ -33,6 +34,8 @@
 
 namespace edm
 {
+  class ModuleCallingContext;
+
   class DataMixingEMWorker
     {
     public:
@@ -40,14 +43,15 @@ namespace edm
       DataMixingEMWorker();
 
      /** standard constructor*/
-      explicit DataMixingEMWorker(const edm::ParameterSet& ps);
+      explicit DataMixingEMWorker(const edm::ParameterSet& ps, edm::ConsumesCollector && iC);
 
       /**Default destructor*/
       virtual ~DataMixingEMWorker();
 
       void putEM(edm::Event &e) ;
       void addEMSignals(const edm::Event &e); 
-      void addEMPileups(const int bcr, const edm::EventPrincipal*,unsigned int EventId);
+      void addEMPileups(const int bcr, const edm::EventPrincipal*,unsigned int EventId,
+                        ModuleCallingContext const*);
 
 
     private:
@@ -65,6 +69,13 @@ namespace edm
       edm::InputTag EEPileRecHitInputTag_; // full InputTag for pileup EE calib rechits
       edm::InputTag ESPileRecHitInputTag_; // full InputTag for pileup ES calib rechits
 
+      edm::EDGetTokenT<EBRecHitCollection> EBRecHitToken_ ;  // Token to retrieve information
+      edm::EDGetTokenT<EERecHitCollection> EERecHitToken_ ;  // Token to retrieve information
+      edm::EDGetTokenT<ESRecHitCollection> ESRecHitToken_ ;  // Token to retrieve information  
+
+      edm::EDGetTokenT<EBRecHitCollection> EBPileRecHitToken_ ;  // Token to retrieve information
+      edm::EDGetTokenT<EERecHitCollection> EEPileRecHitToken_ ;  // Token to retrieve information
+      edm::EDGetTokenT<ESRecHitCollection> ESPileRecHitToken_ ;  // Token to retrieve information  
 
 
 

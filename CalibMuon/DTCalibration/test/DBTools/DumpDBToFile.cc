@@ -2,8 +2,6 @@
 /*
  *  See header file for a description of this class.
  *
- *  $Date: 2012/05/11 17:17:17 $
- *  $Revision: 1.14 $
  *  \author G. Cerminara - INFN Torino
  */
 
@@ -28,9 +26,13 @@
 #include "CondFormats/DTObjects/interface/DTDeadFlag.h"
 #include "CondFormats/DataRecord/interface/DTReadOutMappingRcd.h"
 #include "CondFormats/DTObjects/interface/DTReadOutMapping.h"
+#include "CondFormats/DataRecord/interface/DTRecoUncertaintiesRcd.h"
+#include "CondFormats/DTObjects/interface/DTRecoUncertainties.h"
 
 #include <iostream>
 #include <fstream>
+#include <algorithm>
+#include <iterator>
 
 using namespace edm;
 using namespace std;
@@ -43,7 +45,7 @@ DumpDBToFile::DumpDBToFile(const ParameterSet& pset) {
   dbLabel  = pset.getUntrackedParameter<string>("dbLabel", "");
 
   if(dbToDump != "VDriftDB" && dbToDump != "TTrigDB" && dbToDump != "TZeroDB" 
-     && dbToDump != "NoiseDB" && dbToDump != "DeadDB" && dbToDump != "ChannelsDB")
+     && dbToDump != "NoiseDB" && dbToDump != "DeadDB" && dbToDump != "ChannelsDB" && dbToDump != "RecoUncertDB")
     cout << "[DumpDBToFile] *** Error: parameter dbToDump is not valid, check the cfg file" << endl;
 }
 
@@ -79,6 +81,11 @@ void DumpDBToFile::beginRun(const edm::Run&, const EventSetup& setup) {
     ESHandle<DTReadOutMapping> channels;
     setup.get<DTReadOutMappingRcd>().get(channels);
     channelsMap = &*channels;
+  } else if (dbToDump == "RecoUncertDB") {
+    ESHandle<DTRecoUncertainties> uncerts;
+    setup.get<DTRecoUncertaintiesRcd>().get(uncerts);
+    uncertMap = &*uncerts;
+    
   }
 }
 
@@ -220,7 +227,31 @@ void DumpDBToFile::endJob() {
 
 	theCalibFile->addCell(wireId, consts);
       }
-    } 
+    } else if(dbToDump == "RecoUncertDB") {
+      cout << "RecoUncertDB version: " << uncertMap->version() << endl;
+      for(DTRecoUncertainties::const_iterator wireAndUncerts = uncertMap->begin();
+	  wireAndUncerts != uncertMap->end(); wireAndUncerts++) {
+	DTWireId wireId((*wireAndUncerts).first);
+	vector<float> values = (*wireAndUncerts).second;
+	
+	cout << wireId;
+	copy(values.begin(), values.end(), ostream_iterator<float>(cout, " cm, "));
+	cout << endl;
+
+	vector<float> consts;
+	consts.push_back(-1);
+	consts.push_back(-1);
+	consts.push_back(-1);
+	consts.push_back(-1);
+	consts.push_back(-1);
+	consts.push_back(-9999999);      
+	consts.push_back(-9999999);
+	consts.push_back(-1);
+	consts.insert(consts.end(), values.begin(), values.end());
+
+	theCalibFile->addCell(wireId, consts);
+      }
+    }
     //Write constants into file
     theCalibFile->writeConsts(theOutputFileName);
   }
@@ -254,6 +285,7 @@ void DumpDBToFile::endJob() {
 	   << "wire "    << roLink->cellId << ' '<<endl;
     }
   }
+
 
 }
 

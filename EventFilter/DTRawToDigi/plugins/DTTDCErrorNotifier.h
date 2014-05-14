@@ -3,12 +3,10 @@
 
 /** \class DTTDCErrorNotifier
  *
- *  $Date: 2007/05/07 16:16:40 $
- *  $Revision: 1.3 $
  *  \author M. Zanetti - INFN Padova
  */
 
-#include <EventFilter/DTRawToDigi/interface/DTDDUWords.h>
+#include <DataFormats/DTDigi/interface/DTDDUWords.h>
 //class DTTDCErrorWord;
 
 class DTTDCErrorNotifier {

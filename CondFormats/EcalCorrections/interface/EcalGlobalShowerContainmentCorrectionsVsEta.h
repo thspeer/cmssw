@@ -22,8 +22,10 @@
 
  * \endcode
  * \author       Paolo Meridiani
- * \id           $Id: EcalGlobalShowerContainmentCorrectionsVsEta.h,v 1.2 2007/07/16 17:30:53 meridian Exp $
+ * \id           $Id: EcalGlobalShowerContainmentCorrectionsVsEta.h,v 1.1 2007/07/13 17:37:06 meridian Exp $
 */
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <vector>
 #include <algorithm>
@@ -65,7 +67,9 @@ class EcalGlobalShowerContainmentCorrectionsVsEta {
 
     double data[kSize];
 
-  };
+  
+ COND_SERIALIZABLE;
+};
 
 
   /// The correction factor for 3x3 matrix
@@ -102,6 +106,8 @@ class EcalGlobalShowerContainmentCorrectionsVsEta {
   /// Holds the coeffiecients. The index corresponds to the group
   Coefficients coefficients_;  
   
+
+ COND_SERIALIZABLE;
 };
 
 #endif

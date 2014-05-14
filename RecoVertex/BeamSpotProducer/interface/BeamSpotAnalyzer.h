@@ -9,7 +9,6 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BeamSpotAnalyzer.h,v 1.14 2010/06/18 19:35:59 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -41,7 +40,7 @@ class BeamSpotAnalyzer : public edm::EDAnalyzer {
   int    ftotalevents;
   int fitNLumi_;
   int resetFitNLumi_;
-  int countEvt_;       //counter
+  // int countEvt_;       //counter
   int countLumi_;      //counter
   int Org_resetFitNLumi_;
   int previousLumi_;
@@ -54,7 +53,7 @@ class BeamSpotAnalyzer : public edm::EDAnalyzer {
   bool write2DB_;
   bool runbeamwidthfit_;
   bool runallfitters_;
-  double inputBeamWidth_;
+  //  double inputBeamWidth_;
 
   BeamFitter * theBeamFitter;
 };

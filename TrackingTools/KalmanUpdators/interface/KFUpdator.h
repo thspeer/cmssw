@@ -24,8 +24,6 @@
  * Initial author: P.Vanlaer 25.02.1999
  * Ported from ORCA.
  *
- *  $Date: 2013/01/10 11:55:11 $
- *  $Revision: 1.4 $
  *  \author vanlaer, cerati
  */
 
@@ -40,10 +38,10 @@ public:
   KFUpdator() {}
 
   TrajectoryStateOnSurface update(const TrajectoryStateOnSurface&,
-                                  const TransientTrackingRecHit&) const;
+                                  const TrackingRecHit&) const;
 
   template <unsigned int D> TrajectoryStateOnSurface update(const TrajectoryStateOnSurface&,
-                                  const TransientTrackingRecHit&) const;
+                                  const TrackingRecHit&) const;
 
   virtual KFUpdator * clone() const {
     return new KFUpdator(*this);

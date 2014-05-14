@@ -1,7 +1,7 @@
 #ifndef CkfTrackCandidateMaker_h
 #define CkfTrackCandidateMaker_h
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -11,7 +11,6 @@
 #include "TrackingTools/TrajectoryCleaning/interface/TrajectoryCleaner.h"
 
 #include "MagneticField/Engine/interface/MagneticField.h"
-#include "TrackingTools/DetLayers/interface/NavigationSetter.h"
 #include "TrackingTools/DetLayers/interface/NavigationSchool.h"
 #include "RecoTracker/TkNavigation/interface/SimpleNavigationSchool.h"
 #include "RecoTracker/TkDetLayers/interface/GeometricSearchTracker.h"
@@ -24,12 +23,12 @@ class TransientInitialStateEstimator;
 
 namespace cms
 {
-  class CkfTrackCandidateMaker : public CkfTrackCandidateMakerBase, public edm::EDProducer
+  class CkfTrackCandidateMaker : public edm::stream::EDProducer<>, public CkfTrackCandidateMakerBase
   {
   public:
 
     explicit CkfTrackCandidateMaker(const edm::ParameterSet& conf):
-      CkfTrackCandidateMakerBase(conf){
+      CkfTrackCandidateMakerBase(conf, consumesCollector()){
       produces<TrackCandidateCollection>();
     }
 

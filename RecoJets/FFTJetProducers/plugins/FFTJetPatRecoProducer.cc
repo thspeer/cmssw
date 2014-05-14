@@ -13,7 +13,6 @@
 //
 // Original Author:  Igor Volobouev
 //         Created:  Tue Jun 15 12:45:45 CDT 2010
-// $Id: FFTJetPatRecoProducer.cc,v 1.5 2011/07/18 17:08:24 igv Exp $
 //
 //
 
@@ -30,13 +29,10 @@
 
 // framework include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/Common/interface/View.h"
-#include "DataFormats/Common/interface/Handle.h"
-#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
 #include "DataFormats/JetReco/interface/PFJetCollection.h"
@@ -64,7 +60,7 @@ using namespace fftjetcms;
 //
 // class declaration
 //
-class FFTJetPatRecoProducer : public edm::EDProducer, public FFTJetInterface
+class FFTJetPatRecoProducer : public FFTJetInterface
 {
 public:
     explicit FFTJetPatRecoProducer(const edm::ParameterSet&);
@@ -78,9 +74,9 @@ protected:
     typedef fftjet::ClusteringTreeSparsifier<fftjet::Peak,long> Sparsifier;
 
     // methods
-    void beginJob() ;
-    void produce(edm::Event&, const edm::EventSetup&);
-    void endJob() ;
+    void beginJob() override ;
+    void produce(edm::Event&, const edm::EventSetup&) override;
+    void endJob() override ;
 
     void buildKernelConvolver(const edm::ParameterSet&);
     fftjet::PeakFinder buildPeakFinder(const edm::ParameterSet&);

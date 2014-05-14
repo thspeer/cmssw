@@ -2,8 +2,6 @@
 /*
  *  See header file for a description of this class.
  *
- *  $Date: 2011/11/24 09:17:30 $
- *  $Revision: 1.6 $
  *  \author G. Mila - INFN Torino
  */
 
@@ -144,8 +142,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(3,4);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_digi_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_digi_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_digi_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_digi_end = muonGeom->chambers().end();
     for (; ch_digi_it != ch_digi_end; ++ch_digi_it) {
       DTChamberId ch = (*ch_digi_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -175,8 +173,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(4,3);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_digi2_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_digi2_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_digi2_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_digi2_end = muonGeom->chambers().end();
     for (; ch_digi2_it != ch_digi2_end; ++ch_digi2_it) {
       DTChamberId ch = (*ch_digi2_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -215,8 +213,8 @@ void DTCreateSummaryHistos::endJob(){
     
     // Occupancy Noise
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_digi3_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_digi3_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_digi3_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_digi3_end = muonGeom->chambers().end();
     for (; ch_digi3_it != ch_digi3_end; ++ch_digi3_it) {
       DTChamberId ch = (*ch_digi3_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -255,8 +253,8 @@ void DTCreateSummaryHistos::endJob(){
     
     // Digi Per Event
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_digi4_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_digi4_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_digi4_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_digi4_end = muonGeom->chambers().end();
     for (; ch_digi4_it != ch_digi4_end; ++ch_digi4_it) {
       DTChamberId ch = (*ch_digi4_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -300,8 +298,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear(); 
     c1.Divide(2,4);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_reco_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_reco_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_reco_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_reco_end = muonGeom->chambers().end();
     for (; ch_reco_it != ch_reco_end; ++ch_reco_it) {
       DTChamberId ch = (*ch_reco_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -329,8 +327,8 @@ void DTCreateSummaryHistos::endJob(){
     
     // reco segment Histos - page2
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_reco2_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_reco2_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_reco2_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_reco2_end = muonGeom->chambers().end();
     for (; ch_reco2_it != ch_reco2_end; ++ch_reco2_it) {
       DTChamberId ch = (*ch_reco2_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -363,8 +361,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(3,4);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_reso_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_reso_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_reso_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_reso_end = muonGeom->chambers().end();
     for (; ch_reso_it != ch_reso_end; ++ch_reso_it) {
       DTChamberId ch = (*ch_reso_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -392,8 +390,8 @@ void DTCreateSummaryHistos::endJob(){
     
     // Residuals as a function of the position Histos
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_reso2_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_reso2_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_reso2_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_reso2_end = muonGeom->chambers().end();
     for (; ch_reso2_it != ch_reso2_end; ++ch_reso2_it) {
       DTChamberId ch = (*ch_reso2_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -426,8 +424,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(4,3);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_eff_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_eff_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_eff_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_eff_end = muonGeom->chambers().end();
     for (; ch_eff_it != ch_eff_end; ++ch_eff_it) {
       DTChamberId ch = (*ch_eff_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -468,8 +466,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(2,2);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_eff2_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_eff2_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_eff2_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_eff2_end = muonGeom->chambers().end();
     for (; ch_eff2_it != ch_eff2_end; ++ch_eff2_it) {
       DTChamberId ch = (*ch_eff2_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -489,8 +487,8 @@ void DTCreateSummaryHistos::endJob(){
     
     // Chamber Y efficiency
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_eff3_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_eff3_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_eff3_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_eff3_end = muonGeom->chambers().end();
     for (; ch_eff3_it != ch_eff3_end; ++ch_eff3_it) {
       DTChamberId ch = (*ch_eff3_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -514,8 +512,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(4,3);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_TP_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_TP_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_TP_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_TP_end = muonGeom->chambers().end();
     for (; ch_TP_it != ch_TP_end; ++ch_TP_it) {
       DTChamberId ch = (*ch_TP_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -558,8 +556,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(2,2);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_trigger_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_trigger_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_trigger_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_trigger_end = muonGeom->chambers().end();
     for (; ch_trigger_it != ch_trigger_end; ++ch_trigger_it) {
       DTChamberId ch = (*ch_trigger_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -578,8 +576,8 @@ void DTCreateSummaryHistos::endJob(){
     psFile.NewPage();
     
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_trigger2_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_trigger2_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_trigger2_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_trigger2_end = muonGeom->chambers().end();
     for (; ch_trigger2_it != ch_trigger2_end; ++ch_trigger2_it) {
       DTChamberId ch = (*ch_trigger2_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -601,8 +599,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Divide(1,2);
     int counter1=0,counter2=0;
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_trigger3_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_trigger3_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_trigger3_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_trigger3_end = muonGeom->chambers().end();
     for (; ch_trigger3_it != ch_trigger3_end; ++ch_trigger3_it) {
       DTChamberId ch = (*ch_trigger3_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -630,8 +628,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(2,2);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_trigger4_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_trigger4_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_trigger4_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_trigger4_end = muonGeom->chambers().end();
     for (; ch_trigger4_it != ch_trigger4_end; ++ch_trigger4_it) {
       DTChamberId ch = (*ch_trigger4_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -658,8 +656,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(2,2);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_trigger5_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_trigger5_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_trigger5_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_trigger5_end = muonGeom->chambers().end();
     for (; ch_trigger5_it != ch_trigger5_end; ++ch_trigger5_it) {
       DTChamberId ch = (*ch_trigger5_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -681,8 +679,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(2,2);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_trigger6_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_trigger6_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_trigger6_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_trigger6_end = muonGeom->chambers().end();
     for (; ch_trigger6_it != ch_trigger6_end; ++ch_trigger6_it) {
       DTChamberId ch = (*ch_trigger6_it)->id();
       stringstream wheel; wheel << ch.wheel();
@@ -704,8 +702,8 @@ void DTCreateSummaryHistos::endJob(){
     c1.Clear();
     c1.Divide(2,2);
     // Loop over all the chambers
-    vector<DTChamber*>::const_iterator ch_trigger7_it = muonGeom->chambers().begin();
-    vector<DTChamber*>::const_iterator ch_trigger7_end = muonGeom->chambers().end();
+    vector<const DTChamber*>::const_iterator ch_trigger7_it = muonGeom->chambers().begin();
+    vector<const DTChamber*>::const_iterator ch_trigger7_end = muonGeom->chambers().end();
     for (; ch_trigger7_it != ch_trigger7_end; ++ch_trigger7_it) {
       DTChamberId ch = (*ch_trigger7_it)->id();
       stringstream wheel; wheel << ch.wheel();

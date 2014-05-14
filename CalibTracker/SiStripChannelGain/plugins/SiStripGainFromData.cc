@@ -87,13 +87,13 @@ class SiStripGainFromData : public ConditionDBWriter<SiStripApvGain> {
 
 
    private:
-      virtual void algoBeginJob(const edm::EventSetup&) ;
-      virtual void algoEndJob() ;
-      virtual void algoBeginRun(const edm::Run &, const edm::EventSetup &);
+      virtual void algoBeginJob(const edm::EventSetup&) override ;
+      virtual void algoEndJob() override ;
+      virtual void algoBeginRun(const edm::Run &, const edm::EventSetup &) override;
 //      virtual void algoBeginRun(const edm::Event& iEvent, const edm::EventSetup& iSetup);
-      virtual void algoAnalyze(const edm::Event &, const edm::EventSetup &);
+      virtual void algoAnalyze(const edm::Event &, const edm::EventSetup &) override;
 
-      SiStripApvGain* getNewObject();
+      SiStripApvGain* getNewObject() override;
       DQMStore* dqmStore_;
       DQMStore* dqmStore_infile;
 
@@ -487,7 +487,7 @@ SiStripGainFromData::algoBeginJob(const edm::EventSetup& iSetup)
 
    edm::ESHandle<TrackerGeometry> tkGeom;
    iSetup.get<TrackerDigiGeometryRecord>().get( tkGeom );
-   vector<GeomDet*> Det = tkGeom->dets();
+   auto const & Det = tkGeom->dets();
 
 
    edm::ESHandle<SiStripGain> gainHandle;
@@ -504,7 +504,7 @@ SiStripGainFromData::algoBeginJob(const edm::EventSetup& iSetup)
       if( SubDet == StripSubdetector::TIB ||  SubDet == StripSubdetector::TID ||
           SubDet == StripSubdetector::TOB ||  SubDet == StripSubdetector::TEC  ){
 
-          StripGeomDetUnit* DetUnit     = dynamic_cast<StripGeomDetUnit*> (Det[i]);
+          auto DetUnit     = dynamic_cast<StripGeomDetUnit const*> (Det[i]);
 	  if(!DetUnit)continue;
 
           const StripTopology& Topo     = DetUnit->specificTopology();	
@@ -1100,7 +1100,7 @@ SiStripGainFromData::ComputeChargeOverPath(const SiStripCluster*   Cluster ,Traj
 //   const SiStripCluster*   Cluster     = (sistripsimplehit->cluster()).get();
 //   const vector<uint16_t>& Ampls       = Cluster->amplitudes();
    const vector<uint8_t>&  Ampls       = Cluster->amplitudes();
-   uint32_t                DetId       = Cluster->geographicalId();
+   uint32_t                DetId       = 0; // is 0 since long time Cluster->geographicalId();
    int                     FirstStrip  = Cluster->firstStrip();
    int                     APVId       = FirstStrip/128;
    stAPVGain*          APV         = APVsColl[(DetId<<3) | APVId];

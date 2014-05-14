@@ -66,10 +66,10 @@ class L2TauNarrowConeIsolationProducer : public edm::EDProducer {
       math::PtEtaPhiELorentzVectorCollection getECALHits(const CaloJet&,const edm::Event&,const edm::EventSetup& iSetup);
       math::PtEtaPhiELorentzVectorCollection getHCALHits(const CaloJet&,const edm::Event&);  
      
-      edm::InputTag l2CaloJets_;//label for the readout Collection
-      edm::InputTag EBRecHits_;//Label for ECAL Barrel Hits
-      edm::InputTag EERecHits_;//Label for ECAL EndCAP Hits
-      edm::InputTag CaloTowers_;//Label for ECAL EndCAP Hits
+      edm::EDGetTokenT<reco::CaloJetCollection> l2CaloJets_;//label for the readout Collection
+      edm::EDGetTokenT<EBRecHitCollection> EBRecHits_;//Label for ECAL Barrel Hits
+      edm::EDGetTokenT<EERecHitCollection> EERecHits_;//Label for ECAL EndCAP Hits
+      edm::EDGetTokenT<CaloTowerCollection> CaloTowers_;//Label for ECAL EndCAP Hits
 
       double associationRadius_; //Association Distance  for a tower/crystal
 
@@ -98,7 +98,7 @@ class L2TauNarrowConeIsolationProducer : public edm::EDProducer {
 
         struct CrystalPtComparator
       	{
-      	  bool operator()( const math::PtEtaPhiELorentzVector v1, const math::PtEtaPhiELorentzVector v2) const
+      	  bool operator()( const math::PtEtaPhiELorentzVector& v1, const math::PtEtaPhiELorentzVector& v2) const
       	    {
       	      return v1.pt() > v2.pt(); 
       	    }

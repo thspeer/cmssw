@@ -5,8 +5,6 @@
  *  Class to load the tracks in the event, it provide some common functionalities
  *  both for all the RecoMuon producers.
  *
- *  $Date: 2013/05/30 21:33:01 $
- *  $Revision: 1.31 $
  *  \author R. Bellan - INFN Torino <riccardo.bellan@cern.ch>
  */
 
@@ -22,6 +20,10 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 
 #include "RecoMuon/TrackingTools/interface/MuonCandidate.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+
+#include "RecoTracker/TransientTrackingRecHit/interface/TkTransientTrackingRecHitBuilder.h"
+
 
 namespace edm {class Event; class EventSetup; class ParameterSet;}
 
@@ -40,7 +42,7 @@ class MuonTrackLoader {
     typedef MuonCandidate::CandidateContainer CandidateContainer;
 
     /// Constructor for the STA reco the args must be specify!
-    MuonTrackLoader(edm::ParameterSet &parameterSet, const MuonServiceProxy *service =0);
+    MuonTrackLoader(edm::ParameterSet &parameterSet,edm::ConsumesCollector& iC,  const MuonServiceProxy *service =0);
 
     /// Destructor
     virtual ~MuonTrackLoader();
@@ -85,9 +87,12 @@ class MuonTrackLoader {
 
     bool theSmoothingStep;
     std::string theSmootherName;
-    edm::ESHandle<TrajectorySmoother> theSmoother;
+    std::unique_ptr<TrajectorySmoother> theSmoother;
+    TkClonerImpl hitCloner;
+
 
     edm::InputTag theBeamSpotInputTag; 
+    edm::EDGetTokenT<reco::BeamSpot> theBeamSpotToken;
 
     /// Label for L2SeededTracks
     std::string theL2SeededTkLabel; 

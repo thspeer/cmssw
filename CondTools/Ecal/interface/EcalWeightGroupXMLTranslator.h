@@ -3,7 +3,7 @@
    and vice versa   
 
    \author Stefano ARGIRO
-   \version $Id: EcalWeightGroupXMLTranslator.h,v 1.3 2009/06/30 16:15:16 argiro Exp $
+   \version $Id: EcalWeightGroupXMLTranslator.h,v 1.2 2009/06/30 14:40:11 argiro Exp $
    \date 20 Jun 2008
 */
 
@@ -16,11 +16,6 @@
 #include "CondFormats/EcalObjects/interface/EcalWeightXtalGroups.h"
 #include <xercesc/dom/DOMNode.hpp>
 #include <string>
-
-
-static const char CVSId__EcalWeightGroupXMLTranslator[] = 
-"$Id: EcalWeightGroupXMLTranslator.h,v 1.3 2009/06/30 16:15:16 argiro Exp $";
-
 
 
 class EcalWeightGroupXMLTranslator {

@@ -1,6 +1,8 @@
 #ifndef AlignmentSurfaceDeformations_H
 #define AlignmentSurfaceDeformations_H
 
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <vector>
 
 #include "CondFormats/Alignment/interface/Definitions.h"
@@ -11,9 +13,9 @@
 /// parameters for all detector IDs are stored inside one big vector.
 /// Access is provided via a pair of iterators for this vector.
 ///
-///  $Date: 2010/10/29 10:09:35 $
+///  $Date: 2010/10/26 20:41:07 $
 ///  $Revision: 1.1 $
-/// (last update by $Author: mussgill $)
+/// (last update by $Author: flucke $)
 
 class AlignmentSurfaceDeformations {
 public:
@@ -22,7 +24,9 @@ public:
     align::ID m_rawId;
     int m_parametrizationType;
     int m_index;
-  };
+  
+  COND_SERIALIZABLE;
+};
   
   typedef std::vector<Item> ItemVector;
   typedef std::vector<align::Scalar>::const_iterator ParametersConstIterator;
@@ -69,6 +73,8 @@ public:
 
   std::vector<align::Scalar> m_parameters;
   ItemVector m_items;
+
+ COND_SERIALIZABLE;
 };
 
 #endif // AlignmentSurfaceDeformations_H

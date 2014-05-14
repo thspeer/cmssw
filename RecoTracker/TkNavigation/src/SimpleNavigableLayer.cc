@@ -1,10 +1,12 @@
 #include "RecoTracker/TkNavigation/interface/SimpleNavigableLayer.h"
+#include "TrackingTools/DetLayers/interface/NavigationSchool.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "DataFormats/GeometrySurface/interface/BoundCylinder.h"
 #include "DataFormats/GeometrySurface/interface/BoundDisk.h"
 #include "TrackingTools/PatternTools/interface/TransverseImpactPointExtrapolator.h"
+
 #include <set>
 
 using namespace std;
@@ -44,7 +46,7 @@ TrajectoryStateOnSurface SimpleNavigableLayer::crossingState(const FreeTrajector
   propState = propagator(dir).propagate( dest, detLayer()->surface());
   if ( !propState.isValid()) return TrajectoryStateOnSurface();
   
-  FreeTrajectoryState & dest2 = *propState.freeState();
+  const FreeTrajectoryState & dest2 = *propState.freeState();
   GlobalPoint finalPoint = dest2.position();
   LogDebug("SimpleNavigableLayer")<<"second propagation("<< dir <<") to: \n"
 				  <<dest2;
@@ -244,7 +246,7 @@ std::vector< const DetLayer * > SimpleNavigableLayer::compatibleLayers (const Fr
       if (!collect.insert(toTry).second) continue;
       
       //find the next layers from it
-      Lvect && nextLayers = (toTry)->nextLayers(fts,timeDirection);
+      Lvect && nextLayers = school->nextLayers(*toTry,fts,timeDirection);
       LogDebug("SimpleNavigableLayer")
 	<<counter<<"] this layer has : "<<nextLayers.size()<<" next layers.";
       nextLayerToTry.insert(nextLayers.begin(),nextLayers.end());

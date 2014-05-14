@@ -1,7 +1,7 @@
 #include <memory>
 #include <set>
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Utilities/interface/InputTag.h"
@@ -14,27 +14,25 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "RecoVertex/VertexTools/interface/VertexDistance3D.h"
 
-class VertexMerger : public edm::EDProducer {
+class VertexMerger : public edm::stream::EDProducer<> {
     public:
 	VertexMerger(const edm::ParameterSet &params);
 
-	virtual void produce(edm::Event &event, const edm::EventSetup &es);
+	virtual void produce(edm::Event &event, const edm::EventSetup &es) override;
 
     private:
 	bool trackFilter(const reco::TrackRef &track) const;
 
-//	edm::InputTag				primaryVertexCollection;
-	edm::InputTag				secondaryVertexCollection;
+	edm::EDGetTokenT<reco::VertexCollection> token_secondaryVertex;
 	double					maxFraction;
 	double					minSignificance;
 };
 
 VertexMerger::VertexMerger(const edm::ParameterSet &params) :
-//	primaryVertexCollection(params.getParameter<edm::InputTag>("primaryVertices")),
-	secondaryVertexCollection(params.getParameter<edm::InputTag>("secondaryVertices")),
 	maxFraction(params.getParameter<double>("maxFraction")),
 	minSignificance(params.getParameter<double>("minSignificance"))
 {
+	token_secondaryVertex = consumes<reco::VertexCollection>(params.getParameter<edm::InputTag>("secondaryVertices"));
 	produces<reco::VertexCollection>();
 }
 
@@ -65,7 +63,7 @@ void VertexMerger::produce(edm::Event &event, const edm::EventSetup &es)
 	using namespace reco;
 
 	edm::Handle<VertexCollection> secondaryVertices;
-	event.getByLabel(secondaryVertexCollection, secondaryVertices);
+	event.getByToken(token_secondaryVertex, secondaryVertices);
 
         VertexDistance3D dist;
 	std::auto_ptr<VertexCollection> recoVertices(new VertexCollection);

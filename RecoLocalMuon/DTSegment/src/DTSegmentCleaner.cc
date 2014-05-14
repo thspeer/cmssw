@@ -1,7 +1,5 @@
 /** \file
  *
- * $Date: 2009/12/09 17:07:50 $
- * $Revision: 1.11 $
  * \author : Stefano Lacaprara - INFN Legnaro <stefano.lacaprara@pd.infn.it>
  * \author Riccardo Bellan - INFN TO <riccardo.bellan@cern.ch>
  */
@@ -36,34 +34,35 @@ DTSegmentCleaner::~DTSegmentCleaner() {
 }
 
 /* Operations */ 
-vector<DTSegmentCand*> DTSegmentCleaner::clean(vector<DTSegmentCand*> inputCands) const {
+vector<DTSegmentCand*> DTSegmentCleaner::clean(const std::vector<DTSegmentCand*>& inputCands) const {
   if (inputCands.size()<2) return inputCands;
-  //   cout << "[DTSegmentCleaner] # of candidates: " << inputCands.size() << endl;
+  //cout << "[DTSegmentCleaner] # of candidates: " << inputCands.size() << endl;
   vector<DTSegmentCand*> result = solveConflict(inputCands);
 
+  //cout << "[DTSegmentCleaner] to ghostbuster: " << result.size() << endl;
   result = ghostBuster(result);
-  
+
   return result;
 }
 
-vector<DTSegmentCand*> DTSegmentCleaner::solveConflict(vector<DTSegmentCand*> inputCands) const {
+vector<DTSegmentCand*> DTSegmentCleaner::solveConflict(const std::vector<DTSegmentCand*>& inputCands) const {
   vector<DTSegmentCand*> result;
 
   vector<DTSegmentCand*> ghosts;
 
 
-  for (vector<DTSegmentCand*>::iterator cand=inputCands.begin();
+  for (vector<DTSegmentCand*>::const_iterator cand=inputCands.begin();
        cand!=inputCands.end(); ++cand) {
-    for (vector<DTSegmentCand*>::iterator cand2 = cand+1 ; cand2!=inputCands.end() ; ++cand2) {
+    for (vector<DTSegmentCand*>::const_iterator cand2 = cand+1 ; cand2!=inputCands.end() ; ++cand2) {
 
       DTSegmentCand::AssPointCont confHits=(*cand)->conflictingHitPairs(*(*cand2));
-
+      
       if (confHits.size()) {
 	///treatment of LR ambiguity cases: 1 chooses the best chi2
 	///                                 2 chooses the smaller angle
 	///                                 3 keeps both candidates
 	if((confHits.size())==((*cand)->nHits()) && (confHits.size())==((*cand2)->nHits())
-	   && (fabs((*cand)->chi2()-(*cand2)->chi2())<0.1) ) { // cannot choose on the basis of # of hits or chi2
+	   && (fabs((*cand)->chi2()-(*cand2)->chi2())<0.1)) { // cannot choose on the basis of # of hits or chi2
 
 	  if(segmCleanerMode == 2) { // mode 2: choose on the basis of the angle
 
@@ -93,34 +92,38 @@ vector<DTSegmentCand*> DTSegmentCleaner::solveConflict(vector<DTSegmentCand*> in
 	      float DAlpha2 = fabs(cand2GlobDir.theta()-cand2GlobVecIP.theta());
 
 	      badCand = (DAlpha1 > DAlpha2) ? (*cand) : (*cand2);
-		
 	    }
 
 	    for (DTSegmentCand::AssPointCont::const_iterator cHit=confHits.begin() ;
 		 cHit!=confHits.end(); ++cHit) {
 	      badCand->removeHit(*cHit);
 	    }
-	      
+	
 	  } else { // mode 3: keep both candidates
 	    continue;
-	  } 	
+	  }
 
 	} else { // mode 1: take > # hits or best chi2
-	  DTSegmentCand* badCand = (**cand) < (**cand2) ? (*cand) : (*cand2);
-	  for (DTSegmentCand::AssPointCont::const_iterator cHit=confHits.begin() ;
-	       cHit!=confHits.end(); ++cHit) badCand->removeHit(*cHit);
+	  //cout << " Choose based on hits/chi2. " << endl << (**cand) << " vs " << (**cand2) << endl;
+	  
+	  // if one segment is in-time and the other not then keep both
+	  if (((*cand)->t0()*(*cand2)->t0()!=0) || ((*cand)->t0()==(*cand2)->t0())) {
+	    DTSegmentCand* badCand = (**cand) < (**cand2) ? (*cand) : (*cand2);
+	    //cout << " Remove hits in " << (*badCand) << endl;
+	    for (DTSegmentCand::AssPointCont::const_iterator cHit=confHits.begin() ;
+	         cHit!=confHits.end(); ++cHit) badCand->removeHit(*cHit);
+	  }       
 	}
 
       }
     }
   }
 
- 
-  vector<DTSegmentCand*>::iterator cand=inputCands.begin();
+  vector<DTSegmentCand*>::const_iterator cand=inputCands.begin();
   while ( cand < inputCands.end() ) {
-    if ((*cand)->good()) result.push_back(*cand);
+    if ((*cand)->good()) result.push_back(*cand); 
     else {
-      vector<DTSegmentCand*>::iterator badCand=cand;
+      vector<DTSegmentCand*>::const_iterator badCand=cand;
       delete *badCand;
     }
     ++cand;
@@ -129,18 +132,30 @@ vector<DTSegmentCand*> DTSegmentCleaner::solveConflict(vector<DTSegmentCand*> in
 }
 
 vector<DTSegmentCand*> 
-DTSegmentCleaner::ghostBuster(vector<DTSegmentCand*> inputCands) const {
+DTSegmentCleaner::ghostBuster(const std::vector<DTSegmentCand*>& inputCands) const {
   vector<DTSegmentCand*> ghosts;
-  for (vector<DTSegmentCand*>::iterator cand=inputCands.begin();
+  for (vector<DTSegmentCand*>::const_iterator cand=inputCands.begin();
        cand!=inputCands.end(); ++cand) {
-    for (vector<DTSegmentCand*>::iterator cand2=cand+1;
+    for (vector<DTSegmentCand*>::const_iterator cand2=cand+1;
          cand2!=inputCands.end(); ++cand2) {
       unsigned int nSharedHits=(*cand)->nSharedHitPairs(*(*cand2));
-      // cout << "Sharing " << (**cand) << " " << (**cand2) << " " << nSharedHits
-      //   << " (first or second) " << ((**cand)<(**cand2)) << endl;
+      ///cout << "Sharing " << (**cand) << " " << (**cand2) << " " << nSharedHits
+      //       << " (first or second) " << ((**cand)<(**cand2)) << endl;
       if ((nSharedHits==((*cand)->nHits())) && (nSharedHits==((*cand2)->nHits()))
           &&(fabs((*cand)->chi2()-(*cand2)->chi2())<0.1)
           &&(segmCleanerMode==3))
+      {
+        continue;
+      }
+      
+      if (((*cand)->nHits()==3 || (*cand2)->nHits()==3) 
+          &&(fabs((*cand)->chi2()-(*cand2)->chi2())<0.0001))
+      {
+        continue;
+      }
+
+      // if one segment is in-time and the other not then keep both
+      if (((*cand2)->nHits()==(*cand)->nHits()) && ((*cand)->t0()*(*cand2)->t0()==0) && ((*cand)->t0()!=(*cand2)->t0()))
       {
         continue;
       }

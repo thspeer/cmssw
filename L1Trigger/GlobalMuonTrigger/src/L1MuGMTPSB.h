@@ -10,8 +10,6 @@
  *                regional Calorimeter Trigger
 */
 //
-//   $Date: 2007/04/12 13:21:14 $
-//   $Revision: 1.3 $
 //
 //   Author :
 //   N. Neumeister            CERN EP 
@@ -36,6 +34,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "DataFormats/L1GlobalMuonTrigger/interface/L1MuRegionalCand.h"
 #include "L1Trigger/GlobalMuonTrigger/src/L1MuGMTMatrix.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 //------------------------------------
 // Collaborating Class Declarations --
@@ -52,7 +51,7 @@ class L1MuGMTPSB {
   public:
 
     /// constructor
-    L1MuGMTPSB(const L1MuGlobalMuonTrigger& gmt);
+    L1MuGMTPSB(const L1MuGlobalMuonTrigger& gmt,edm::ConsumesCollector && iC);
 
     /// destructor
     virtual ~L1MuGMTPSB();

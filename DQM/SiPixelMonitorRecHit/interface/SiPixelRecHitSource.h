@@ -16,7 +16,6 @@
 //
 // Original Author:  Vincenzo Chiochia
 //         Created:  
-// $Id: SiPixelRecHitSource.h,v 1.10 2011/05/20 17:17:24 wmtan Exp $
 //
 // Updated by: Keith Rose
 // for use in SiPixelMonitorRecHits
@@ -32,6 +31,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "DQMServices/Core/interface/DQMStore.h"
+#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
 
 #include "DQM/SiPixelMonitorRecHit/interface/SiPixelRecHitModule.h"
 
@@ -51,7 +51,7 @@
 
 #include <boost/cstdint.hpp>
 
- class SiPixelRecHitSource : public edm::EDAnalyzer {
+class SiPixelRecHitSource : public thread_unsafe::DQMEDAnalyzer {
     public:
        explicit SiPixelRecHitSource(const edm::ParameterSet& conf);
        ~SiPixelRecHitSource();
@@ -59,21 +59,20 @@
 //       typedef edm::DetSet<PixelRecHit>::const_iterator    RecHitIterator;
        
        virtual void analyze(const edm::Event&, const edm::EventSetup&);
-       virtual void beginJob() ;
-       virtual void endJob() ;
-       virtual void beginRun(const edm::Run&, edm::EventSetup const&) ;
+       virtual void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
+       virtual void dqmBeginRun(const edm::Run&, edm::EventSetup const&) ;
 
        virtual void buildStructure(edm::EventSetup const&);
-       virtual void bookMEs();
+       virtual void bookMEs(DQMStore::IBooker &);
 
     private:
        edm::ParameterSet conf_;
-       edm::InputTag src_;
+       edm::EDGetTokenT<SiPixelRecHitCollection> src_;
+
        bool saveFile;
        bool isPIB;
        bool slowDown;
        int eventNo;
-       DQMStore* theDMBE;
        std::map<uint32_t,SiPixelRecHitModule*> thePixelStructure;
        std::map<uint32_t,int> rechit_count;
        bool modOn; 
@@ -85,6 +84,7 @@
        bool ringOn, bladeOn, diskOn; 
        
        bool firstRun;
+       bool isUpgrade;
 
  };
 

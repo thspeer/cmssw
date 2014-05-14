@@ -17,6 +17,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventPrincipal.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "DataFormats/Provenance/interface/ProductID.h"
 #include "DataFormats/Common/interface/Handle.h"
@@ -29,6 +30,8 @@
 
 namespace edm
 {
+  class ModuleCallingContext;
+
   class DataMixingHcalWorker
     {
     public:
@@ -36,14 +39,15 @@ namespace edm
       DataMixingHcalWorker();
 
      /** standard constructor*/
-      explicit DataMixingHcalWorker(const edm::ParameterSet& ps);
+      explicit DataMixingHcalWorker(const edm::ParameterSet& ps, edm::ConsumesCollector && iC);
 
       /**Default destructor*/
       virtual ~DataMixingHcalWorker();
 
       void putHcal(edm::Event &e) ;
       void addHcalSignals(const edm::Event &e); 
-      void addHcalPileups(const int bcr, const edm::EventPrincipal*,unsigned int EventId);
+      void addHcalPileups(const int bcr, const edm::EventPrincipal*,unsigned int EventId,
+                          ModuleCallingContext const*);
 
 
     private:
@@ -59,6 +63,16 @@ namespace edm
       edm::InputTag HOPileRecHitInputTag_   ; // InputTag for HO RecHits for Pileup 
       edm::InputTag HFPileRecHitInputTag_   ; // InputTag for HF RecHits for Pileup 
       edm::InputTag ZDCPileRecHitInputTag_  ; // InputTag for ZDC RecHits for Pileup 
+
+      edm::EDGetTokenT<HBHERecHitCollection> HBHERecHitToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<HORecHitCollection> HORecHitToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<HFRecHitCollection> HFRecHitToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<ZDCRecHitCollection> ZDCRecHitToken_ ;  // Token to retrieve information 
+
+      edm::EDGetTokenT<HBHERecHitCollection> HBHERecHitPToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<HORecHitCollection> HORecHitPToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<HFRecHitCollection> HFRecHitPToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<ZDCRecHitCollection> ZDCRecHitPToken_ ;  // Token to retrieve information 
 
       std::string HBHERecHitCollectionDM_; // secondary name to be given to EB collection of hits
       std::string HORecHitCollectionDM_  ; // secondary name to be given to EB collection of hits

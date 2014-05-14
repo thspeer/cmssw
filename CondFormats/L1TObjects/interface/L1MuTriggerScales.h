@@ -8,8 +8,8 @@
  *                  to the Global Trigger
 */                  
 //                
-//   $Date: 2009/05/22 12:19:03 $
-//   $Revision: 1.6 $ 
+//   $Date: 2008/11/24 10:26:31 $
+//   $Revision: 1.5 $ 
 //
 //   Original Author :
 //   Hannes Sakulin      HEPHY / Vienna
@@ -20,6 +20,8 @@
 //--------------------------------------------------
 #ifndef CondFormatsL1TObjects_L1MuTriggerScales_h
 #define CondFormatsL1TObjects_L1MuTriggerScales_h
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <cmath>
 #include <iostream>
@@ -211,6 +213,8 @@ class L1MuTriggerScales {
   L1MuSymmetricBinnedScale m_GMTEtaScale;
   L1MuBinnedScale m_PhiScale;
   //  L1MuBinnedScale m_PtScale;
+
+ COND_SERIALIZABLE;
 };
 
 

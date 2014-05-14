@@ -1,12 +1,8 @@
 import FWCore.ParameterSet.Config as cms
-# $Id: RecoMET_Cosmics_cff.py,v 1.13 2012/11/06 02:33:52 sakuma Exp $
 
 ##____________________________________________________________________________||
 from RecoMET.Configuration.RecoMET_cff import *
 from RecoMET.Configuration.RecoMET_BeamHaloId_cff import *
-
-tcMet.trackInputTag = 'ctfWithMaterialTracksP5LHCNavigation'
-tcMet.isCosmics = True
 
 hcalnoise.fillTracks = False
 
@@ -19,8 +15,6 @@ metrecoCosmics = cms.Sequence(
       metHO+
       muonMETValueMapProducer+
       corMetGlobalMuons+
-      muonTCMETValueMapProducer+
-      tcMet+
       hcalnoise+
       BeamHaloId
       )
@@ -32,8 +26,6 @@ metrecoCosmics_woBeamHaloId = cms.Sequence(
     metHO+
     muonMETValueMapProducer+
     corMetGlobalMuons+
-    muonTCMETValueMapProducer+
-    tcMet+
     hcalnoise
     )
 
@@ -44,8 +36,6 @@ metrecoCosmics_woHcalNoise = cms.Sequence(
     metHO+
     muonMETValueMapProducer+
     corMetGlobalMuons+
-    muonTCMETValueMapProducer+
-    tcMet+
     BeamHaloId
 )
 

@@ -16,7 +16,6 @@
 //
 // Original Author:  Piotr Traczyk, CERN
 //         Created:  Mon Mar 16 12:27:22 CET 2009
-// $Id: MuonTimingProducer.h,v 1.2 2009/03/27 02:23:58 ptraczyk Exp $
 //
 //
 
@@ -47,12 +46,11 @@ class MuonTimingProducer : public edm::EDProducer {
       ~MuonTimingProducer();
 
    private:
-      virtual void beginJob() ;
-      virtual void produce(edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
+      virtual void produce(edm::Event&, const edm::EventSetup&) override;
       
       // ----------member data ---------------------------
       edm::InputTag m_muonCollection;
+      edm::EDGetTokenT<reco::MuonCollection> muonToken_;
 
       MuonTimingFiller* theTimingFiller_;
 

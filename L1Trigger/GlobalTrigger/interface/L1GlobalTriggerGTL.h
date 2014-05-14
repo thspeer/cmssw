@@ -13,8 +13,6 @@
  * \author: M. Fierro            - HEPHY Vienna - ORCA version
  * \author: Vasile Mihai Ghete   - HEPHY Vienna - CMSSW version
  *
- * $Date$
- * $Revision$
  *
  */
 
@@ -35,6 +33,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 
 #include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 // forward declarations
 class L1GlobalTriggerPSB;
@@ -50,7 +49,7 @@ class L1GlobalTriggerGTL
 public:
 
     // constructors
-    L1GlobalTriggerGTL();
+    L1GlobalTriggerGTL(const edm::InputTag& mutag,edm::ConsumesCollector && iC);
 
     // destructor
     virtual ~L1GlobalTriggerGTL();

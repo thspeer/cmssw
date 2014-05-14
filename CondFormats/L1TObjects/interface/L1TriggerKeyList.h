@@ -16,10 +16,12 @@
 //
 // Original Author:  Werner Sun
 //         Created:  Fri Feb 29 20:44:53 CET 2008
-// $Id: L1TriggerKeyList.h,v 1.4 2009/04/06 01:58:49 wsun Exp $
+// $Id: L1TriggerKeyList.h,v 1.3 2008/11/06 23:13:00 wsun Exp $
 //
 
 // system include files
+#include "CondFormats/Serialization/interface/Serializable.h"
+
 #include <string>
 #include <map>
 
@@ -94,6 +96,8 @@ class L1TriggerKeyList
       // map of subsystem key (second/first) to configuration data payload
       // token (second/second), keyed by record@type (first)
       RecordToKeyToToken m_recordKeyToken ;
+
+  COND_SERIALIZABLE;
 };
 
 

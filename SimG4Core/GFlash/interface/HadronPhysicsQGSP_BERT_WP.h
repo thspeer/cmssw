@@ -23,8 +23,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: HadronPhysicsQGSP_BERT_WP.h,v 1.4 2013/05/30 21:10:49 gartung Exp $
-// GEANT4 tag $Name: V04-05-02 $
+// GEANT4 tag $Name: V04-05-01 $
 //
 //---------------------------------------------------------------------------
 //
@@ -47,19 +46,19 @@
 #include "G4ios.hh"
 
 #include "G4VPhysicsConstructor.hh"
-#include "G4MiscLHEPBuilder.hh"
+//#include "G4MiscLHEPBuilder.hh"
 
-#include "G4LEPPiKBuilder.hh"
+//#include "G4LEPPiKBuilder.hh"
 #include "G4QGSPPiKBuilder.hh"
 #include "G4BertiniPiKBuilder.hh"
 
 #include "G4ProtonBuilder.hh"
-#include "G4LEPProtonBuilder.hh"
+//#include "G4LEPProtonBuilder.hh"
 #include "G4QGSPProtonBuilder.hh"
 #include "G4BertiniProtonBuilder.hh"
 
 #include "G4NeutronBuilder.hh"
-#include "G4LEPNeutronBuilder.hh"
+//#include "G4LEPNeutronBuilder.hh"
 #include "G4QGSPNeutronBuilder.hh"
 #include "G4BertiniNeutronBuilder.hh"
 
@@ -83,17 +82,17 @@ class HadronPhysicsQGSP_BERT_WP : public G4VPhysicsConstructor
   private:
     void CreateModels();
     G4NeutronBuilder * theNeutrons;
-    G4LEPNeutronBuilder * theLEPNeutron;
+    //G4LEPNeutronBuilder * theLEPNeutron;
     G4QGSPNeutronBuilder * theQGSPNeutron;
     G4BertiniNeutronBuilder * theBertiniNeutron;
     
     G4PiKBuilder_WP * thePiK;
-    G4LEPPiKBuilder * theLEPPiK;
+    // G4LEPPiKBuilder * theLEPPiK;
     G4QGSPPiKBuilder * theQGSPPiK;
     G4BertiniPiKBuilder * theBertiniPiK;
     
     G4ProtonBuilder_WP * thePro;
-    G4LEPProtonBuilder * theLEPPro;
+    // G4LEPProtonBuilder * theLEPPro;
     G4QGSPProtonBuilder * theQGSPPro; 
     G4BertiniProtonBuilder * theBertiniPro;
     

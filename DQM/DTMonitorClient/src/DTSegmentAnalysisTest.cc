@@ -3,8 +3,6 @@
 /*
  *  See header file for a description of this class.
  *
- *  $Date: 2012/04/13 10:54:39 $
- *  $Revision: 1.35 $
  *  \author G. Mila - INFN Torino
  */
 
@@ -159,8 +157,8 @@ void DTSegmentAnalysisTest::performClientDiagnostic() {
 
   summaryHistos[3]->Reset();
   summaryHistos[4]->Reset();
-  vector<DTChamber*>::const_iterator ch_it = muonGeom->chambers().begin();
-  vector<DTChamber*>::const_iterator ch_end = muonGeom->chambers().end();
+  vector<const DTChamber*>::const_iterator ch_it = muonGeom->chambers().begin();
+  vector<const DTChamber*>::const_iterator ch_end = muonGeom->chambers().end();
  
   for (; ch_it != ch_end; ++ch_it) {
     DTChamberId chID = (*ch_it)->id();

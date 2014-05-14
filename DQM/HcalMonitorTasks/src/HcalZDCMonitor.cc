@@ -350,7 +350,6 @@ void HcalZDCMonitor::processEvent(const ZDCDigiCollection& digi, const ZDCRecHit
     for (ZDCRecHitCollection::const_iterator rechit_iter = rechit.begin(); 
 	 rechit_iter != rechit.end(); ++rechit_iter)
       {		
-	HcalZDCDetId id(rechit_iter->id());
 	int Side      = (rechit_iter->id()).zside();
 	int Section   = (rechit_iter->id()).section();
 	int Channel   = (rechit_iter->id()).channel();
@@ -414,7 +413,7 @@ int HcalZDCMonitor::getTSMax(std::vector<double>fData)
 } // int HcalZDCMonitor::getTSMax()
 ------------------------------------------------------------------------------------
 */
-double HcalZDCMonitor::getTime(std::vector<double>fData, unsigned int ts_min, unsigned int ts_max, double &fSum) {
+double HcalZDCMonitor::getTime(const std::vector<double>& fData, unsigned int ts_min, unsigned int ts_max, double &fSum) {
   double weightedTime = 0.;
   double SumT = 0.; 
   double Time = -999.;

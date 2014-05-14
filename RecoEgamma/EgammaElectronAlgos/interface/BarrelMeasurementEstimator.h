@@ -15,7 +15,6 @@
 //
 // Original Author:  Ursula Berthon, Claude Charlot
 //         Created:  Mon Mar 27 13:22:06 CEST 2006
-// $Id: BarrelMeasurementEstimator.h,v 1.14 2012/05/29 08:23:53 muzaffar Exp $
 //
 //
 
@@ -45,9 +44,9 @@ class BarrelMeasurementEstimator : public MeasurementEstimator
      { theZMin=zmin ; theZMax=zmax ; }
 
     // zero value indicates incompatible ts - hit pair
-    virtual std::pair<bool,double> estimate( const TrajectoryStateOnSurface & ts, const TransientTrackingRecHit & hit ) const ;
-    virtual std::pair<bool,double> estimate( const TrajectoryStateOnSurface & ts, GlobalPoint & gp ) const ;
-    virtual std::pair<bool,double> estimate( const GlobalPoint & vprim, const TrajectoryStateOnSurface & ts, GlobalPoint & gp ) const ;
+    virtual std::pair<bool,double> estimate( const TrajectoryStateOnSurface & ts, const TrackingRecHit & hit ) const ;
+    virtual std::pair<bool,double> estimate( const TrajectoryStateOnSurface & ts, const GlobalPoint & gp ) const ;
+    virtual std::pair<bool,double> estimate( const GlobalPoint & vprim, const TrajectoryStateOnSurface & ts, const GlobalPoint & gp ) const ;
     virtual bool estimate( const TrajectoryStateOnSurface & ts, const BoundPlane & plane) const ;
 
     virtual BarrelMeasurementEstimator* clone() const

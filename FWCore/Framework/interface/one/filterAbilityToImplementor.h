@@ -16,7 +16,6 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Thu, 09 May 2013 19:39:58 GMT
-// $Id: filterAbilityToImplementor.h,v 1.1 2013/05/17 14:49:44 chrjones Exp $
 //
 
 // system include files
@@ -36,7 +35,7 @@ namespace edm {
       
       template<>
       struct AbilityToImplementor<edm::one::SharedResources> {
-        typedef edm::one::impl::SharedResourcesUser Type;
+        typedef edm::one::impl::SharedResourcesUser<edm::one::EDFilterBase> Type;
       };
       
       template<>

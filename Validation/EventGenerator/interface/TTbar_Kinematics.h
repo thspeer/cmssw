@@ -13,7 +13,6 @@
 //
 // Original Author:  Martijn Gosselink,,,
 //         Created:  Thu Jan 19 18:40:35 CET 2012
-// $Id: TTbar_Kinematics.h,v 1.3 2012/08/24 21:47:01 wdd Exp $
 //
 //
 // Added to: Validation/EventGenerator by Ian M. Nugent June 28, 2012
@@ -27,10 +26,9 @@
 #include "DQMServices/Core/interface/DQMStore.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
-
+#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -56,30 +54,20 @@
 // class declaration
 //
 
-class TTbar_Kinematics : public edm::EDAnalyzer {
+class TTbar_Kinematics : public DQMEDAnalyzer {
    public:
       explicit TTbar_Kinematics(const edm::ParameterSet&);
       ~TTbar_Kinematics();
 
-      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  virtual void bookHistograms(DQMStore::IBooker &i, edm::Run const &, edm::EventSetup const &) override;
+  virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
 
    private:
-      virtual void beginJob() ;
-      virtual void analyze(const edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
-
-      virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-      virtual void endRun(edm::Run const&, edm::EventSetup const&);
-      virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-      virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-
       // ----------member data ---------------------------
-      ///ME's "container"
-      DQMStore *dbe;
 
-      edm::InputTag hepmcCollection_;
-      edm::InputTag genEventInfoProductTag_;
+  edm::InputTag hepmcCollection_;
+  edm::InputTag genEventInfoProductTag_,genEvt_;
 
 
       double weight ;
@@ -120,6 +108,9 @@ class TTbar_Kinematics : public edm::EDAnalyzer {
       MonitorElement* hBottomMassEta         ;
       MonitorElement* hBottomMassY           ;
       MonitorElement* hBottomMassDeltaY      ;
+
+  edm::EDGetTokenT<GenEventInfoProduct> genEventInfoProductTagToken_;
+  edm::EDGetTokenT<edm::HepMCProduct> hepmcCollectionToken_;
 
 };
 

@@ -8,6 +8,7 @@
 #include "TrackingTools/GeomPropagators/interface/Propagator.h"
 #include "TrackingTools/TransientTrackingRecHit/interface/TransientTrackingRecHit.h"
 #include "RecoTracker/MeasurementDet/interface/MeasurementTracker.h"
+#include "RecoTracker/MeasurementDet/interface/MeasurementTrackerEvent.h"
 #include "TrackingTools/MeasurementDet/interface/LayerMeasurements.h"
 #include <vector>                                        
 
@@ -44,14 +45,12 @@ private:
 public:
   
   /// constructor from layer and helper objects
-  TrajectorySegmentBuilder (const MeasurementTracker* theInputMeasurementTracker,
-			    const LayerMeasurements*  theInputLayerMeasurements,
+  TrajectorySegmentBuilder (const LayerMeasurements*  theInputLayerMeasurements,
 			    const DetLayer& layer,
 			    const Propagator& propagator,
 			    const TrajectoryStateUpdator& updator,
 			    const MeasurementEstimator& estimator,
-			    bool lockHits, bool bestHitOnly) :
-    theMeasurementTracker(theInputMeasurementTracker),
+			    bool lockHits, bool bestHitOnly, int maxCand) :
     theLayerMeasurements(theInputLayerMeasurements),
     theLayer(layer),
     theFullPropagator(propagator),
@@ -59,7 +58,7 @@ public:
     theEstimator(estimator),
     theGeomPropagator(propagator),
 //     theGeomPropagator(propagator.propagationDirection()),
-    theLockHits(lockHits),theBestHitOnly(bestHitOnly)
+      theLockHits(lockHits),theBestHitOnly(bestHitOnly),theMaxCand(maxCand)
   {}
 
   /// destructor
@@ -71,14 +70,14 @@ public:
 
 private:
   /// update of a trajectory with a hit
-  void updateTrajectory (TempTrajectory& traj, const TM& tm) const;
+  void updateTrajectory (TempTrajectory& traj, TM tm) const;
  
  /// creation of new candidates from a segment and a collection of hits
   void updateCandidates (TempTrajectory const& traj, const std::vector<TM>& measurements,
 			 TempTrajectoryContainer& candidates);
 
   /// creation of a new candidate from a segment and the best hit out of a collection
-  void updateCandidatesWithBestHit (TempTrajectory const& traj, const std::vector<TM>& measurements,
+  void updateCandidatesWithBestHit (TempTrajectory const& traj, TM measurements,
 				    TempTrajectoryContainer& candidates);
 
   /// retrieve compatible hits from a DetGroup
@@ -106,7 +105,6 @@ private:
 			     TempTrajectoryContainer& candidates) const;
   
 private:
-  const MeasurementTracker*     theMeasurementTracker;
   const LayerMeasurements*      theLayerMeasurements;
   const DetLayer&               theLayer;
   const Propagator&             theFullPropagator;
@@ -117,6 +115,7 @@ private:
 
   bool theLockHits;
   bool theBestHitOnly;
+  int  theMaxCand;
   ConstRecHitContainer theLockedHits;
 
   bool theDbgFlg;

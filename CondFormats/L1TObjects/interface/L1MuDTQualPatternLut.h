@@ -7,8 +7,8 @@
  *   coarse eta values 
  *
  *
- *   $Date: 2008/04/09 15:22:31 $
- *   $Revision: 1.2 $
+ *   $Date: 2007/03/30 07:48:02 $
+ *   $Revision: 1.1 $
  *
  *   N. Neumeister            CERN EP
  */
@@ -20,6 +20,8 @@
 //---------------
 // C++ Headers --
 //---------------
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <vector>
 #include <map>
@@ -81,6 +83,8 @@ class L1MuDTQualPatternLut {
 
     LUT m_lut;        // coarse eta values and list of qualified patterns
     
+
+ COND_SERIALIZABLE;
 };
 
 #endif

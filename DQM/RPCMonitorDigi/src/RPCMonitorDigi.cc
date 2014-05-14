@@ -2,9 +2,6 @@
 #include <sstream>
 #include "DQM/RPCMonitorDigi/interface/RPCMonitorDigi.h"
 #include "DQM/RPCMonitorDigi/interface/utils.h"
-///Data Format
-#include "DataFormats/Scalers/interface/DcsStatus.h"
-#include "DataFormats/MuonReco/interface/Muon.h"
 ///Geometry
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
 #include "Geometry/CommonDetUnit/interface/GeomDet.h"
@@ -19,24 +16,31 @@
 
 const std::string RPCMonitorDigi::regionNames_[3] =  {"Endcap-", "Barrel", "Endcap+"};
 
-RPCMonitorDigi::RPCMonitorDigi( const edm::ParameterSet& pset ):counter(0){
+RPCMonitorDigi::RPCMonitorDigi( const edm::ParameterSet& pset )
+ : counter(0),
+   dcs_(false),
+   numberOfDisks_(0),
+   numberOfInnerRings_(0){
 
   saveRootFile  = pset.getUntrackedParameter<bool>("SaveRootFile", false); 
   RootFileName  = pset.getUntrackedParameter<std::string>("RootFileName", "RPCMonitorDigiDQM.root"); 
 
   useMuonDigis_=  pset.getUntrackedParameter<bool>("UseMuon", true);
   useRollInfo_=  pset.getUntrackedParameter<bool>("UseRollInfo", false);
-  muonLabel_ = pset.getParameter<edm::InputTag>("MuonLabel");
+
   muPtCut_  = pset.getUntrackedParameter<double>("MuonPtCut", 3.0); 
   muEtaCut_ = pset.getUntrackedParameter<double>("MuonEtaCut", 1.9); 
  
   subsystemFolder_ = pset.getUntrackedParameter<std::string>("RPCFolder", "RPC");
   globalFolder_ = pset.getUntrackedParameter<std::string>("GlobalFolder", "SummaryHistograms");
 
-  rpcRecHitLabel_ = pset.getParameter<edm::InputTag>("RecHitLabel");
+  //Parametersets for tokens
+  muonLabel_  = consumes<reco::CandidateView>(pset.getParameter<edm::InputTag>("MuonLabel")); 
+  rpcRecHitLabel_  = consumes<RPCRecHitCollection>(pset.getParameter<edm::InputTag>("RecHitLabel"));
+  scalersRawToDigiLabel_  = consumes<DcsStatusCollection>(pset.getParameter<edm::InputTag>("ScalersRawToDigiLabel"));
 
-  numberOfDisks_ = pset.getUntrackedParameter<int>("NumberOfEndcapDisks", 3);
-  numberOfInnerRings_ = pset.getUntrackedParameter<int>("NumberOfInnermostEndcapRings", 2);
+  //  numberOfDisks_ = pset.getUntrackedParameter<int>("NumberOfEndcapDisks", 3);
+  // numberOfInnerRings_ = pset.getUntrackedParameter<int>("NumberOfInnermostEndcapRings", 2);
 
   noiseFolder_ = pset.getUntrackedParameter<std::string>("NoiseFolder", "AllHits");
   muonFolder_ = pset.getUntrackedParameter<std::string>("MuonFolder", "Muon");
@@ -44,93 +48,81 @@ RPCMonitorDigi::RPCMonitorDigi( const edm::ParameterSet& pset ):counter(0){
 }
 
 RPCMonitorDigi::~RPCMonitorDigi(){}
-void RPCMonitorDigi::beginJob(){}
 
-void RPCMonitorDigi::beginRun(const edm::Run& r, const edm::EventSetup& iSetup){
+ 
+void RPCMonitorDigi::bookHistograms(DQMStore::IBooker & ibooker, edm::Run const &r, edm::EventSetup const & iSetup){
 
   edm::LogInfo ("rpcmonitordigi") <<"[RPCMonitorDigi]: Begin Run " ;
   
-  /// get hold of back-end interface
-  dbe = edm::Service<DQMStore>().operator->();
-
-  //Book 
-  this->bookRegionME(noiseFolder_, regionNoiseCollection);
-  this->bookSectorRingME(noiseFolder_, sectorRingNoiseCollection);
-  this->bookWheelDiskME(noiseFolder_, wheelDiskNoiseCollection);
-
-
-
-  std::string currentFolder = subsystemFolder_ +"/"+noiseFolder_;
-  dbe->setCurrentFolder(currentFolder);
-  
-  noiseRPCEvents_= dbe->get(currentFolder +"/RPCEvents");
-  if(noiseRPCEvents_) dbe->removeElement(noiseRPCEvents_->getName());
-  noiseRPCEvents_ = dbe->book1D("RPCEvents","RPCEvents", 1, 0.5, 1.5);
-  
-  
-  if(useMuonDigis_ ){
-    this->bookRegionME(muonFolder_, regionMuonCollection);
-    this->bookSectorRingME(muonFolder_, sectorRingMuonCollection);
-    this->bookWheelDiskME(muonFolder_, wheelDiskMuonCollection);
-    
-    currentFolder = subsystemFolder_ +"/"+muonFolder_;
-    dbe->setCurrentFolder(currentFolder); 
-   
-    muonRPCEvents_= dbe->get(currentFolder +"/RPCEvents");
-    if(muonRPCEvents_) dbe->removeElement(muonRPCEvents_->getName());
-    muonRPCEvents_ =  dbe->book1D("RPCEvents", "RPCEvents", 1, 0.5, 1.5);
-
-    NumberOfMuon_ = dbe->get(currentFolder+"/NumberOfMuons");
-    if(NumberOfMuon_) dbe->removeElement(NumberOfMuon_->getName());
-    NumberOfMuon_ = dbe->book1D("NumberOfMuons", "Number of Muons", 11, -0.5, 10.5);
-
-
-    NumberOfRecHitMuon_ = dbe->get(currentFolder+"/NumberOfRPCRecHitsMuons");
-    if(NumberOfRecHitMuon_) dbe->removeElement(NumberOfRecHitMuon_->getName());
-    NumberOfRecHitMuon_ = dbe->book1D("NumberOfRecHitMuons", "Number of RPC RecHits per Muon", 8, -0.5, 7.5);
-  }
-   
-
+  std::set<int> disk_set, ring_set;
   edm::ESHandle<RPCGeometry> rpcGeo;
   iSetup.get<MuonGeometryRecord>().get(rpcGeo);
+
   //loop on geometry to book all MEs
   edm::LogInfo ("rpcmonitordigi") <<"[RPCMonitorDigi]: Booking histograms per roll. " ;
   for (TrackingGeometry::DetContainer::const_iterator it=rpcGeo->dets().begin();it<rpcGeo->dets().end();it++){
-    if(dynamic_cast< RPCChamber* >( *it ) != 0 ){
-      RPCChamber* ch = dynamic_cast< RPCChamber* >( *it ); 
+    if(dynamic_cast< const RPCChamber* >( *it ) != 0 ){
+      const RPCChamber* ch = dynamic_cast< const RPCChamber* >( *it ); 
       std::vector< const RPCRoll*> roles = (ch->rolls());
       if(useRollInfo_){
 	for(std::vector<const RPCRoll*>::const_iterator r = roles.begin();r != roles.end(); ++r){
 	  RPCDetId rpcId = (*r)->id();
+
+	  //get station and inner ring
+	  if(rpcId.region()!=0){
+	    disk_set.insert(rpcId.station());
+	    ring_set.insert(rpcId.ring());
+	  }
+
 	  //booking all histograms
 	  RPCGeomServ rpcsrv(rpcId);
 	  std::string nameID = rpcsrv.name();
-	  if(useMuonDigis_) bookRollME(rpcId ,iSetup, muonFolder_, meMuonCollection[nameID]);
-	  bookRollME(rpcId, iSetup, noiseFolder_, meNoiseCollection[nameID]);
+	  if(useMuonDigis_) bookRollME(ibooker,rpcId ,iSetup, muonFolder_, meMuonCollection[nameID]);
+	  bookRollME(ibooker, rpcId, iSetup, noiseFolder_, meNoiseCollection[nameID]);
 	}
       }else{
 	RPCDetId rpcId = roles[0]->id(); //any roll would do - here I just take the first one
 	RPCGeomServ rpcsrv(rpcId);
 	std::string nameID = rpcsrv.chambername();
-	if(useMuonDigis_) bookRollME(rpcId,iSetup, muonFolder_, meMuonCollection[nameID]);
-	bookRollME(rpcId, iSetup, noiseFolder_, meNoiseCollection[nameID]);
-	
+	if(useMuonDigis_) bookRollME(ibooker, rpcId,iSetup, muonFolder_, meMuonCollection[nameID]);
+	bookRollME(ibooker, rpcId, iSetup, noiseFolder_, meNoiseCollection[nameID]);
+	if(rpcId.region()!=0){
+	  disk_set.insert(rpcId.station());
+	  ring_set.insert(rpcId.ring());
+	}
       }
     }
   }//end loop on geometry to book all MEs
 
+  numberOfDisks_ = disk_set.size();
+  numberOfInnerRings_ = (*ring_set.begin());
+  
+  //Book 
+  this->bookRegionME(ibooker,noiseFolder_, regionNoiseCollection);
+  this->bookSectorRingME(ibooker,noiseFolder_, sectorRingNoiseCollection);
+  this->bookWheelDiskME(ibooker,noiseFolder_, wheelDiskNoiseCollection);
 
+  std::string currentFolder = subsystemFolder_ +"/"+noiseFolder_;
+  ibooker.setCurrentFolder(currentFolder);
+ 
+  noiseRPCEvents_ = ibooker.book1D("RPCEvents","RPCEvents", 1, 0.5, 1.5);
+  
+  if(useMuonDigis_ ){
+    this->bookRegionME(ibooker, muonFolder_, regionMuonCollection);
+    this->bookSectorRingME(ibooker, muonFolder_, sectorRingMuonCollection);
+    this->bookWheelDiskME(ibooker, muonFolder_, wheelDiskMuonCollection);
+    
+    currentFolder = subsystemFolder_ +"/"+muonFolder_;
+    ibooker.setCurrentFolder(currentFolder); 
+   
+    muonRPCEvents_ =  ibooker.book1D("RPCEvents", "RPCEvents", 1, 0.5, 1.5);
+    NumberOfMuon_ = ibooker.book1D("NumberOfMuons", "Number of Muons", 11, -0.5, 10.5);
+    NumberOfRecHitMuon_ = ibooker.book1D("NumberOfRecHitMuons", "Number of RPC RecHits per Muon", 8, -0.5, 7.5);
+  }
+   
   //Clear flags;
   dcs_ = true;
 }
-
-void RPCMonitorDigi::endJob(void){
-  if(saveRootFile) dbe->save(RootFileName); 
-  dbe = 0;
-}
-
-void RPCMonitorDigi::endLuminosityBlock(edm::LuminosityBlock const& L, edm::EventSetup const&  E){}
-
 
 void RPCMonitorDigi::analyze(const edm::Event& event,const edm::EventSetup& setup ){
   dcs_ = true;
@@ -146,7 +138,9 @@ void RPCMonitorDigi::analyze(const edm::Event& event,const edm::EventSetup& setu
  
   //Muons
   edm::Handle<reco::CandidateView> muonCands;
-  event.getByLabel(muonLabel_, muonCands);
+  event.getByToken(muonLabel_, muonCands);
+
+
   std::map<RPCDetId  , std::vector<RPCRecHit> > rechitMuon;
 
   int  numMuons = 0;
@@ -195,7 +189,7 @@ void RPCMonitorDigi::analyze(const edm::Event& event,const edm::EventSetup& setu
   
  //RecHits
   edm::Handle<RPCRecHitCollection> rpcHits;
-  event.getByLabel( rpcRecHitLabel_ , rpcHits);
+  event.getByToken( rpcRecHitLabel_ , rpcHits);
   std::map<RPCDetId  , std::vector<RPCRecHit> > rechitNoise;
 
   
@@ -504,7 +498,7 @@ void  RPCMonitorDigi::makeDcsInfo(const edm::Event& e) {
 
   edm::Handle<DcsStatusCollection> dcsStatus;
 
-  if ( ! e.getByLabel("scalersRawToDigi", dcsStatus) ){
+  if ( ! e.getByToken(scalersRawToDigiLabel_, dcsStatus) ){
     dcs_ = true;
     return;
   }

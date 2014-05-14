@@ -3,8 +3,6 @@
 /**  \class  DTSCTrigUnit
  *     Muon Barrel Sector Collector Trigger Unit (Chamber trigger)
  *
- *   $Date: 2010/11/11 16:28:21 $
- *   $Revision: 1.10 $
  *
  *   \author C.Grandi, S. Marcellini
  */
@@ -57,7 +55,7 @@ class DTSCTrigUnit {
 
     /// Constructor
     //DTSCTrigUnit(DTChamber* stat, edm::ParameterSet& tu_pset) ;
-    DTSCTrigUnit(DTChamber *stat) ;  
+    DTSCTrigUnit(const DTChamber *stat) ;  
 
     /// Destructor 
     ~DTSCTrigUnit() ;

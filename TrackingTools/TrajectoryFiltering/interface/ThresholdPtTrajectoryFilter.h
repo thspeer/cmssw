@@ -20,7 +20,7 @@ public:
 
   explicit ThresholdPtTrajectoryFilter( double ptThreshold, float nSigma = 5.F, int nH=3): thePtThreshold( ptThreshold), theNSigma(nSigma), theMinHits(nH) {}
 
-  explicit ThresholdPtTrajectoryFilter( const edm::ParameterSet & pset) :
+  explicit ThresholdPtTrajectoryFilter( const edm::ParameterSet & pset, edm::ConsumesCollector& iC) :
     thePtThreshold(pset.getParameter<double>("thresholdPt")),
     theNSigma(pset.getParameter<double>("nSigmaThresholdPt")),
     theMinHits(pset.getParameter<int>("minHitsThresholdPt"))
@@ -45,8 +45,10 @@ public:
     const FreeTrajectoryState& fts = *tm.updatedState().freeTrajectoryState();
 
     //avoid doing twice the check in TBC and QF
-    static bool answerMemory=false;
-    static FreeTrajectoryState ftsMemory;
+    // We make it thread local so that we avoid race conditions between
+    // threads, and we make sure there is no cache contention between them.
+    static thread_local bool answerMemory=false;
+    static thread_local FreeTrajectoryState ftsMemory;
     if (ftsMemory.parameters().vector() == fts.parameters().vector()) { return answerMemory;}
     ftsMemory=fts;
 

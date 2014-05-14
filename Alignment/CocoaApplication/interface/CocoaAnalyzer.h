@@ -20,7 +20,7 @@
 #include <string>
 #include <iostream>
 #include <map>
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "DetectorDescription/Core/interface/DDPosData.h" 
 
 class Event;
@@ -38,7 +38,7 @@ class DDSpecifics;
 class OpticalObject;
 
 
-class CocoaAnalyzer : public edm::EDAnalyzer
+class CocoaAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
  public:
   
@@ -46,8 +46,8 @@ class CocoaAnalyzer : public edm::EDAnalyzer
   explicit  CocoaAnalyzer(int i) { }
   virtual ~ CocoaAnalyzer() { }
   
-  virtual void beginJob();
-  virtual void analyze(const edm::Event& e, const edm::EventSetup& c);
+  virtual void beginJob() override;
+  virtual void analyze(const edm::Event& e, const edm::EventSetup& c) override;
   // see note on endJob() at the bottom of the file.
   // virtual void endJob() ;
 
@@ -56,8 +56,8 @@ class CocoaAnalyzer : public edm::EDAnalyzer
   std::vector<OpticalAlignInfo> ReadCalibrationDB( const edm::EventSetup& evts );
 
   void CorrectOptAlignments( std::vector<OpticalAlignInfo>& oaListCalib );
-  OpticalAlignInfo* FindOpticalAlignInfoXML( OpticalAlignInfo oaInfo );
-  bool CorrectOaParam( OpticalAlignParam* oaParamXML, OpticalAlignParam oaParamDB );
+  OpticalAlignInfo* FindOpticalAlignInfoXML( const OpticalAlignInfo& oaInfo );
+  bool CorrectOaParam( OpticalAlignParam* oaParamXML, const OpticalAlignParam& oaParamDB );
 
   void RunCocoa();
 

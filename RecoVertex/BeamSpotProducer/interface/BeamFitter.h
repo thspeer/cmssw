@@ -10,7 +10,6 @@
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
          Geng-Yuan Jeng, UC Riverside (Geng-Yuan.Jeng@cern.ch)
 
- version $Id: BeamFitter.h,v 1.50 2013/04/11 23:08:42 wmtan Exp $
 
  ________________________________________________________________**/
 
@@ -19,6 +18,10 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/TrackReco/interface/TrackBase.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+#include "DataFormats/TrackCandidate/interface/TrackCandidate.h"
+#include "DataFormats/TrackCandidate/interface/TrackCandidateCollection.h"
 #include "RecoVertex/BeamSpotProducer/interface/BSTrkParameters.h"
 #include "RecoVertex/BeamSpotProducer/interface/BSFitter.h"
 #include "RecoVertex/BeamSpotProducer/interface/PVFitter.h"
@@ -30,10 +33,12 @@
 
 #include <fstream>
 
+namespace edm {class ConsumesCollector;}
+
 class BeamFitter {
  public:
   BeamFitter() {}
-  BeamFitter(const edm::ParameterSet& iConfig);
+  BeamFitter(const edm::ParameterSet& iConfig, edm::ConsumesCollector &&iColl);
   virtual ~BeamFitter();
 
   void readEvent(const edm::Event& iEvent);
@@ -129,21 +134,21 @@ class BeamFitter {
   }
  private:
 
-  const char * formatBTime( const std::time_t &);
   // Update the fbeginTimeOfFit etc from the refTime
   void updateBTime();
   std::vector<BSTrkParameters> fBSvector;
   reco::BeamSpot fbeamspot;
   reco::BeamSpot fbeamWidthFit;
   std::map< int, reco::BeamSpot> fbspotPVMap;
-  BSFitter *fmyalgo;
+  //  BSFitter *fmyalgo;
   std::ofstream fasciiFile;
   std::ofstream fasciiDIP;
 
   bool debug_;
   bool appendRunTxt_;
-  edm::InputTag tracksLabel_;
-  edm::InputTag vertexLabel_;
+  edm::EDGetTokenT<reco::TrackCollection> tracksToken_;
+  edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken_;
+  edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_; //offlineBeamSpot
   bool writeTxt_;
   bool writeDIPTxt_;
   bool writeDIPBadFit_;
@@ -200,8 +205,8 @@ class BeamFitter {
   int fnTECLayerMeas;
   int fnPXBLayerMeas;
   int fnPXFLayerMeas;
-  double fd0phi_chi2;
-  double fd0phi_d0;
+  //  double fd0phi_chi2;
+  //  double fd0phi_d0;
   double fcov[7][7];
   double fvx;
   double fvy;

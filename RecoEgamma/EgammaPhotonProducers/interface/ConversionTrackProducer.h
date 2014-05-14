@@ -10,12 +10,9 @@
 // Original Author: Steve Wagner, stevew@pizero.colorado.edu
 // Created:         Sat Jan 14 22:00:00 UTC 2006
 //
-// $Author: giordano $
-// $Date: 2011/08/05 19:45:49 $
-// $Revision: 1.4 $
 //
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -29,6 +26,12 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "TrackingTools/PatternTools/interface/TrajTrackAssociation.h"
+#include "TrackingTools/GsfTracking/interface/TrajGsfTrackAssociation.h"
+
+namespace reco {
+  class BeamSpot;
+}
 
 //--------------------------------------------------
 //Added by D. Giordano
@@ -37,8 +40,12 @@
 #include "RecoTracker/ConversionSeedGenerators/interface/IdealHelixParameters.h"
 //--------------------------------------------------
 
-  class ConversionTrackProducer : public edm::EDProducer
+  class ConversionTrackProducer : public edm::stream::EDProducer<>
   {
+
+    typedef edm::AssociationMap<edm::OneToOne<std::vector<Trajectory>,
+      reco::GsfTrackCollection,unsigned short> > 
+      TrajGsfTrackAssociationCollection;
 
   public:
 
@@ -53,6 +60,9 @@
     edm::ParameterSet conf_;
 
     std::string trackProducer;
+    edm::EDGetTokenT<edm::View<reco::Track> > genericTracks ;
+    edm::EDGetTokenT<TrajTrackAssociationCollection> kfTrajectories; 
+    edm::EDGetTokenT<TrajGsfTrackAssociationCollection> gsfTrajectories;
     bool useTrajectory;
     bool setTrackerOnly;
     bool setArbitratedEcalSeeded;
@@ -64,7 +74,7 @@
     // 2011/08/05
     // Reduction of the track sample based on geometric hypothesis for conversion tracks
 
-    edm::InputTag beamSpotInputTag;
+    edm::EDGetTokenT<reco::BeamSpot> beamSpotInputTag;
     bool filterOnConvTrackHyp;
     double minConvRadius;
     IdealHelixParameters ConvTrackPreSelector;

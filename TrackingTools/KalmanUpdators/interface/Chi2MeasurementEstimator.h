@@ -7,14 +7,12 @@
  *  Plane. The TrajectoryState must have errors.
  *  Works for any RecHit dimension. Ported from ORCA.
  *
- *  $Date: 2013/01/10 12:12:18 $
- *  $Revision: 1.5 $
  *  \author todorov, cerati
  */
 
 #include "TrackingTools/KalmanUpdators/interface/Chi2MeasurementEstimatorBase.h"
 
-class Chi2MeasurementEstimator GCC11_FINAL : public Chi2MeasurementEstimatorBase {
+class Chi2MeasurementEstimator : public Chi2MeasurementEstimatorBase {
 public:
 
   /** Construct with cuts on chi2 and nSigma.
@@ -26,9 +24,9 @@ public:
     Chi2MeasurementEstimatorBase( maxChi2, nSigma) {}
 
   virtual std::pair<bool,double> estimate(const TrajectoryStateOnSurface&,
-				     const TransientTrackingRecHit&) const;
+				     const TrackingRecHit&) const;
   template <unsigned int D> std::pair<bool,double> estimate(const TrajectoryStateOnSurface&,
-				     const TransientTrackingRecHit&) const;
+				     const TrackingRecHit&) const;
 
   virtual Chi2MeasurementEstimator* clone() const {
     return new Chi2MeasurementEstimator(*this);

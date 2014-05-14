@@ -16,8 +16,6 @@
  *  idToDetUnit(), are useful when it is necessary to deal with the 
  *  extended interface of GeomDetUnit. 
  *
- *  $Date: 2007/06/05 08:38:46 $
- *  $Revision: 1.4 $
  */
 
 #include "DataFormats/DetId/interface/DetId.h"
@@ -32,14 +30,14 @@ class GeomDet;
 class TrackingGeometry
 {
 public:
-  typedef std::vector<GeomDetType*>          DetTypeContainer;
-  typedef std::vector<GeomDet*>              DetContainer;
-  typedef std::vector<GeomDetUnit*>          DetUnitContainer;
+  typedef std::vector<GeomDetType const*>          DetTypeContainer;
+  typedef std::vector<GeomDet const*>              DetContainer;
+  typedef std::vector<GeomDetUnit const*>          DetUnitContainer;
   typedef std::vector<DetId>                 DetIdContainer;
-  //  typedef std::map<DetId,GeomDetUnit*>       mapIdToDetUnit;
-  // typedef std::map<DetId,GeomDet*>           mapIdToDet;
-  typedef  __gnu_cxx::hash_map< unsigned int, GeomDetUnit*> mapIdToDetUnit;
-  typedef  __gnu_cxx::hash_map< unsigned int, GeomDet*>     mapIdToDet;
+  //  typedef std::map<DetId,GeomDetUnit const*>       mapIdToDetUnit;
+  // typedef std::map<DetId,GeomDet const*>           mapIdToDet;
+  typedef  __gnu_cxx::hash_map< unsigned int, GeomDetUnit const*> mapIdToDetUnit;
+  typedef  __gnu_cxx::hash_map< unsigned int, GeomDet const*>     mapIdToDet;
 
   // Default constructor
   //  virtual TrackingGeometry() {}

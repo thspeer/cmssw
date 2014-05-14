@@ -10,9 +10,7 @@
  *
  * \author Christian Veelken, LLR
  *
- * \version $Revision: 1.2 $
  *
- * $Id: MinMETProducerT.h,v 1.2 2013/03/06 19:31:56 vadler Exp $
  *
  */
 
@@ -22,6 +20,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "FWCore/Utilities/interface/Exception.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include <vector>
 
@@ -32,11 +31,14 @@ class MinMETProducerT : public edm::EDProducer
 
  public:
 
-  explicit MinMETProducerT(const edm::ParameterSet& cfg)
-    : moduleLabel_(cfg.getParameter<std::string>("@module_label"))
+  explicit MinMETProducerT(const edm::ParameterSet& cfg)    : moduleLabel_(cfg.getParameter<std::string>("@module_label"))
   {
     src_ = cfg.getParameter<vInputTag>("src");
 
+    for ( vInputTag::const_iterator src_i = src_.begin();
+	  src_i != src_.end(); ++src_i ) {
+      src_token_.push_back( consumes<METCollection>(*src_i) );
+    }
     produces<METCollection>();
   }
   ~MinMETProducerT() {}
@@ -49,10 +51,13 @@ class MinMETProducerT : public edm::EDProducer
 
     // check that all MET collections given as input have the same number of entries
     int numMEtObjects = -1;
-    for ( vInputTag::const_iterator src_i = src_.begin();
-	  src_i != src_.end(); ++src_i ) {
+    //    for ( vInputTag::const_iterator src_i = src_.begin();
+    //  	  src_i != src_.end(); ++src_i ) {
+    for ( typename vInputToken::const_iterator src_i = src_token_.begin();
+	  src_i != src_token_.end(); ++src_i ) {
       edm::Handle<METCollection> inputMETs;
-      evt.getByLabel(*src_i, inputMETs);
+      //      evt.getByLabel(*src_i, inputMETs);
+      evt.getByToken(*src_i, inputMETs);
       if ( numMEtObjects == -1 ) numMEtObjects = inputMETs->size();
       else if ( numMEtObjects != (int)inputMETs->size() )
 	throw cms::Exception("MinMETProducer::produce")
@@ -61,10 +66,13 @@ class MinMETProducerT : public edm::EDProducer
 
     for ( int iMEtObject = 0; iMEtObject < numMEtObjects; ++iMEtObject ) {
       const T* minMET = 0;
-      for ( vInputTag::const_iterator src_i = src_.begin();
-	    src_i != src_.end(); ++src_i ) {
+      //      for ( vInputTag::const_iterator src_i = src_.begin();
+      //	    src_i != src_.end(); ++src_i ) {
+      for ( typename vInputToken::const_iterator src_i = src_token_.begin();
+	    src_i != src_token_.end(); ++src_i ) {
 	edm::Handle<METCollection> inputMETs;
-	evt.getByLabel(*src_i, inputMETs);
+	//	evt.getByLabel(*src_i, inputMETs);
+	evt.getByToken(*src_i, inputMETs);
 	const T& inputMET = inputMETs->at(iMEtObject);
 	if ( minMET == 0 || inputMET.pt() < minMET->pt() ) minMET = &inputMET;
       }
@@ -79,6 +87,8 @@ class MinMETProducerT : public edm::EDProducer
 
   typedef std::vector<edm::InputTag> vInputTag;
   vInputTag src_;
+  typedef std::vector<edm::EDGetTokenT<METCollection> > vInputToken;
+  vInputToken src_token_;
 };
 
 #include "DataFormats/METReco/interface/CaloMET.h"

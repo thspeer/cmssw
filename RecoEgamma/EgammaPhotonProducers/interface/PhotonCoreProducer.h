@@ -3,14 +3,11 @@
 /** \class PhotonCoreProducer
  **  
  **
- **  $Id: PhotonCoreProducer.h,v 1.4 2013/02/27 20:33:00 eulisse Exp $ 
- **  $Date: 2013/02/27 20:33:00 $ 
- **  $Revision: 1.4 $
  **  \author Nancy Marinelli, U. of Notre Dame, US
  **
  ***/
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -25,13 +22,12 @@
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "RecoEcal/EgammaCoreTools/interface/PositionCalc.h"
 #include "DataFormats/EgammaReco/interface/ElectronSeedFwd.h"
-#include "RecoCaloTools/MetaCollections/interface/CaloRecHitMetaCollections.h"
 #include "RecoEgamma/EgammaTools/interface/HoECalculator.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "RecoEgamma/PhotonIdentification/interface/PhotonIsolationCalculator.h"
 
 // PhotonCoreProducer inherits from EDProducer, so it can be a module:
-class PhotonCoreProducer : public edm::EDProducer {
+class PhotonCoreProducer : public edm::stream::EDProducer<> {
 
  public:
 
@@ -55,16 +51,13 @@ class PhotonCoreProducer : public edm::EDProducer {
 
 
   std::string PhotonCoreCollection_;
-  edm::InputTag scHybridBarrelProducer_;
-  edm::InputTag scIslandEndcapProducer_;
-  edm::InputTag scHybridBarrelCollection_;
-  edm::InputTag scIslandEndcapCollection_;
-
-  edm::InputTag conversionProducer_;
+  edm::EDGetTokenT<reco::SuperClusterCollection> scHybridBarrelProducer_;
+  edm::EDGetTokenT<reco::SuperClusterCollection> scIslandEndcapProducer_;
+  edm::EDGetTokenT<reco::ConversionCollection> conversionProducer_;
+  edm::EDGetTokenT<reco::ElectronSeedCollection> pixelSeedProducer_;
 
   double minSCEt_;
   bool validConversions_;
-  std::string pixelSeedProducer_;
   edm::ParameterSet conf_;
   bool validPixelSeeds_;
   bool risolveAmbiguity_;

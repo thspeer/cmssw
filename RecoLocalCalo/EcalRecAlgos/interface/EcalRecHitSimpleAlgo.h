@@ -4,9 +4,6 @@
 /** \class EcalRecHitSimpleAlgo
   *  Simple algoritm to make rechits from uncalibrated rechits
   *
-  *  $Id: EcalRecHitSimpleAlgo.h,v 1.17 2012/02/17 21:28:12 franzoni Exp $
-  *  $Date: 2012/02/17 21:28:12 $
-  *  $Revision: 1.17 $
   *  \author Shahram Rahatlou, University of Rome & INFN, March 2006
   */
 
@@ -50,7 +47,7 @@ class EcalRecHitSimpleAlgo : public EcalRecHitAbsAlgo {
     EcalRecHit rh( uncalibRH.id(), energy, time );
     rh.setChi2( uncalibRH.chi2() );
     rh.setOutOfTimeEnergy( uncalibRH.outOfTimeEnergy() * adcToGeVConstant_ * intercalibConstant );
-    rh.setOutOfTimeChi2( uncalibRH.outOfTimeChi2() );
+    /* rh.setOutOfTimeChi2( uncalibRH.outOfTimeChi2() ); */
     rh.setTimeError(uncalibRH.jitterErrorBits());
 
     // Now fill flags

@@ -106,6 +106,8 @@ GctRawToDigi::GctRawToDigi(const edm::ParameterSet& iConfig) :
   
   // Error collection
   produces<L1TriggerErrorCollection>();
+  usesResource("GctRawToDigi");
+  consumes<FEDRawDataCollection>(inputLabel_);
 }
 
 

@@ -8,8 +8,8 @@
  *   An automatic check is done for the calo eta scales.
 */                  
 //
-//   $Date: 2008/04/16 23:25:10 $
-//   $Revision: 1.2 $
+//   $Date: 2007/03/23 15:22:01 $
+//   $Revision: 1.1 $
 //
 //
 //   Original Author :
@@ -21,6 +21,8 @@
 //--------------------------------------------------
 #ifndef CondFormatsL1TObjects_L1MuGMTScales_h
 #define CondFormatsL1TObjects_L1MuGMTScales_h
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <cmath>
 #include <iostream>
@@ -236,6 +238,8 @@ class L1MuGMTScales {
   L1MuBinnedScale m_DeltaPhiScale;
   L1MuSymmetricBinnedScale m_OvlEtaScale[4];
 /*   L1MuBinnedScale m_CaloEtaScale; */
+
+ COND_SERIALIZABLE;
 };
 
 

@@ -1,9 +1,4 @@
-// $Id: HLTScalers.cc,v 1.31 2011/04/01 09:47:00 rekovic Exp $
 // 
-// $Log: HLTScalers.cc,v $
-// Revision 1.31  2011/04/01 09:47:00  rekovic
-// Check if stream A exists before quering for its PD content
-//
 // Revision 1.30  2011/03/30 21:44:03  fwyzard
 // make sure HLTConfigProvider is used only if succesfully initialized
 //
@@ -89,7 +84,7 @@ HLTScalers::HLTScalers(const edm::ParameterSet &ps):
   folderName_(ps.getUntrackedParameter<std::string>("dqmFolder", "HLT/HLTScalers_EvF")),
   processname_(ps.getParameter<std::string>("processname")),
   pairPDPaths_(),
-  trigResultsSource_(ps.getParameter<edm::InputTag>("triggerResults")),
+  trigResultsSource_(consumes<TriggerResults>(ps.getParameter<edm::InputTag>("triggerResults"))),
   dbe_(0),
   scalersN_(0),
   scalersException_(0),
@@ -150,10 +145,13 @@ void HLTScalers::analyze(const edm::Event &e, const edm::EventSetup &c)
                                    // it just tells you how the merging is doing.
 
   edm::Handle<TriggerResults> hltResults;
-  bool b = e.getByLabel(trigResultsSource_, hltResults);
+  bool b = e.getByToken(trigResultsSource_, hltResults);
   if ( !b ) {
+    Labels l;
+    labelsForToken(trigResultsSource_, l);
+
     edm::LogInfo("HLTScalers") << "getByLabel for TriggerResults failed"
-                               << " with label " << trigResultsSource_;
+                               << " with label " << l.module;
     return;
   }
   

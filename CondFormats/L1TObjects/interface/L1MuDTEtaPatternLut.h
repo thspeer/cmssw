@@ -5,8 +5,8 @@
  *   Look-up table for eta track finder
  *
  *
- *   $Date: 2008/04/09 15:22:31 $
- *   $Revision: 1.3 $
+ *   $Date: 2007/03/30 07:48:02 $
+ *   $Revision: 1.1 $
  *
  *   N. Neumeister            CERN EP
  */
@@ -18,6 +18,8 @@
 //---------------
 // C++ Headers --
 //---------------
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <map>
 
@@ -75,6 +77,8 @@ class L1MuDTEtaPatternLut {
 
     LUT m_lut;
     
+
+  COND_SERIALIZABLE;
 };
 
 #endif

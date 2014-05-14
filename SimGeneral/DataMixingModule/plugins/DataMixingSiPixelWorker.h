@@ -17,6 +17,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventPrincipal.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "DataFormats/Provenance/interface/ProductID.h"
 #include "DataFormats/Common/interface/Handle.h"
@@ -32,6 +33,8 @@
 
 namespace edm
 {
+  class ModuleCallingContext;
+
   class DataMixingSiPixelWorker
     {
     public:
@@ -39,14 +42,14 @@ namespace edm
       DataMixingSiPixelWorker();
 
      /** standard constructor*/
-      explicit DataMixingSiPixelWorker(const edm::ParameterSet& ps);
+      explicit DataMixingSiPixelWorker(const edm::ParameterSet& ps, edm::ConsumesCollector && iC);
 
       /**Default destructor*/
       virtual ~DataMixingSiPixelWorker();
 
       void putSiPixel(edm::Event &e) ;
       void addSiPixelSignals(const edm::Event &e); 
-      void addSiPixelPileups(const int bcr, const edm::EventPrincipal*,unsigned int EventId);
+      void addSiPixelPileups(const int bcr, const edm::EventPrincipal*,unsigned int EventId, ModuleCallingContext const*);
 
 
     private:
@@ -55,6 +58,9 @@ namespace edm
       edm::InputTag pixeldigi_collectionSig_ ; // secondary name given to collection of SiPixel digis
       edm::InputTag pixeldigi_collectionPile_ ; // secondary name given to collection of SiPixel digis
       std::string PixelDigiCollectionDM_  ; // secondary name to be given to new SiPixel digis
+
+      edm::EDGetTokenT<edm::DetSetVector<PixelDigi> > PixelDigiToken_ ;  // Token to retrieve information 
+      edm::EDGetTokenT<edm::DetSetVector<PixelDigi> > PixelDigiPToken_ ;  // Token to retrieve information 
 
       // 
 

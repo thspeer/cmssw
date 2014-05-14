@@ -1,9 +1,11 @@
 #ifndef CondFormats_EcalObjects_EcalXtalGroupId_H
 #define CondFormats_EcalObjects_EcalXtalGroupId_H
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 /**
  * Author: Shahram Rahatlou, University of Rome & INFN
  * Created: 22 Feb 2006
- * $Id: EcalXtalGroupId.h,v 1.4 2007/06/29 12:27:00 innocent Exp $
+ * $Id: EcalXtalGroupId.h,v 1.3 2006/02/23 16:56:34 rahatlou Exp $
  **/
 
 class EcalXtalGroupId {
@@ -22,5 +24,7 @@ public:
 private:
   unsigned int id_;
   
+
+  COND_SERIALIZABLE;
 };
 #endif

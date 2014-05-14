@@ -4,13 +4,18 @@
 /** \class DTDigiAnalyzer
  *  Analyse the the muon-drift-tubes digitizer. 
  *  
- *  $Date: 2007/05/11 14:44:38 $
- *  $Revision: 1.4 $
  *  \authors: R. Bellan
  */
 
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+
 #include <FWCore/Framework/interface/EDAnalyzer.h>
 #include <DataFormats/MuonDetId/interface/DTWireId.h>
+#include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHit.h"
+#include "DataFormats/DTDigi/interface/DTDigiCollection.h"
+
+
 
 class TH1F;
 class TFile;
@@ -41,6 +46,10 @@ class DTDigiAnalyzer : public edm::EDAnalyzer{
   //  DTMCStatistics        *MCStatistics;
   // DTMuonDigiStatistics  *MuonDigiStatistics;
   // DTHitsAnalysis        *HitsAnalysis;
+
+  edm::EDGetTokenT< edm::PSimHitContainer > psim_token;
+  edm::EDGetTokenT< DTDigiCollection > DTd_token;
+
   
 };
 

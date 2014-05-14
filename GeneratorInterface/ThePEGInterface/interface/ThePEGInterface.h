@@ -2,7 +2,6 @@
 #define GeneratorInterface_ThePEGInterface_ThePEGInterface_h
 
 /** \class ThePEGInterface
- *  $Id: ThePEGInterface.h,v 1.11 2009/11/04 18:28:40 stober Exp $
  *  
  *  Oliver Oberst <oberst@ekp.uni-karlsruhe.de>
  *  Fred-Markus Stober <stober@ekp.uni-karlsruhe.de>
@@ -24,10 +23,16 @@
 
 #include "GeneratorInterface/ThePEGInterface/interface/RandomEngineGlue.h"
 
+namespace CLHEP {
+  class HepRandomEngine;
+}
+
 class ThePEGInterface {
     public:
 	ThePEGInterface(const edm::ParameterSet &params);
 	virtual ~ThePEGInterface();
+
+        void setPEGRandomEngine(CLHEP::HepRandomEngine*);
 
     protected:
 	void initRepository(const edm::ParameterSet &params) const;

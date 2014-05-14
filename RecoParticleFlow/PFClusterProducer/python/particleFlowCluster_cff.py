@@ -9,22 +9,33 @@ from RecoParticleFlow.PFClusterProducer.particleFlowRecHitHCAL_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowRecHitHO_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowRecHitPS_cfi import *
 
-from RecoParticleFlow.PFClusterProducer.particleFlowClusterECAL_cfi import *
+from RecoParticleFlow.PFClusterProducer.particleFlowClusterECAL_cff import *
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterHCAL_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterHO_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterPS_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterHFEM_cfi import *
 from RecoParticleFlow.PFClusterProducer.particleFlowClusterHFHAD_cfi import *
 
-pfClusteringECAL = cms.Sequence(particleFlowRecHitECAL*particleFlowClusterECAL)
-#pfClusteringHCAL = cms.Sequence(particleFlowRecHitHCAL*particleFlowClusterHCAL)
+from RecoParticleFlow.PFClusterProducer.particleFlowRecHitECALWithTime_cfi import *
+from RecoParticleFlow.PFClusterProducer.particleFlowClusterECALWithTime_cff import *
+
+withTime = False
+if withTime:
+    pfClusteringECAL = cms.Sequence(particleFlowRecHitECALWithTime*
+                                     particleFlowClusterECALWithTimeSequence)
+    particleFlowClusterECAL.inputECAL = cms.InputTag('particleFlowClusterECALWithTimeSelected')
+else:
+    pfClusteringECAL = cms.Sequence(particleFlowRecHitECAL*
+                                    particleFlowClusterECALSequence)
+
+pfClusteringHCAL = cms.Sequence(particleFlowRecHitHCAL*particleFlowClusterHCAL)
 pfClusteringHCALall = cms.Sequence(particleFlowClusterHCAL+particleFlowClusterHFHAD+particleFlowClusterHFEM)
 pfClusteringHCAL = cms.Sequence(particleFlowRecHitHCAL*pfClusteringHCALall)
+
 pfClusteringHO = cms.Sequence(particleFlowRecHitHO*particleFlowClusterHO)
 
 #pfClusteringHCAL = cms.Sequence(particleFlowRecHitHCAL*particleFlowClusterHCAL*particleFlowClusterHFHAD*particleFlowClusterHFEM)
 pfClusteringPS = cms.Sequence(particleFlowRecHitPS*particleFlowClusterPS)
-
 
 towerMakerPF = calotowermaker.clone()
 
@@ -81,18 +92,18 @@ towerMakerPF.AllowMissingInputs = False
 particleFlowClusterWithoutHO = cms.Sequence(
     #caloTowersRec*
     towerMakerPF*
+    pfClusteringPS*
     pfClusteringECAL*
-    pfClusteringHCAL*
-    pfClusteringPS
+    pfClusteringHCAL
 )
 
 particleFlowCluster = cms.Sequence(
     #caloTowersRec*
     towerMakerPF*
+    pfClusteringPS*
     pfClusteringECAL*
     pfClusteringHCAL*
-    pfClusteringHO*
-    pfClusteringPS
+    pfClusteringHO 
 )
 
 

@@ -8,7 +8,6 @@
  *
  * \author Luca Lista, INFN
  *
- * \version $Id: CompositeRefCandidateT.h,v 1.15 2012/04/07 05:54:55 davidlt Exp $
  *
  */
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
@@ -79,6 +78,7 @@ namespace reco {
     /// set mother product ID
     void resetMothers( const edm::ProductID & id ) { mom = mothers( id ); }
 
+    CMS_CLASS_VERSION(10)
 
   private:
     /// const iterator implementation

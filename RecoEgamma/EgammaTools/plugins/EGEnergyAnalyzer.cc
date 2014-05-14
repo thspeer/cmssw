@@ -1,4 +1,4 @@
-// -*- C++ -*-
+ // -*- C++ -*-
 //
 // Package:    EGEnergyAnalyzer
 // Class:      EGEnergyAnalyzer
@@ -13,7 +13,6 @@
 //
 // Original Author:  Josh Bendavid
 //         Created:  Tue Nov  8 22:26:45 CET 2011
-// $Id: EGEnergyAnalyzer.cc,v 1.3 2011/12/14 21:08:11 bendavid Exp $
 //
 //
 
@@ -47,45 +46,34 @@
 //
 
 class EGEnergyAnalyzer : public edm::EDAnalyzer {
-   public:
-      explicit EGEnergyAnalyzer(const edm::ParameterSet&);
-      ~EGEnergyAnalyzer();
-
-      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-
-
-   private:
-      virtual void beginJob() ;
-      virtual void analyze(const edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
-
-      virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-      virtual void endRun(edm::Run const&, edm::EventSetup const&);
-      virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-      virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-
-      EGEnergyCorrector corfile;
-      EGEnergyCorrector cordb;
-
-      // ----------member data ---------------------------
+public:
+  explicit EGEnergyAnalyzer(const edm::ParameterSet&);
+  ~EGEnergyAnalyzer();
+  
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  
+  
+private:
+  virtual void beginJob() override ;
+  virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+  virtual void endJob() override ;
+  
+  virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
+  virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
+  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
+  virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
+  
+  EGEnergyCorrector corfile;
+  EGEnergyCorrector cordb;
+  
+  edm::EDGetTokenT<EcalRecHitCollection> ebRHToken_, eeRHToken_;
 };
 
-//
-// constants, enums and typedefs
-//
 
-//
-// static data member definitions
-//
+EGEnergyAnalyzer::EGEnergyAnalyzer(const edm::ParameterSet& iConfig) {
 
-//
-// constructors and destructor
-//
-EGEnergyAnalyzer::EGEnergyAnalyzer(const edm::ParameterSet& iConfig)
-
-{
-   //now do what ever initialization is needed
-
+  ebRHToken_ = consumes<EcalRecHitCollection>(edm::InputTag("reducedEcalRecHitsEB"));
+  eeRHToken_ = consumes<EcalRecHitCollection>(edm::InputTag("reducedEcalRecHitsEE"));
 }
 
 
@@ -122,8 +110,7 @@ EGEnergyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   Handle<reco::PhotonCollection> hPhotonProduct;
   iEvent.getByLabel("photons",hPhotonProduct);
   
-  EcalClusterLazyTools lazyTools(iEvent, iSetup, edm::InputTag("reducedEcalRecHitsEB"), 
-                                 edm::InputTag("reducedEcalRecHitsEE"));  
+  EcalClusterLazyTools lazyTools(iEvent, iSetup, ebRHToken_, eeRHToken_);
   
   Handle<reco::VertexCollection> hVertexProduct;
   iEvent.getByLabel("offlinePrimaryVerticesWithBS", hVertexProduct);      

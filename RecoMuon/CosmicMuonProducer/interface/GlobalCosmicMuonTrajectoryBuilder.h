@@ -4,11 +4,9 @@
 /** \file GlobalCosmicMuonTrajectoryBuilder
  *  class to build combined trajectory from cosmic tracks in tk and mu
  *
- *  $Date: 2009/04/15 09:41:24 $
- *  $Revision: 1.15 $
  *  \author Chang Liu  -  Purdue University
  */
-
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "RecoMuon/TrackingTools/interface/MuonTrajectoryBuilder.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -46,7 +44,7 @@ public:
   typedef std::pair<const Trajectory*,reco::TrackRef> TrackCand;
 
   /// Constructor
-  GlobalCosmicMuonTrajectoryBuilder(const edm::ParameterSet&,const MuonServiceProxy* service);
+  GlobalCosmicMuonTrajectoryBuilder(const edm::ParameterSet&,const MuonServiceProxy* service,edm::ConsumesCollector& iC);
 
   /// Destructor
   virtual ~GlobalCosmicMuonTrajectoryBuilder();
@@ -72,7 +70,7 @@ private:
 
   CosmicMuonSmoother* smoother() const {return theSmoother;}
 
-  CosmicMuonUtilities* utilities() const {return smoother()->utilities();}
+  const CosmicMuonUtilities* utilities() const {return smoother()->utilities();}
 
   bool isTraversing(const reco::Track& tk) const;
 
@@ -83,7 +81,7 @@ private:
   GlobalMuonTrackMatcher* theTrackMatcher;
 
   std::string thePropagatorName;
-  edm::InputTag theTkTrackLabel;
+  edm::EDGetTokenT<reco::TrackCollection> theTkTrackToken;
 
   std::string theTrackerRecHitBuilderName;
   edm::ESHandle<TransientTrackingRecHitBuilder> theTrackerRecHitBuilder;

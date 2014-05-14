@@ -5,8 +5,8 @@
  *   Look-up tables for extrapolation
  *
  *
- *   $Date: 2008/04/09 15:34:54 $
- *   $Revision: 1.5 $
+ *   $Date: 2008/04/09 15:22:31 $
+ *   $Revision: 1.4 $
  *
  *   N. Neumeister            CERN EP
  */
@@ -18,6 +18,8 @@
 //---------------
 // C++ Headers --
 //---------------
+
+#include "CondFormats/Serialization/interface/Serializable.h"
 
 #include <vector>
 #include <map>
@@ -48,7 +50,9 @@ class L1MuDTExtLut {
 
         LUTmap low;
         LUTmap high;
-    };
+    
+    COND_SERIALIZABLE;
+};
 
     /// constructor
     L1MuDTExtLut();
@@ -83,6 +87,8 @@ class L1MuDTExtLut {
     unsigned short int nbit_phi;
     unsigned short int nbit_phib;
     
+
+  COND_SERIALIZABLE;
 };
 
 #endif

@@ -1,7 +1,5 @@
 /** \file
  *
- *  $Date: 2012/05/01 09:45:52 $
- *  $Revision: 1.16 $
  */
 
 #include "RecoMuon/TransientTrackingRecHit/interface/MuonTransientTrackingRecHit.h"
@@ -21,10 +19,10 @@ typedef MuonTransientTrackingRecHit::RecHitContainer   MuonRecHitContainer;
 
 
 MuonTransientTrackingRecHit::MuonTransientTrackingRecHit(const GeomDet* geom, const TrackingRecHit* rh) :
-  GenericTransientTrackingRecHit(geom,*rh){}
+  GenericTransientTrackingRecHit(*geom,*rh){}
 
 MuonTransientTrackingRecHit::MuonTransientTrackingRecHit(const MuonTransientTrackingRecHit& other ) :
-  GenericTransientTrackingRecHit(other.det(), *(other.hit())) {}
+  GenericTransientTrackingRecHit(*other.det(), *(other.hit())) {}
 
 
 LocalVector MuonTransientTrackingRecHit::localDirection() const {
@@ -120,7 +118,7 @@ TransientTrackingRecHit::ConstRecHitContainer MuonTransientTrackingRecHit::trans
   std::vector<const TrackingRecHit*> ownRecHits = recHits();
 
   if(ownRecHits.size() == 0){
-    theSubTransientRecHits.push_back(this);
+    theSubTransientRecHits.push_back(TransientTrackingRecHit::RecHitPointer(clone()));
     return theSubTransientRecHits;
   }
   
@@ -161,11 +159,11 @@ TransientTrackingRecHit::ConstRecHitContainer MuonTransientTrackingRecHit::trans
     gemDetMap_iter = gemDetMap.find( (*rechit)->geographicalId() );
     
     if(gemDetMap_iter != gemDetMap.end() )
-      theSubTransientRecHits.push_back(new MuonTransientTrackingRecHit(gemDetMap_iter->second, 
-									 *rechit) );
+      theSubTransientRecHits.push_back(TransientTrackingRecHit::RecHitPointer(new MuonTransientTrackingRecHit(gemDetMap_iter->second, 
+									 *rechit)) );
     else if( (*rechit)->geographicalId() == det()->geographicalId() ) // Phi in DT is on Chamber
-      theSubTransientRecHits.push_back(new MuonTransientTrackingRecHit(det(), 
-								       *rechit) );
+      theSubTransientRecHits.push_back(TransientTrackingRecHit::RecHitPointer(new MuonTransientTrackingRecHit(det(), 
+								       *rechit)) );
   }
   return theSubTransientRecHits;
 

@@ -4,40 +4,35 @@
 /** \class HLTMuonMatchAndPlot
  *  Match reconstructed muons to HLT objects and plot efficiencies.
  *
- *  Note that this is not a true EDAnalyzer; rather, the intent is that one
- *  EDAnalyzer would call a separate instantiation of HLTMuonMatchAndPlot
- *  for each HLT path under consideration.
+ *  Note that this is not a true EDAnalyzer;
  *
  *  Documentation available on the CMS TWiki:
  *  https://twiki.cern.ch/twiki/bin/view/CMS/MuonHLTOfflinePerformance
  *
- *  $Date: 2011/05/27 13:38:18 $
- *  $Revision: 1.18 $
  *  
  *  \author  J. Slaunwhite, Jeff Klukas
  */
 
 // Base Class Headers
 
-//#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
-//#include "DataFormats/Common/interface/RefToBase.h"
-//#include "DataFormats/TrackReco/interface/Track.h"
-//#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/Common/interface/Handle.h"
 
 #include "DQMServices/Core/interface/DQMStore.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
 
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
+#include "DataFormats/HLTReco/interface/TriggerEventWithRefs.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/HLTReco/interface/TriggerObject.h"
-#include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
@@ -50,7 +45,6 @@
 #include "TPRegexp.h"
 
 
-
 //////////////////////////////////////////////////////////////////////////////
 //////// Typedefs and Constants //////////////////////////////////////////////
 
@@ -61,34 +55,37 @@ const std::string EFFICIENCY_SUFFIXES[2] = {"denom", "numer"};
 
 
 //////////////////////////////////////////////////////////////////////////////
-//////// Class Definition ////////////////////////////////////////////////////
+//////// HLTMuonMatchAndPlot Class Definition ////////////////////////////////
 
-class HLTMuonMatchAndPlot {
+class HLTMuonMatchAndPlot 
+{
 
  public:
 
   /// Constructor
   HLTMuonMatchAndPlot(const edm::ParameterSet &, std::string,
-                      std::vector<std::string>);
+                      const std::vector<std::string>&);
 
   // Analyzer Methods
-  void beginRun(const edm::Run &, const edm::EventSetup &);
-  void analyze(const edm::Event &, const edm::EventSetup &);
+  void beginRun(DQMStore::IBooker &, const edm::Run &, const edm::EventSetup &);
+  void analyze(edm::Handle<reco::MuonCollection> &, edm::Handle<reco::BeamSpot> &, 
+	       edm::Handle<reco::VertexCollection> &, edm::Handle<trigger::TriggerEvent> &, 
+	       edm::Handle<edm::TriggerResults> &);
   void endRun(const edm::Run &, const edm::EventSetup &);
 
   // Helper Methods
-  void fillEdges(size_t & nBins, float * & edges, std::vector<double> binning);
+  void fillEdges(size_t & nBins, float * & edges, const std::vector<double>& binning);
   template <class T> void 
-    fillMapFromPSet(std::map<std::string, T> &, edm::ParameterSet, std::string);
+    fillMapFromPSet(std::map<std::string, T> &, const edm::ParameterSet&, std::string);
   template <class T1, class T2> std::vector<size_t> 
     matchByDeltaR(const std::vector<T1> &, const std::vector<T2> &, 
                   const double maxDeltaR = NOMATCH);
-
+  
  private:
 
   // Internal Methods
-  void book1D(std::string, std::string, std::string);
-  void book2D(std::string, std::string, std::string, std::string);
+  void book1D(DQMStore::IBooker &, std::string, std::string, std::string);
+  void book2D(DQMStore::IBooker &, std::string, std::string, std::string, std::string);
   reco::MuonCollection selectedMuons(
     const reco::MuonCollection &,
     const reco::BeamSpot &,
@@ -104,7 +101,6 @@ class HLTMuonMatchAndPlot {
   std::string hltProcessName_;
   std::string destination_;
   std::vector<std::string> requiredTriggers_;
-  std::map<std::string, edm::InputTag> inputTags_;
   std::map<std::string, std::vector<double> > binParams_;
   std::map<std::string, double> plotCuts_;
   edm::ParameterSet targetParams_;
@@ -115,7 +111,6 @@ class HLTMuonMatchAndPlot {
   unsigned int cutMinPt_;
   std::string hltPath_;
   std::vector<std::string> moduleLabels_;
-  DQMStore * dbe_;
   std::map<std::string, MonitorElement *> hists_;
   
   // Selectors
@@ -128,6 +123,7 @@ class HLTMuonMatchAndPlot {
   StringCutObjectSelector<reco::Muon> probeMuonSelector_;
   double probeZ0Cut_; 
   double probeD0Cut_;
+
 };
 
 #endif

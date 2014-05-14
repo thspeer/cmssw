@@ -35,8 +35,8 @@ using namespace edm;
 
 DeDxDiscriminatorLearner::DeDxDiscriminatorLearner(const edm::ParameterSet& iConfig) : ConditionDBWriter<PhysicsTools::Calibration::HistogramD3D>(iConfig)
 {
-   m_tracksTag                 = iConfig.getParameter<edm::InputTag>("tracks");
-   m_trajTrackAssociationTag   = iConfig.getParameter<edm::InputTag>("trajectoryTrackAssociation");
+   m_tracksTag                 = consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("tracks"));
+   m_trajTrackAssociationTag   = consumes<TrajTrackAssociationCollection>(iConfig.getParameter<edm::InputTag>("trajectoryTrackAssociation"));
 
    usePixel = iConfig.getParameter<bool>("UsePixel"); 
    useStrip = iConfig.getParameter<bool>("UseStrip");
@@ -79,7 +79,7 @@ void  DeDxDiscriminatorLearner::algoBeginJob(const edm::EventSetup& iSetup)
    iSetup.get<TrackerDigiGeometryRecord>().get( tkGeom );
    m_tracker = tkGeom.product();
 
-   vector<GeomDet*> Det = tkGeom->dets();
+   auto const & Det = tkGeom->dets();
    for(unsigned int i=0;i<Det.size();i++){
       DetId  Detid  = Det[i]->geographicalId();
       int    SubDet = Detid.subdetId();
@@ -87,7 +87,7 @@ void  DeDxDiscriminatorLearner::algoBeginJob(const edm::EventSetup& iSetup)
       if( SubDet == StripSubdetector::TIB ||  SubDet == StripSubdetector::TID ||
           SubDet == StripSubdetector::TOB ||  SubDet == StripSubdetector::TEC  ){
 
-          StripGeomDetUnit* DetUnit     = dynamic_cast<StripGeomDetUnit*> (Det[i]);
+          auto DetUnit     = dynamic_cast<StripGeomDetUnit const*> (Det[i]);
           if(!DetUnit)continue;
 
           const StripTopology& Topo     = DetUnit->specificTopology();
@@ -137,11 +137,11 @@ void DeDxDiscriminatorLearner::algoAnalyze(const edm::Event& iEvent, const edm::
 
 
   Handle<TrajTrackAssociationCollection> trajTrackAssociationHandle;
-  iEvent.getByLabel(m_trajTrackAssociationTag, trajTrackAssociationHandle);
+  iEvent.getByToken(m_trajTrackAssociationTag, trajTrackAssociationHandle);
   const TrajTrackAssociationCollection TrajToTrackMap = *trajTrackAssociationHandle.product();
 
   edm::Handle<reco::TrackCollection> trackCollectionHandle;
-  iEvent.getByLabel(m_tracksTag,trackCollectionHandle);
+  iEvent.getByToken(m_tracksTag,trackCollectionHandle);
 
   unsigned track_index = 0;
   for(TrajTrackAssociationCollection::const_iterator it = TrajToTrackMap.begin(); it!=TrajToTrackMap.end(); ++it, track_index++) {
@@ -186,7 +186,7 @@ void DeDxDiscriminatorLearner::Learn(const SiStripCluster*   cluster,TrajectoryS
    LocalVector             trackDirection = trajState.localDirection();
    double                  cosine         = trackDirection.z()/trackDirection.mag();
    const vector<uint8_t>&  ampls          = cluster->amplitudes();
-   uint32_t                detId          = cluster->geographicalId();
+   uint32_t                detId          = 0; // zero since long time cluster->geographicalId();
    int                     firstStrip     = cluster->firstStrip();
    stModInfo* MOD                         = MODsColl[detId];
    // Sanity Checks

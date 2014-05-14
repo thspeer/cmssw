@@ -16,7 +16,6 @@
 //
 // Original Author:  Jim Brooke
 //         Created:  Wed Nov  1 11:57:10 CET 2006
-// $Id: GctRawToDigi.h,v 1.34 2010/02/11 00:11:41 wmtan Exp $
 //
 //
 
@@ -27,7 +26,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/one/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
@@ -42,7 +41,7 @@
 // ***  THE UNPACK PROCESS MUST NEVER THROW ANY KIND OF EXCEPTION! *** 
 // *******************************************************************
 
-class GctRawToDigi : public edm::EDProducer
+class GctRawToDigi : public edm::one::EDProducer<edm::one::SharedResources>
 {
 public:
 

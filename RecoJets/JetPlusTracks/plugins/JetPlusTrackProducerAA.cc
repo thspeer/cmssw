@@ -13,7 +13,6 @@
 //
 // Original Author:  Olga Kodolova,40 R-A12,+41227671273,
 //         Created:  Fri Feb 19 10:14:02 CET 2010
-// $Id: JetPlusTrackProducerAA.cc,v 1.10 2012/10/18 08:46:42 eulisse Exp $
 //
 //
 
@@ -92,11 +91,15 @@ JetPlusTrackProducerAA::JetPlusTrackProducerAA(const edm::ParameterSet& iConfig)
 //=>
    mExtrapolations = iConfig.getParameter<edm::InputTag> ("extrapolations");
 //=>
-   mJPTalgo  = new JetPlusTrackCorrector(iConfig);
+   mJPTalgo  = new JetPlusTrackCorrector(iConfig, consumesCollector());
    if(useZSP) mZSPalgo  = new ZSPJPTJetCorrector(iConfig);
 
    produces<reco::JPTJetCollection>().setBranchAlias(alias); 
-     
+
+   input_jets_token_ = consumes<edm::View<reco::CaloJet> >(src);
+   input_vertex_token_ = consumes<reco::VertexCollection>(srcPVs_);
+   input_tracks_token_ = consumes<reco::TrackCollection>(mTracks);
+   input_extrapolations_token_ = consumes<std::vector<reco::TrackExtrapolation> >(mExtrapolations);
 }
 
 
@@ -124,10 +127,10 @@ JetPlusTrackProducerAA::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 // get stuff from Event
   edm::Handle <edm::View <reco::CaloJet> > jets_h;
-  iEvent.getByLabel (src, jets_h);
+  iEvent.getByToken (input_jets_token_, jets_h);
   
   edm::Handle <reco::TrackCollection> tracks_h;
-  iEvent.getByLabel (mTracks, tracks_h);
+  iEvent.getByToken (input_tracks_token_, tracks_h);
   
   std::vector <reco::TrackRef> fTracks;
   fTracks.reserve (tracks_h->size());
@@ -137,7 +140,7 @@ JetPlusTrackProducerAA::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 //=>
   edm::Handle <std::vector<reco::TrackExtrapolation> > extrapolations_h;
-  iEvent.getByLabel (mExtrapolations, extrapolations_h);
+  iEvent.getByToken(input_extrapolations_token_, extrapolations_h);
 
 //  std::cout<<"JetPlusTrackProducerAA::produce, extrapolations_h="<<extrapolations_h->size()<<std::endl;  
 //=>
@@ -309,7 +312,7 @@ JetPlusTrackProducerAA::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
    
 // If we add primary vertex
    edm::Handle<reco::VertexCollection> pvCollection;
-   iEvent.getByLabel(srcPVs_,pvCollection);
+   iEvent.getByToken(input_vertex_token_, pvCollection);
    if ( pvCollection.isValid() && pvCollection->size()>0 ) vertex_=pvCollection->begin()->position();
  
    reco::JPTJet fJet(p4, vertex_, specific, corrected.getJetConstituents()); 

@@ -5,8 +5,6 @@
 //   L1 DT Track Finder EDProducer
 //
 //
-//   $Date: 2008/02/18 17:38:03 $
-//   $Revision: 1.2 $
 //
 //   Author :
 //   J. Troconiz              UAM Madrid
@@ -37,8 +35,8 @@ DTTrackFinder::DTTrackFinder(const edm::ParameterSet & pset) {
   produces<L1MuDTTrackContainer>("DTTF");
   produces<vector<L1MuRegionalCand> >("DT");
 
-  setup1 = new L1MuDTTFSetup(pset);
-
+  setup1 = new L1MuDTTFSetup(pset,consumesCollector());
+  usesResource("DTTrackFinder");
 }
 
 DTTrackFinder::~DTTrackFinder() {

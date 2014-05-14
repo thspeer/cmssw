@@ -4,10 +4,10 @@
 /** \class DTDigiReader
  *  Analyse the the muon-drift-tubes digitizer. 
  *  
- *  $Date: 2006/08/01 15:24:06 $
- *  $Revision: 1.5 $
  *  \authors: R. Bellan
  */
+
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include <FWCore/Framework/interface/EDAnalyzer.h>
 #include <FWCore/Framework/interface/Event.h>
@@ -40,6 +40,8 @@ public:
     if(file->IsOpen()) cout<<"file open!"<<endl;
     else cout<<"*** Error in opening file ***"<<endl;
     label = pset.getUntrackedParameter<string>("label");
+    psim_token = consumes<PSimHitContainer>( edm::InputTag("g4SimHits","MuonDTHits") );
+    DTd_token = consumes<DTDigiCollection>( edm::InputTag(label) );
   }
   
   virtual ~DTDigiReader(){
@@ -53,15 +55,15 @@ public:
     // delete DigiTimeBox;
   }
   
-  void analyze(const Event & event, const EventSetup& eventSetup){
+  void analyze(const Event & event, const EventSetup& eventSetup) override{
     cout << "--- Run: " << event.id().run()
 	 << " Event: " << event.id().event() << endl;
     
     Handle<DTDigiCollection> dtDigis;
-    event.getByLabel(label, dtDigis);
+    event.getByToken(DTd_token, dtDigis);
      // event.getByLabel("MuonDTDigis", dtDigis);
     Handle<PSimHitContainer> simHits; 
-    event.getByLabel("g4SimHits","MuonDTHits",simHits);    
+    event.getByToken(psim_token,simHits);    
 
 
     DTDigiCollection::DigiRangeIterator detUnitIt;
@@ -117,6 +119,9 @@ private:
   TH1F *DigiTimeBoxW1;
   TH1F *DigiTimeBoxW2;
   TFile *file;
+
+  edm::EDGetTokenT< PSimHitContainer > psim_token;
+  edm::EDGetTokenT< DTDigiCollection > DTd_token;
   
 };
 
